@@ -13,7 +13,7 @@ class_name = "SignalingRoom"
 # Migrations for Durable Objects schema
 [[migrations]]
 tag = "v1"
-new_classes = ["SignalingRoom"]
+new_sqlite_classes = ["SignalingRoom"]
 
 # KV for storing room metadata (optional, for future features)
 # Set create_namespace = true to auto-create on first deploy
