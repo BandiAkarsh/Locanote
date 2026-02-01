@@ -1,0 +1,23 @@
+{
+  "name": "Locanote",
+  "short_name": "Locanote",
+  "description": "Local-first collaborative note-taking app with end-to-end encryption",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "lang": "en",
+  "dir": "ltr",
+  "orientation": "any",
+  "scope": "/",
+  "prefer_related_applications": false
+}

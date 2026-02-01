@@ -1,0 +1,19 @@
+# ============================================================================
+# PNPM WORKSPACE CONFIGURATION
+# ============================================================================
+# This file tells pnpm which folders contain packages in our mono-repo.
+# pnpm will automatically link these packages together, so they can import
+# from each other without publishing to npm.
+#
+# HOW IT WORKS:
+# - "apps/*" means every folder inside /apps is a package (our web app)
+# - "packages/*" means every folder inside /packages is a package (shared code)
+#
+# EXAMPLE:
+# If we have apps/web and packages/shared, the web app can import from shared
+# by adding "@locanote/shared" to its dependencies, and pnpm will link them.
+# ============================================================================
+
+packages:
+  - "apps/*"      # All folders in /apps are packages (web app, mobile app, etc.)
+  - "packages/*"  # All folders in /packages are shared libraries

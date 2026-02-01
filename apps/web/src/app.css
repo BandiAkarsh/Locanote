@@ -1,0 +1,184 @@
+/* ============================================================================
+GLOBAL CSS FILE (app.css)
+============================================================================
+This file contains global styles that apply to the entire application.
+It's imported in +layout.svelte so it loads on every page.
+
+TAILWIND CSS 4 SETUP:
+- @import "tailwindcss" imports all of Tailwind's utilities
+- @theme defines our custom design tokens (colors, fonts, etc.)
+
+WHY CSS VARIABLES?
+- Easy to change themes (light/dark mode)
+- Can be modified at runtime with JavaScript
+- Better performance than class swapping
+============================================================================ */
+
+/* ============================================================================
+TAILWIND CSS IMPORT
+============================================================================
+This single import brings in all of Tailwind's utility classes.
+Tailwind 4 automatically detects which classes you use and only includes those.
+============================================================================ */
+@import "tailwindcss";
+
+/* ============================================================================
+CUSTOM THEME CONFIGURATION
+============================================================================
+@theme defines design tokens that Tailwind uses to generate utility classes.
+
+WHAT ARE DESIGN TOKENS?
+- Predefined values for colors, spacing, fonts, etc.
+- Ensures consistency across the entire app
+- Example: --color-primary: #6366f1 → generates bg-primary, text-primary, etc.
+
+NAMING CONVENTION:
+- --color-* → Color tokens (generates bg-*, text-*, border-*)
+- --font-* → Font family tokens
+- --spacing-* → Spacing tokens (padding, margin, gap)
+============================================================================ */
+@theme {
+  /* ==========================================================================
+  BRAND COLORS
+  ==========================================================================
+  These are the main colors that define Locanote's visual identity.
+  We use Tailwind's indigo palette as our primary color.
+  ========================================================================== */
+  --color-primary: #6366f1;           /* Main brand color (indigo-500) */
+  --color-primary-hover: #4f46e5;     /* Darker shade for hover states (indigo-600) */
+  --color-primary-light: #a5b4fc;     /* Lighter shade for backgrounds (indigo-300) */
+
+  /* ==========================================================================
+  FONT FAMILIES
+  ==========================================================================
+  We use system fonts for fast loading and native look on each platform.
+  The font stack falls back through available fonts on the user's system.
+  ========================================================================== */
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+}
+
+/* ============================================================================
+BASE STYLES
+============================================================================
+These styles apply to HTML elements directly (without classes).
+Useful for setting defaults that apply everywhere.
+============================================================================ */
+@layer base {
+  /* --------------------------------------------------------------------------
+  HTML ROOT ELEMENT
+  --------------------------------------------------------------------------
+  Sets up smooth scrolling and prevents horizontal overflow.
+  -------------------------------------------------------------------------- */
+  html {
+    scroll-behavior: smooth;          /* Smooth scrolling for anchor links */
+    overflow-x: hidden;               /* Prevent horizontal scrollbar */
+  }
+
+  /* --------------------------------------------------------------------------
+  BODY ELEMENT
+  --------------------------------------------------------------------------
+  Sets the default font and ensures full height for flex layouts.
+  -------------------------------------------------------------------------- */
+  body {
+    font-family: var(--font-sans);    /* Use our sans-serif font stack */
+    min-height: 100vh;                /* Body is at least full viewport height */
+    min-height: 100dvh;               /* Dynamic viewport height (mobile fix) */
+    -webkit-font-smoothing: antialiased;           /* Smoother fonts on Mac */
+    -moz-osx-font-smoothing: grayscale;            /* Smoother fonts on Firefox Mac */
+  }
+
+  /* --------------------------------------------------------------------------
+  FOCUS STYLES
+  --------------------------------------------------------------------------
+  Custom focus ring for accessibility. Visible when using keyboard navigation.
+  -------------------------------------------------------------------------- */
+  :focus-visible {
+    outline: 2px solid var(--color-primary);       /* Indigo focus ring */
+    outline-offset: 2px;                           /* Space between element and ring */
+  }
+
+  /* --------------------------------------------------------------------------
+  SELECTION STYLES
+  --------------------------------------------------------------------------
+  Custom styling when user selects text.
+  -------------------------------------------------------------------------- */
+  ::selection {
+    background-color: var(--color-primary-light);  /* Light indigo background */
+    color: #1e1b4b;                                /* Dark indigo text */
+  }
+}
+
+/* ============================================================================
+CUSTOM UTILITY CLASSES
+============================================================================
+@layer utilities allows us to create custom utility classes that work
+with Tailwind's responsive prefixes (sm:, md:, lg:) and state variants.
+============================================================================ */
+@layer utilities {
+  /* --------------------------------------------------------------------------
+  TEXT BALANCE
+  --------------------------------------------------------------------------
+  Makes text wrap more evenly, avoiding orphans (single words on last line).
+  Great for headings.
+  -------------------------------------------------------------------------- */
+  .text-balance {
+    text-wrap: balance;               /* Evenly distribute text across lines */
+  }
+
+  /* --------------------------------------------------------------------------
+  HIDE SCROLLBAR
+  --------------------------------------------------------------------------
+  Hides scrollbar but keeps scroll functionality.
+  Useful for custom scrollable areas.
+  -------------------------------------------------------------------------- */
+  .scrollbar-hide {
+    -ms-overflow-style: none;         /* Hide scrollbar in IE/Edge */
+    scrollbar-width: none;            /* Hide scrollbar in Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;                    /* Hide scrollbar in Chrome/Safari */
+  }
+}
+
+/* ============================================================================
+COMPONENT STYLES
+============================================================================
+Reusable component styles. Use sparingly - prefer Tailwind utilities.
+============================================================================ */
+@layer components {
+  /* --------------------------------------------------------------------------
+  PROSE STYLES FOR RICH TEXT EDITOR
+  --------------------------------------------------------------------------
+  These styles apply to the TipTap editor content.
+  The .prose class comes from @tailwindcss/typography plugin.
+  We override some defaults for our editor.
+  -------------------------------------------------------------------------- */
+  .editor-content {
+    /* Placeholder styles */
+    & .is-empty::before {
+      content: attr(data-placeholder);             /* Show placeholder text */
+      color: #9ca3af;                              /* Gray-400 color */
+      pointer-events: none;                        /* Can't click placeholder */
+      position: absolute;                          /* Position over empty paragraph */
+    }
+
+    /* Editor paragraph spacing */
+    & p {
+      margin-top: 0.5em;                           /* Space between paragraphs */
+      margin-bottom: 0.5em;
+    }
+
+    /* Task list checkbox styling */
+    & ul[data-type="taskList"] {
+      list-style: none;                            /* Remove default bullets */
+      padding-left: 0;                             /* Remove default padding */
+    }
+
+    & ul[data-type="taskList"] li {
+      display: flex;                               /* Align checkbox and text */
+      align-items: flex-start;                     /* Align to top */
+      gap: 0.5rem;                                 /* Space between checkbox and text */
+    }
+  }
+}

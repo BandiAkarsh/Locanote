@@ -1,0 +1,30 @@
+# Cloudflare Worker Configuration
+# This configures the WebRTC signaling server deployment
+
+name = "locanote-signaling"
+main = "src/index.ts"
+compatibility_date = "2025-01-31"
+
+# Use Durable Objects for WebSocket connections
+[[durable_objects.bindings]]
+name = "SIGNALING_ROOMS"
+class_name = "SignalingRoom"
+
+# Migrations for Durable Objects schema
+[[migrations]]
+tag = "v1"
+new_classes = ["SignalingRoom"]
+
+# KV for storing room metadata (optional, for future features)
+[[kv_namespaces]]
+binding = "ROOM_METADATA"
+id = "locanote-room-metadata"
+
+# Environment variables (set via wrangler secret or dashboard)
+[vars]
+# CORS allowed origins - in production, set this to your domain
+ALLOWED_ORIGINS = "*"
+# Max peers per room
+MAX_PEERS_PER_ROOM = "10"
+# Room timeout in milliseconds (30 minutes)
+ROOM_TIMEOUT_MS = "1800000"

@@ -1,0 +1,79 @@
+# ============================================================================
+# GIT IGNORE FILE
+# ============================================================================
+# This file tells Git which files/folders to NOT track.
+# These are typically generated files, secrets, or large dependencies.
+# ============================================================================
+
+# ============================================================================
+# DEPENDENCIES
+# ============================================================================
+# node_modules contains downloaded packages - very large, can be reinstalled
+node_modules/
+
+# pnpm store (local cache of packages)
+.pnpm-store/
+
+# ============================================================================
+# BUILD OUTPUTS
+# ============================================================================
+# These folders are generated when you run "build" - no need to track them
+dist/                    # Common build output folder
+build/                   # SvelteKit and other frameworks use this
+.svelte-kit/             # SvelteKit's internal build cache
+.turbo/                  # Turborepo's cache folder
+.vercel/                 # Vercel deployment cache
+.netlify/                # Netlify deployment cache
+.wrangler/               # Cloudflare Wrangler cache
+
+# ============================================================================
+# ENVIRONMENT & SECRETS
+# ============================================================================
+# NEVER commit these files - they may contain passwords or API keys!
+.env                     # Environment variables (may contain secrets)
+.env.local               # Local overrides (definitely contains secrets)
+.env.*.local             # Any environment-specific local files
+*.pem                    # SSL certificates (private keys!)
+*.key                    # Any key files
+
+# ============================================================================
+# EDITOR & OS FILES
+# ============================================================================
+# These are created by your computer/editor - not part of the project
+.DS_Store                # macOS folder metadata
+.DS_Store?               # macOS folder metadata (alternate)
+Thumbs.db                # Windows thumbnail cache
+*.swp                    # Vim swap files
+*.swo                    # Vim swap files
+*~                       # Backup files created by some editors
+.idea/                   # JetBrains IDE (WebStorm, IntelliJ) settings
+.vscode/                 # VS Code settings (optional - some teams track this)
+*.sublime-*              # Sublime Text files
+
+# ============================================================================
+# LOGS & DEBUG
+# ============================================================================
+# Log files can get very large and contain sensitive info
+*.log                    # Any log files
+npm-debug.log*           # npm debug logs
+pnpm-debug.log*          # pnpm debug logs
+yarn-debug.log*          # yarn debug logs
+yarn-error.log*          # yarn error logs
+lerna-debug.log*         # lerna debug logs
+
+# ============================================================================
+# TESTING
+# ============================================================================
+coverage/                # Code coverage reports
+.nyc_output/             # NYC (Istanbul) coverage tool output
+
+# ============================================================================
+# TYPESCRIPT
+# ============================================================================
+*.tsbuildinfo            # TypeScript incremental build info (can be regenerated)
+
+# ============================================================================
+# MISC
+# ============================================================================
+.cache/                  # Various caching tools use this
+*.local                  # Local configuration files

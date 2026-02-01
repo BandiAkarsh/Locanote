@@ -1,0 +1,108 @@
+name: Deploy to Cloudflare
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  # ========================================================================
+  # DEPLOY SIGNALING SERVER (Cloudflare Worker)
+  # ========================================================================
+  deploy-signaling:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/signaling
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 9
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Type check
+      run: pnpm tsc --noEmit
+    
+    - name: Deploy to Cloudflare Workers
+      uses: cloudflare/wrangler-action@v3
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        workingDirectory: packages/signaling
+        command: deploy
+    
+    - name: Output deployment URL
+      run: echo "Signaling server deployed!"
+
+  # ========================================================================
+  # BUILD AND DEPLOY FRONTEND (Cloudflare Pages)
+  # ========================================================================
+  deploy-frontend:
+    needs: deploy-signaling
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+    
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 9
+    
+    - name: Install dependencies
+      run: pnpm install
+    
+    - name: Type check
+      run: pnpm check
+    
+    - name: Build
+      run: pnpm build
+      env:
+        VITE_SIGNALING_URL: ${{ secrets.VITE_SIGNALING_URL }}
+    
+    - name: Deploy to Cloudflare Pages
+      uses: cloudflare/pages-action@v1
+      with:
+        apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        projectName: locanote
+        directory: apps/web/build
+        gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Output deployment URL
+      run: echo "Frontend deployed to Cloudflare Pages!"
+
+  # ========================================================================
+  # UPDATE DEPLOYMENT STATUS
+  # ========================================================================
+  update-status:
+    needs: [deploy-signaling, deploy-frontend]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deployment Complete
+      run: |
+        echo "🎉 Production deployment complete!"
+        echo "Frontend: https://locanote.pages.dev"
+        echo "Signaling: https://locanote-signaling.YOUR_SUBDOMAIN.workers.dev"
