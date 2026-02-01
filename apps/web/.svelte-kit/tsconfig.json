@@ -1,0 +1,94 @@
+{
+	"compilerOptions": {
+		"paths": {
+			"$components": [
+				"../src/lib/components"
+			],
+			"$components/*": [
+				"../src/lib/components/*"
+			],
+			"$stores": [
+				"../src/lib/stores"
+			],
+			"$stores/*": [
+				"../src/lib/stores/*"
+			],
+			"$auth": [
+				"../src/lib/auth"
+			],
+			"$auth/*": [
+				"../src/lib/auth/*"
+			],
+			"$crdt": [
+				"../src/lib/crdt"
+			],
+			"$crdt/*": [
+				"../src/lib/crdt/*"
+			],
+			"$editor": [
+				"../src/lib/editor"
+			],
+			"$editor/*": [
+				"../src/lib/editor/*"
+			],
+			"$crypto": [
+				"../src/lib/crypto"
+			],
+			"$crypto/*": [
+				"../src/lib/crypto/*"
+			],
+			"$db": [
+				"../src/lib/db"
+			],
+			"$db/*": [
+				"../src/lib/db/*"
+			],
+			"$lib": [
+				"../src/lib"
+			],
+			"$lib/*": [
+				"../src/lib/*"
+			],
+			"$app/types": [
+				"./types/index.d.ts"
+			]
+		},
+		"rootDirs": [
+			"..",
+			"./types"
+		],
+		"verbatimModuleSyntax": true,
+		"isolatedModules": true,
+		"lib": [
+			"esnext",
+			"DOM",
+			"DOM.Iterable"
+		],
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"noEmit": true,
+		"target": "esnext"
+	},
+	"include": [
+		"ambient.d.ts",
+		"non-ambient.d.ts",
+		"./types/**/$types.d.ts",
+		"../vite.config.js",
+		"../vite.config.ts",
+		"../src/**/*.js",
+		"../src/**/*.ts",
+		"../src/**/*.svelte",
+		"../tests/**/*.js",
+		"../tests/**/*.ts",
+		"../tests/**/*.svelte"
+	],
+	"exclude": [
+		"../node_modules/**",
+		"../src/service-worker.js",
+		"../src/service-worker/**/*.js",
+		"../src/service-worker.ts",
+		"../src/service-worker/**/*.ts",
+		"../src/service-worker.d.ts",
+		"../src/service-worker/**/*.d.ts"
+	]
+}
