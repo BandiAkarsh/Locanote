@@ -127,8 +127,9 @@ let db: IDBPDatabase<LocanoteDB> | null = null;                 // Will hold the
 export async function initDB(): Promise<IDBPDatabase<LocanoteDB>> {
   if (db) return db;                                             // Return existing if already open
 
-  db = await openDB<LocanoteDB>('locanote', 1, {                // Open 'locanote' db, version 1
-    upgrade(db, oldVersion, newVersion, transaction) {           // Called when creating or upgrading
+  try {
+    db = await openDB<LocanoteDB>('locanote', 1, {               // Open 'locanote' db, version 1
+      upgrade(db, oldVersion, newVersion, transaction) {          // Called when creating or upgrading
       // --------------------------------------------------------------------
       // CREATE USERS STORE
       // --------------------------------------------------------------------
@@ -173,7 +174,11 @@ export async function initDB(): Promise<IDBPDatabase<LocanoteDB>> {
     }
   });
 
-  return db;
+    return db;
+  } catch (error) {
+    console.error('[Database] Failed to initialize IndexedDB:', error);
+    throw new Error('Failed to initialize database. This may be due to private browsing mode or blocked storage. Please try again with storage permissions enabled.');
+  }
 }
 
 // ============================================================================
@@ -185,7 +190,10 @@ export async function getDB(): Promise<IDBPDatabase<LocanoteDB>> {
   if (!db) {
     await initDB();                                              // Initialize if not ready
   }
-  return db!;                                                    // Return the database (non-null assertion)
+  if (!db) {
+    throw new Error('Database not initialized');
+  }
+  return db;
 }
 
 // ============================================================================

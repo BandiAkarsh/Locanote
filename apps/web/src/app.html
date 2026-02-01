@@ -3,16 +3,21 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml">
 	<meta name="theme-color" content="#6366f1">
 	<link rel="manifest" href="%sveltekit.assets%/manifest.json">
-	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
 	<meta name="apple-mobile-web-app-status-bar-style" content="default">
 	<meta name="apple-mobile-web-app-title" content="Locanote">
 	%sveltekit.head%
 </head>
 <body>
+	<noscript>
+		<div style="padding: 20px; text-align: center; font-family: system-ui;">
+			<h1>JavaScript Required</h1>
+			<p>Locanote requires JavaScript to function. Please enable JavaScript in your browser settings.</p>
+		</div>
+	</noscript>
 	<div id="app" data-sveltekit-preload-data="hover">
 		%sveltekit.body%
 	</div>
