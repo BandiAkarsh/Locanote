@@ -34,10 +34,8 @@ export default defineConfig({
 	server: {
 		fs: {
 			allow: ['..']                                            // Allow access to parent directories
-		},
-		// Ensure proper Content-Type headers for UTF-8 encoding
-		headers: {
-			'Content-Type': 'text/html; charset=utf-8'
 		}
+		// Note: Vite automatically sets correct Content-Type headers for each file type
+		// Do NOT set global Content-Type header here - it breaks JavaScript module loading
 	}
 });

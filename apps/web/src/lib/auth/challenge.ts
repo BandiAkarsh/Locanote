@@ -19,6 +19,11 @@
 // because we're verifying against stored public keys, not a remote server.
 // ============================================================================
 
+// Browser environment check
+const isBrowser = typeof globalThis !== 'undefined' && 
+                  typeof (globalThis as any).window !== 'undefined' &&
+                  typeof (globalThis as any).crypto !== 'undefined';
+
 /**
  * Generate a random challenge for WebAuthn
  * 
@@ -29,10 +34,14 @@
  * @returns ArrayBuffer containing 32 random bytes
  */
 export function generateChallenge(): ArrayBuffer {
+  if (!isBrowser) {
+    throw new Error('generateChallenge() can only be called in browser environment');
+  }
+  
   // crypto.getRandomValues is a browser API for cryptographically secure randomness
   // It's better than Math.random() for security purposes
   const array = new Uint8Array(32);                              // Create 32-byte array
-  crypto.getRandomValues(array);                                 // Fill with random values
+  (globalThis as any).crypto.getRandomValues(array);             // Fill with random values
   return array.buffer;                                           // Return as ArrayBuffer
 }
 
@@ -45,6 +54,10 @@ export function generateChallenge(): ArrayBuffer {
  * @returns Base64-encoded challenge string
  */
 export function generateChallengeBase64(): string {
+  if (!isBrowser) {
+    throw new Error('generateChallengeBase64() can only be called in browser environment');
+  }
+  
   const challenge = generateChallenge();                         // Generate random bytes
   const bytes = new Uint8Array(challenge);                       // Convert to Uint8Array
   
@@ -55,7 +68,7 @@ export function generateChallengeBase64(): string {
   }
   
   // Convert binary string to base64
-  return btoa(binary);                                           // btoa = binary to ASCII
+  return (globalThis as any).btoa(binary);                       // btoa = binary to ASCII
 }
 
 /**
@@ -65,7 +78,11 @@ export function generateChallengeBase64(): string {
  * @returns ArrayBuffer
  */
 export function decodeChallenge(base64: string): ArrayBuffer {
-  const binary = atob(base64);                                   // atob = ASCII to binary
+  if (!isBrowser) {
+    throw new Error('decodeChallenge() can only be called in browser environment');
+  }
+  
+  const binary = (globalThis as any).atob(base64);               // atob = ASCII to binary
   const bytes = new Uint8Array(binary.length);                   // Create byte array
   
   for (let i = 0; i < binary.length; i++) {
@@ -86,7 +103,16 @@ export function decodeChallenge(base64: string): ArrayBuffer {
  * @returns UUID string
  */
 export function generateUserId(): string {
-  return crypto.randomUUID();                                    // Built-in browser UUID generator
+  if (!isBrowser) {
+    // Fallback for SSR - generate a pseudo-random ID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  return (globalThis as any).crypto.randomUUID();                // Built-in browser UUID generator
 }
 
 /**
@@ -97,5 +123,14 @@ export function generateUserId(): string {
  * @returns UUID string
  */
 export function generateCredentialId(): string {
-  return crypto.randomUUID();
+  if (!isBrowser) {
+    // Fallback for SSR - generate a pseudo-random ID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  
+  return (globalThis as any).crypto.randomUUID();
 }

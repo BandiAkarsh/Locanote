@@ -36,6 +36,15 @@ import type { RegistrationResult, RegistrationError } from './types';
 export async function registerWithPasskey(
   username: string
 ): Promise<RegistrationResult | RegistrationError> {
+  // Guard for SSR - WebAuthn is browser-only
+  if (typeof globalThis === 'undefined' || typeof (globalThis as any).window === 'undefined') {
+    return {
+      success: false,
+      error: 'Passkey registration is only available in the browser',
+      code: 'BROWSER_ONLY'
+    };
+  }
+  
   try {
     // --------------------------------------------------------------------
     // VALIDATION
@@ -226,9 +235,13 @@ export async function registerWithPasskey(
 // @returns true if WebAuthn is supported
 
 export function isWebAuthnAvailable(): boolean {
+  if (typeof globalThis === 'undefined' || typeof (globalThis as any).window === 'undefined') {
+    return false;
+  }
+  const win = (globalThis as any).window;
   return (
-    window.PublicKeyCredential !== undefined &&                  // Check for WebAuthn API
-    typeof window.PublicKeyCredential === 'function'             // Ensure it's a function
+    win.PublicKeyCredential !== undefined &&                  // Check for WebAuthn API
+    typeof win.PublicKeyCredential === 'function'             // Ensure it's a function
   );
 }
 

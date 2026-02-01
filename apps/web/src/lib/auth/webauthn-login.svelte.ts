@@ -38,6 +38,15 @@ import type { AuthResult, AuthError } from './types';
 export async function loginWithPasskey(
   username?: string
 ): Promise<AuthResult | AuthError> {
+  // Guard for SSR - WebAuthn is browser-only
+  if (typeof globalThis === 'undefined' || typeof (globalThis as any).window === 'undefined') {
+    return {
+      success: false,
+      error: 'Passkey authentication is only available in the browser',
+      code: 'BROWSER_ONLY'
+    };
+  }
+  
   try {
     // --------------------------------------------------------------------
     // GET USER
@@ -268,7 +277,10 @@ export async function setupConditionalUI(
 // ============================================================================
 
 function isWebAuthnAvailable(): boolean {
-  return window.PublicKeyCredential !== undefined;
+  if (typeof globalThis === 'undefined' || typeof (globalThis as any).window === 'undefined') {
+    return false;
+  }
+  return (globalThis as any).window.PublicKeyCredential !== undefined;
 }
 
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
