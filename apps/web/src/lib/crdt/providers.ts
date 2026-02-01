@@ -32,9 +32,19 @@
 
 import { WebrtcProvider } from 'y-webrtc';                        // Import y-webrtc provider
 import type * as Y from 'yjs';                                    // Yjs types
+import { 
+  generateRoomKey, 
+  storeRoomKey, 
+  getRoomKey, 
+  hasRoomKey,
+  removeRoomKey,
+  encryptBytes,
+  decryptBytes,
+  type EncryptedMessage 
+} from '$crypto/e2e';                                              // E2E encryption utilities
 
-// Re-export WebrtcProvider type
-export type { WebrtcProvider };
+// Re-export types
+export type { WebrtcProvider, EncryptedMessage };
 
 // ============================================================================
 // SIGNALING SERVER CONFIGURATION
@@ -73,8 +83,26 @@ export function createWebRTCProvider(
   roomId: string,                                               // Room/note identifier
   ydoc: Y.Doc,                                                   // Yjs document instance
   user: { name: string; color: string; id: string },             // Current user info
-  roomPassword?: string                                          // Optional room password for access control
+  roomPassword?: string,                                         // Optional room password for access control
+  encryptionKey?: Uint8Array                                     // Optional pre-generated encryption key
 ): WebrtcProvider {
+  // --------------------------------------------------------------------
+  // INITIALIZE E2E ENCRYPTION KEY
+  // --------------------------------------------------------------------
+  // Generate or store encryption key for this room
+  if (!hasRoomKey(roomId)) {
+    if (encryptionKey) {
+      // Use provided key
+      storeRoomKey(roomId, encryptionKey);
+      console.log(`[E2E] Using provided encryption key for room: ${roomId}`);
+    } else {
+      // Generate new random key
+      const newKey = generateRoomKey();
+      storeRoomKey(roomId, newKey);
+      console.log(`[E2E] Generated new encryption key for room: ${roomId}`);
+    }
+  }
+  
   // --------------------------------------------------------------------
   // CREATE PROVIDER
   // --------------------------------------------------------------------
@@ -206,3 +234,23 @@ export function setAwareness(
     provider.awareness.setLocalState(state);
   }
 }
+
+// ============================================================================
+// E2E ENCRYPTION KEY MANAGEMENT
+// ============================================================================
+// Re-export encryption functions for use by the application
+
+export { 
+  generateRoomKey,
+  storeRoomKey,
+  getRoomKey,
+  hasRoomKey,
+  removeRoomKey,
+  encryptBytes,
+  decryptBytes,
+  encryptMessage,
+  decryptMessage,
+  clearAllKeys
+} from '$crypto/e2e';
+
+export type { RoomKey } from '$crypto/e2e';
