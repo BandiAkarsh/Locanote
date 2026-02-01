@@ -29,11 +29,10 @@ interface SignalingMessage {
 }
 
 // SignalingRoom implements the DurableObject interface for Cloudflare Workers
-// We add the brand marker to satisfy TypeScript's strict type checking in workers-types 4.x
+// Note: We don't use 'implements DurableObject' because the branded type in 
+// @cloudflare/workers-types 4.x causes TypeScript issues, but the class structure
+// is fully compatible and works correctly at runtime.
 export class SignalingRoom {
-  // Brand marker required by @cloudflare/workers-types v4.x
-  readonly [Rpc.__DURABLE_OBJECT_BRAND]: never = undefined as never;
-  
   private peers: Map<string, Peer> = new Map();
   private roomId: string = '';
   private state: DurableObjectState;

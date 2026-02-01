@@ -16,11 +16,10 @@ tag = "v1"
 new_sqlite_classes = ["SignalingRoom"]
 
 # KV for storing room metadata (optional, for future features)
-# Set create_namespace = true to auto-create on first deploy
+# This namespace was manually created in the Cloudflare dashboard
 [[kv_namespaces]]
 binding = "ROOM_METADATA"
 id = "40e2054dfffd493ca5237d13bec57d43"
-create_namespace = true
 
 # Environment variables (set via wrangler secret or dashboard)
 [vars]
