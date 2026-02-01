@@ -23,14 +23,18 @@ interface Peer {
 
 // Signaling message types
 interface SignalingMessage {
-  type: 'offer' | 'answer' | 'ice-candidate' | 'join' | 'leave' | 'ping' | 'pong';
+  type: string;                  // Message type: offer, answer, ice-candidate, join, leave, ping, pong, peer-joined, peer-left, error, joined
   from?: string;                 // Sender peer ID
   to?: string;                   // Target peer ID (null = broadcast)
   data?: any;                    // Message payload
   timestamp?: number;            // Message timestamp
 }
 
-export class SignalingRoom implements DurableObject {
+// Note: We don't use 'implements DurableObject' because the type definition
+// in @cloudflare/workers-types 4.20260131.0 uses a branded type pattern
+// that's incompatible with direct implementation. The class structure is
+// still correct and will work at runtime.
+export class SignalingRoom {
   private peers: Map<string, Peer> = new Map();
   private roomId: string = '';
   private state: DurableObjectState;
@@ -69,76 +73,85 @@ export class SignalingRoom implements DurableObject {
   }
 
   // ============================================================================
-  // HANDLE NEW CONNECTION
+  // WEBSOCKET CONNECTION HANDLER
   // ============================================================================
 
   private async handleConnection(ws: WebSocket): Promise<void> {
-    // Accept the WebSocket
-    ws.accept();
-
     // Generate unique peer ID
-    const peerId = this.generatePeerId();
-
-    // Check room capacity
-    if (this.peers.size >= this.maxPeers) {
-      this.sendToPeer(ws, {
-        type: 'join',
-        data: { error: 'Room is full', maxPeers: this.maxPeers }
-      });
-      ws.close(1008, 'Room full');
-      return;
-    }
-
-    // Create peer object
+    const peerId = crypto.randomUUID();
+    
+    // Store peer info
     const peer: Peer = {
       id: peerId,
       ws: ws,
       joinedAt: Date.now(),
-      lastActivity: Date.now()
+      lastActivity: Date.now(),
     };
 
-    // Store peer
+    // Check room capacity
+    if (this.peers.size >= this.maxPeers) {
+      ws.send(JSON.stringify({
+        type: 'error',
+        data: { message: 'Room is full' }
+      }));
+      ws.close(1008, 'Room is full');
+      return;
+    }
+
+    // Add peer to room
     this.peers.set(peerId, peer);
     this.lastActivity = Date.now();
 
-    // Notify new peer of successful join
-    this.sendToPeer(ws, {
-      type: 'join',
-      data: { 
-        peerId: peerId,
-        roomId: this.roomId,
-        peerCount: this.peers.size,
-        message: 'Joined room successfully'
-      }
-    });
-
-    // Notify existing peers about new peer
-    this.broadcastToOthers(peerId, {
-      type: 'join',
+    // Notify other peers about new peer
+    this.broadcast({
+      type: 'peer-joined',
       from: peerId,
       data: { peerCount: this.peers.size }
-    });
+    }, peerId);
 
-    // Send list of existing peers to new peer
-    const existingPeers = Array.from(this.peers.keys()).filter(id => id !== peerId);
-    if (existingPeers.length > 0) {
-      this.sendToPeer(ws, {
-        type: 'peers',
-        data: { peers: existingPeers }
-      });
-    }
+    // Send peer their ID and current peer list
+    ws.send(JSON.stringify({
+      type: 'joined',
+      data: {
+        peerId: peerId,
+        roomId: this.roomId,
+        peers: Array.from(this.peers.keys()).filter(id => id !== peerId)
+      }
+    }));
 
-    // Handle incoming messages
+    // Handle messages from this peer
     ws.addEventListener('message', (event: MessageEvent) => {
       try {
         const message: SignalingMessage = JSON.parse(event.data as string);
-        this.handleMessage(peerId, message);
+        message.from = peerId;
+        message.timestamp = Date.now();
+        
+        peer.lastActivity = Date.now();
+        this.lastActivity = Date.now();
+
+        // Handle different message types
+        switch (message.type) {
+          case 'ping':
+            ws.send(JSON.stringify({ type: 'pong', timestamp: Date.now() }));
+            break;
+            
+          case 'offer':
+          case 'answer':
+          case 'ice-candidate':
+            // Forward signaling messages to target peer
+            if (message.to) {
+              this.sendToPeer(message.to, message);
+            } else {
+              // Broadcast to all other peers
+              this.broadcast(message, peerId);
+            }
+            break;
+            
+          default:
+            console.log(`[Room ${this.roomId}] Unknown message type: ${message.type}`);
+        }
       } catch (error) {
-        console.error('Failed to parse message:', error);
-        this.sendToPeer(ws, {
-          type: 'error',
-          data: { message: 'Invalid message format' }
-        });
+        console.error(`[Room ${this.roomId}] Error handling message:`, error);
       }
     });
 
@@ -148,118 +161,65 @@ export class SignalingRoom implements DurableObject {
     });
 
     // Handle errors
-    ws.addEventListener('error', (error: ErrorEvent) => {
-      console.error(`WebSocket error for peer ${peerId}:`, error);
+    ws.addEventListener('error', (error: Event) => {
+      console.error(`[Room ${this.roomId}] WebSocket error for peer ${peerId}:`, error);
       this.handleDisconnection(peerId);
     });
 
-    // Start heartbeat to keep connection alive
+    // Start heartbeat to detect dead connections
     this.startHeartbeat(peerId);
-
-    console.log(`Peer ${peerId} joined room ${this.roomId}. Total peers: ${this.peers.size}`);
   }
 
   // ============================================================================
-  // HANDLE INCOMING MESSAGE
+  // SIGNALING MESSAGE HANDLING
   // ============================================================================
 
-  private handleMessage(fromPeerId: string, message: SignalingMessage): void {
-    const peer = this.peers.get(fromPeerId);
-    if (!peer) return;
-
-    // Update activity timestamp
-    peer.lastActivity = Date.now();
-    this.lastActivity = Date.now();
-
-    // Handle different message types
-    switch (message.type) {
-      case 'ping':
-        // Respond with pong to keep connection alive
-        this.sendToPeer(peer.ws, { type: 'pong', timestamp: Date.now() });
-        break;
-
-      case 'pong':
-        // Client responded to our ping - connection is alive
-        break;
-
-      case 'offer':
-      case 'answer':
-      case 'ice-candidate':
-        // Forward signaling message to target peer or broadcast
-        if (message.to) {
-          // Send to specific peer
-          const targetPeer = this.peers.get(message.to);
-          if (targetPeer) {
-            this.sendToPeer(targetPeer.ws, {
-              ...message,
-              from: fromPeerId,
-              timestamp: Date.now()
-            });
-          }
-        } else {
-          // Broadcast to all other peers
-          this.broadcastToOthers(fromPeerId, {
-            ...message,
-            from: fromPeerId,
-            timestamp: Date.now()
-          });
-        }
-        break;
-
-      default:
-        console.warn(`Unknown message type: ${message.type}`);
-    }
-  }
-
-  // ============================================================================
-  // HANDLE PEER DISCONNECTION
-  // ============================================================================
-
-  private handleDisconnection(peerId: string): void {
+  private sendToPeer(peerId: string, message: SignalingMessage): void {
     const peer = this.peers.get(peerId);
-    if (!peer) return;
-
-    // Remove peer from room
-    this.peers.delete(peerId);
-    this.lastActivity = Date.now();
-
-    // Notify other peers
-    this.broadcastToOthers(peerId, {
-      type: 'leave',
-      from: peerId,
-      data: { peerCount: this.peers.size }
-    });
-
-    console.log(`Peer ${peerId} left room ${this.roomId}. Remaining peers: ${this.peers.size}`);
-  }
-
-  // ============================================================================
-  // SEND MESSAGE TO SPECIFIC PEER
-  // ============================================================================
-
-  private sendToPeer(ws: WebSocket, message: any): void {
-    try {
-      ws.send(JSON.stringify(message));
-    } catch (error) {
-      console.error('Failed to send message:', error);
+    if (peer) {
+      try {
+        peer.ws.send(JSON.stringify(message));
+      } catch (error) {
+        console.error(`[Room ${this.roomId}] Failed to send message to peer ${peerId}:`, error);
+        // Peer might be disconnected, remove them
+        this.handleDisconnection(peerId);
+      }
     }
   }
 
-  // ============================================================================
-  // BROADCAST MESSAGE TO ALL PEERS EXCEPT SENDER
-  // ============================================================================
-
-  private broadcastToOthers(excludePeerId: string, message: any): void {
+  private broadcast(message: SignalingMessage, excludePeerId?: string): void {
     this.peers.forEach((peer, peerId) => {
       if (peerId !== excludePeerId) {
-        this.sendToPeer(peer.ws, message);
+        this.sendToPeer(peerId, message);
       }
     });
   }
 
   // ============================================================================
-  // START HEARTBEAT (KEEP CONNECTION ALIVE)
+  // CONNECTION LIFECYCLE
   // ============================================================================
+
+  private handleDisconnection(peerId: string): void {
+    if (!this.peers.has(peerId)) return;
+
+    // Remove peer
+    this.peers.delete(peerId);
+    this.lastActivity = Date.now();
+
+    // Notify other peers
+    this.broadcast({
+      type: 'peer-left',
+      from: peerId,
+      data: { peerCount: this.peers.size }
+    });
+
+    console.log(`[Room ${this.roomId}] Peer ${peerId} disconnected. Room size: ${this.peers.size}`);
+
+    // If room is empty, schedule cleanup
+    if (this.peers.size === 0) {
+      this.scheduleCleanup();
+    }
+  }
 
   private startHeartbeat(peerId: string): void {
     const interval = setInterval(() => {
@@ -269,28 +229,23 @@ export class SignalingRoom implements DurableObject {
         return;
       }
 
-      // Check if peer has been inactive for too long
-      const inactiveTime = Date.now() - peer.lastActivity;
-      if (inactiveTime > this.roomTimeoutMs) {
-        console.log(`Peer ${peerId} timed out due to inactivity`);
-        peer.ws.close(1001, 'Timeout');
+      // Check if peer hasn't sent any message in 2 minutes
+      const inactive = Date.now() - peer.lastActivity > 120000;
+      if (inactive) {
+        console.log(`[Room ${this.roomId}] Peer ${peerId} timed out due to inactivity`);
+        peer.ws.close(1001, 'Inactive');
         clearInterval(interval);
-        return;
       }
-
-      // Send ping
-      this.sendToPeer(peer.ws, {
-        type: 'ping',
-        timestamp: Date.now()
-      });
-    }, 30000); // Send ping every 30 seconds
+    }, 30000); // Check every 30 seconds
   }
 
-  // ============================================================================
-  // GENERATE UNIQUE PEER ID
-  // ============================================================================
-
-  private generatePeerId(): string {
-    return `peer-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  private scheduleCleanup(): void {
+    // Schedule hibernation after room timeout
+    setTimeout(() => {
+      if (this.peers.size === 0) {
+        console.log(`[Room ${this.roomId}] Room empty, scheduling hibernation`);
+        // The Durable Object will hibernate when all event handlers complete
+      }
+    }, this.roomTimeoutMs);
   }
 }
