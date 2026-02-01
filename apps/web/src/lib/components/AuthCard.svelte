@@ -219,7 +219,10 @@ DESIGN FEATURES:
           <!-- Register Link -->
           <div class="text-center">
             <button
-              onclick={onSwitchToRegister}
+              onclick={() => {
+                console.log('[DEBUG] Create account button clicked');
+                onSwitchToRegister();
+              }}
               class="text-white/80 hover:text-white font-medium text-sm transition-colors duration-200
                      underline underline-offset-4 decoration-white/30 hover:decoration-white"
             >

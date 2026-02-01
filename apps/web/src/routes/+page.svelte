@@ -20,11 +20,18 @@ FEATURES:
 
   // Initialize auth state on mount
   $effect(() => {
+    console.log('[DEBUG] Page mounted, initializing auth...');
     auth.initialize();
+    console.log('[DEBUG] Auth initialized, viewMode:', viewMode);
   });
 
   // Current view mode
   let viewMode = $state<'login' | 'register'>('login');
+  
+  // Debug: Log view mode changes
+  $effect(() => {
+    console.log('[DEBUG] View mode changed to:', viewMode);
+  });
 
   // Handle passkey login
   async function handlePasskeyLogin() {
@@ -99,7 +106,10 @@ FEATURES:
     bind:authState={auth.state}
     onPasskeyLogin={handlePasskeyLogin}
     onPasswordLogin={handlePasswordLogin}
-    onSwitchToRegister={() => viewMode = 'register'}
+    onSwitchToRegister={() => {
+      console.log('[DEBUG] Switching to register view');
+      viewMode = 'register';
+    }}
   />
 {:else}
   <RegisterCard
