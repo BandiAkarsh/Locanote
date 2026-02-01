@@ -1,17 +1,1 @@
-# ============================================================================
-# NODE VERSION MANAGER (NVM) CONFIGURATION
-# ============================================================================
-# This file specifies which Node.js version this project requires.
-#
-# HOW TO USE:
-# 1. Install NVM: https://github.com/nvm-sh/nvm
-# 2. Run: nvm install (this reads .nvmrc and installs the right version)
-# 3. Run: nvm use (switches to the version in this file)
-#
-# WHY THIS VERSION:
-# - Node 22+ is LTS (Long Term Support) as of 2024
-# - Includes native fetch API
-# - Better ES Module support
-# - Required for latest SvelteKit and Vite
-# ============================================================================
 22
