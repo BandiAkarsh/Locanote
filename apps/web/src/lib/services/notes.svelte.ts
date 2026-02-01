@@ -22,6 +22,33 @@ import type { Note } from '$db';
 import { auth } from '$stores/auth.svelte';
 
 // ============================================================================
+// BROWSER ENVIRONMENT CHECK
+// ============================================================================
+// Note operations require browser-only APIs like crypto.randomUUID
+
+const isBrowser = typeof globalThis !== 'undefined' && 
+                  typeof (globalThis as any).window !== 'undefined' &&
+                  typeof (globalThis as any).crypto !== 'undefined';
+
+/**
+ * Generate a unique ID for notes
+ * Uses crypto.randomUUID in browser, fallback in SSR
+ */
+function generateNoteId(): string {
+  if (!isBrowser) {
+    // Fallback for SSR - generate a pseudo-random ID
+    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+    return `note-${uuid}`;
+  }
+  
+  return `note-${(globalThis as any).crypto.randomUUID()}`;
+}
+
+// ============================================================================
 // CREATE NEW NOTE
 // ============================================================================
 // Creates a new note for the current user
@@ -40,7 +67,7 @@ export async function createNewNote(
   }
 
   const now = Date.now();
-  const noteId = `note-${crypto.randomUUID()}`;
+  const noteId = generateNoteId();
 
   // 1. Create metadata in IndexedDB
   const note = await createNote({

@@ -34,6 +34,16 @@ import { createCredential, getCredentialByType } from '$db/credentials';
 import type { RegistrationResult, RegistrationError, PasswordValidationResult } from './types';
 
 // ============================================================================
+// BROWSER ENVIRONMENT CHECK
+// ============================================================================
+// These functions require browser-only APIs (crypto, TextEncoder, btoa/atob)
+// We check the environment to provide clear error messages during SSR
+
+const isBrowser = typeof globalThis !== 'undefined' && 
+                  typeof (globalThis as any).window !== 'undefined' &&
+                  typeof (globalThis as any).crypto !== 'undefined';
+
+// ============================================================================
 // PASSWORD REQUIREMENTS
 // ============================================================================
 // Minimum requirements for a valid password
@@ -100,8 +110,12 @@ export function validatePassword(password: string): PasswordValidationResult {
 // @returns Base64-encoded random salt (16 bytes)
 
 function generateSalt(): string {
+  if (!isBrowser) {
+    throw new Error('generateSalt() can only be called in browser environment');
+  }
+  
   const array = new Uint8Array(16);                              // 16 bytes of salt
-  crypto.getRandomValues(array);                                 // Fill with random values
+  (globalThis as any).crypto.getRandomValues(array);             // Fill with random values
   return arrayToBase64(array);                                   // Convert to base64 string
 }
 
@@ -115,12 +129,16 @@ function generateSalt(): string {
 // @returns Promise resolving to the hash (base64 string)
 
 async function hashPassword(password: string, salt: string): Promise<string> {
+  if (!isBrowser) {
+    throw new Error('hashPassword() can only be called in browser environment');
+  }
+  
   // Convert inputs to proper formats
   const passwordBuffer = new TextEncoder().encode(password);     // Password as bytes
   const saltBuffer = base64ToArray(salt);                        // Salt as bytes
 
   // Import the password as a CryptoKey
-  const keyMaterial = await crypto.subtle.importKey(
+  const keyMaterial = await (globalThis as any).crypto.subtle.importKey(
     'raw',                                                       // Raw key material
     passwordBuffer,
     { name: 'PBKDF2' },                                          // Algorithm
@@ -129,7 +147,7 @@ async function hashPassword(password: string, salt: string): Promise<string> {
   );
 
   // Derive the hash using PBKDF2
-  const derivedBits = await crypto.subtle.deriveBits(
+  const derivedBits = await (globalThis as any).crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
       salt: saltBuffer,
@@ -276,15 +294,23 @@ export async function verifyPassword(userId: string, password: string): Promise<
 // Helper functions for base64 encoding/decoding
 
 function arrayToBase64(array: Uint8Array): string {
+  if (!isBrowser) {
+    throw new Error('arrayToBase64() can only be called in browser environment');
+  }
+  
   let binary = '';
   for (let i = 0; i < array.byteLength; i++) {
     binary += String.fromCharCode(array[i]);
   }
-  return btoa(binary);                                           // Binary to base64
+  return (globalThis as any).btoa(binary);                       // Binary to base64
 }
 
 function base64ToArray(base64: string): ArrayBuffer {
-  const binary = atob(base64);                                   // Base64 to binary
+  if (!isBrowser) {
+    throw new Error('base64ToArray() can only be called in browser environment');
+  }
+  
+  const binary = (globalThis as any).atob(base64);               // Base64 to binary
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
