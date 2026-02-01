@@ -1,5 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
-
 // ============================================================================
 // SIGNALING ROOM DURABLE OBJECT
 // ============================================================================
@@ -30,11 +28,12 @@ interface SignalingMessage {
   timestamp?: number;            // Message timestamp
 }
 
-// Note: We don't use 'implements DurableObject' because the type definition
-// in @cloudflare/workers-types 4.20260131.0 uses a branded type pattern
-// that's incompatible with direct implementation. The class structure is
-// still correct and will work at runtime.
+// SignalingRoom implements the DurableObject interface for Cloudflare Workers
+// We add the brand marker to satisfy TypeScript's strict type checking in workers-types 4.x
 export class SignalingRoom {
+  // Brand marker required by @cloudflare/workers-types v4.x
+  readonly [Rpc.__DURABLE_OBJECT_BRAND]: never = undefined as never;
+  
   private peers: Map<string, Peer> = new Map();
   private roomId: string = '';
   private state: DurableObjectState;

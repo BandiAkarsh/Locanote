@@ -30,8 +30,6 @@ export { SignalingRoom };
 
 // Environment interface
 export interface Env {
-  // @ts-ignore - SignalingRoom doesn't have the branded type marker that
-  // @cloudflare/workers-types 4.x expects, but this works fine at runtime.
   SIGNALING_ROOMS: DurableObjectNamespace<SignalingRoom>;
   ROOM_METADATA: KVNamespace;
   ALLOWED_ORIGINS: string;

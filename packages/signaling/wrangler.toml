@@ -16,9 +16,11 @@ tag = "v1"
 new_classes = ["SignalingRoom"]
 
 # KV for storing room metadata (optional, for future features)
+# Set create_namespace = true to auto-create on first deploy
 [[kv_namespaces]]
 binding = "ROOM_METADATA"
 id = "locanote-room-metadata"
+create_namespace = true
 
 # Environment variables (set via wrangler secret or dashboard)
 [vars]
