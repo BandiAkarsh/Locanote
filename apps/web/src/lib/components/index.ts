@@ -23,3 +23,4 @@ export { default as RegisterCard } from "./RegisterCard.svelte"; // Beautiful re
 export { default as OfflineBanner } from "./OfflineBanner.svelte"; // Offline status indicator
 export { default as TagBadge } from "./TagBadge.svelte"; // Tag display component
 export { default as Toggle } from "./Toggle.svelte"; // Reusable toggle switch component
+export { default as ShareModal } from "./ShareModal.svelte"; // Social sharing modal
