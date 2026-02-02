@@ -30,18 +30,18 @@
 // - Even if signaling server is compromised, document content is safe
 // ============================================================================
 
-import { WebrtcProvider } from 'y-webrtc';                        // Import y-webrtc provider
-import type * as Y from 'yjs';                                    // Yjs types
-import { 
-  generateRoomKey, 
-  storeRoomKey, 
-  getRoomKey, 
+import { WebrtcProvider } from "y-webrtc"; // Import y-webrtc provider
+import type * as Y from "yjs"; // Yjs types
+import {
+  generateRoomKey,
+  storeRoomKey,
+  getRoomKey,
   hasRoomKey,
   removeRoomKey,
   encryptBytes,
   decryptBytes,
-  type EncryptedMessage 
-} from '$crypto/e2e';                                              // E2E encryption utilities
+  type EncryptedMessage,
+} from "$crypto/e2e"; // E2E encryption utilities
 
 // Re-export types
 export type { WebrtcProvider, EncryptedMessage };
@@ -55,18 +55,28 @@ export type { WebrtcProvider, EncryptedMessage };
 
 const SIGNALING_SERVER_URL = (() => {
   // Check for production URL from environment
-  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_SIGNALING_URL) {
+  if (
+    typeof import.meta !== "undefined" &&
+    import.meta.env?.VITE_SIGNALING_URL
+  ) {
     return import.meta.env.VITE_SIGNALING_URL;
   }
-  
-  // Local development fallback
-  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
-    return 'ws://localhost:8787';
+
+  // In development/test, always try to use local signaling if available
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    console.log(`[WebRTC] Detecting signaling server for host: ${host}`);
+    if (
+      host === "localhost" ||
+      host === "127.0.0.1" ||
+      host.includes("local")
+    ) {
+      return "ws://127.0.0.1:8787";
+    }
   }
-  
-  // Production fallback (should be overridden by env var)
-  console.warn('[WebRTC] No VITE_SIGNALING_URL set, using placeholder');
-  return 'wss://locanote-signaling.your-subdomain.workers.dev';
+
+  // Fallback for SSR or production
+  return "wss://locanote-signaling.your-subdomain.workers.dev";
 })();
 
 // ============================================================================
@@ -80,11 +90,11 @@ const SIGNALING_SERVER_URL = (() => {
 // @returns WebrtcProvider instance
 
 export function createWebRTCProvider(
-  roomId: string,                                               // Room/note identifier
-  ydoc: Y.Doc,                                                   // Yjs document instance
-  user: { name: string; color: string; id: string },             // Current user info
-  roomPassword?: string,                                         // Optional room password for access control
-  encryptionKey?: Uint8Array                                     // Optional pre-generated encryption key
+  roomId: string, // Room/note identifier
+  ydoc: Y.Doc, // Yjs document instance
+  user: { name: string; color: string; id: string }, // Current user info
+  roomPassword?: string, // Optional room password for access control
+  encryptionKey?: Uint8Array, // Optional pre-generated encryption key
 ): WebrtcProvider {
   // --------------------------------------------------------------------
   // INITIALIZE E2E ENCRYPTION KEY
@@ -102,30 +112,34 @@ export function createWebRTCProvider(
       console.log(`[E2E] Generated new encryption key for room: ${roomId}`);
     }
   }
-  
+
   // --------------------------------------------------------------------
   // CREATE PROVIDER
   // --------------------------------------------------------------------
   // WebrtcProvider connects to signaling server and manages P2P connections
-  
+
   const provider = new WebrtcProvider(
-    roomId,                                                      // Room ID - peers in same room sync together
-    ydoc,                                                        // Yjs document to synchronize
+    roomId, // Room ID - peers in same room sync together
+    ydoc, // Yjs document to synchronize
     {
       // ----------------------------------------------------------------
       // SIGNALING SERVERS
       // ----------------------------------------------------------------
       // Array of signaling server URLs
-      // We use our Cloudflare Worker
-      signaling: [SIGNALING_SERVER_URL],
-      
+      // We use our Cloudflare Worker, appending the room ID for discovery
+      signaling: [
+        SIGNALING_SERVER_URL.includes("?")
+          ? `${SIGNALING_SERVER_URL}&room=${roomId}`
+          : `${SIGNALING_SERVER_URL}?room=${roomId}`,
+      ],
+
       // ----------------------------------------------------------------
       // ROOM PASSWORD (Optional)
       // ----------------------------------------------------------------
       // When set, only users with the same password can join the room
       // This provides basic access control (not encryption)
-      password: roomPassword
-    }
+      password: roomPassword,
+    },
   );
 
   // --------------------------------------------------------------------
@@ -138,8 +152,8 @@ export function createWebRTCProvider(
       user: {
         name: user.name,
         color: user.color,
-        id: user.id
-      }
+        id: user.id,
+      },
     });
   }
 
@@ -147,9 +161,9 @@ export function createWebRTCProvider(
   // EVENT HANDLERS
   // --------------------------------------------------------------------
   // Listen for connection state changes
-  
+
   // When we connect to the signaling server
-  provider.on('status', (event: { connected: boolean }) => {
+  provider.on("status", (event: { connected: boolean }) => {
     if (event.connected) {
       console.log(`[WebRTC] Connected to signaling server for room: ${roomId}`);
     } else {
@@ -158,12 +172,15 @@ export function createWebRTCProvider(
   });
 
   // When we discover new peers
-  provider.on('peers', (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
-    console.log(`[WebRTC] Peers in room:`, event.webrtcPeers);
-  });
+  provider.on(
+    "peers",
+    (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
+      console.log(`[WebRTC] Peers in room:`, event.webrtcPeers);
+    },
+  );
 
   // When we sync with other peers
-  provider.on('synced', (event: { synced: boolean }) => {
+  provider.on("synced", (event: { synced: boolean }) => {
     if (event.synced) {
       console.log(`[WebRTC] Document synced with all peers`);
     }
@@ -182,11 +199,11 @@ export function createWebRTCProvider(
 export function destroyWebRTCProvider(provider: WebrtcProvider): void {
   // Disconnect from all peers
   provider.disconnect();
-  
+
   // Destroy the provider (removes event listeners, etc.)
   provider.destroy();
-  
-  console.log('[WebRTC] Provider destroyed');
+
+  console.log("[WebRTC] Provider destroyed");
 }
 
 // ============================================================================
@@ -205,15 +222,15 @@ export function getWebRTCStatus(provider: WebrtcProvider): {
   // Get connected peers count
   // @ts-expect-error - accessing internal property
   const peerCount = provider.room?.connected?.size || 0;
-  
+
   // Check if connected to signaling server
   // @ts-expect-error - accessing internal property
   const signalingConnected = provider.signalingConns?.size > 0;
-  
+
   return {
-    connected: provider.connected,                               // Whether we have P2P connections
-    peerCount,                                                   // Number of connected peers
-    signalingConnected                                           // Whether connected to signaling server
+    connected: provider.connected, // Whether we have P2P connections
+    peerCount, // Number of connected peers
+    signalingConnected, // Whether connected to signaling server
   };
 }
 
@@ -228,7 +245,7 @@ export function getWebRTCStatus(provider: WebrtcProvider): {
 
 export function setAwareness(
   provider: WebrtcProvider,
-  state: { user: { name: string; color: string; id: string } }
+  state: { user: { name: string; color: string; id: string } },
 ): void {
   if (provider.awareness) {
     provider.awareness.setLocalState(state);
@@ -240,7 +257,7 @@ export function setAwareness(
 // ============================================================================
 // Re-export encryption functions for use by the application
 
-export { 
+export {
   generateRoomKey,
   storeRoomKey,
   getRoomKey,
@@ -250,7 +267,7 @@ export {
   decryptBytes,
   encryptMessage,
   decryptMessage,
-  clearAllKeys
-} from '$crypto/e2e';
+  clearAllKeys,
+} from "$crypto/e2e";
 
-export type { RoomKey } from '$crypto/e2e';
+export type { RoomKey } from "$crypto/e2e";

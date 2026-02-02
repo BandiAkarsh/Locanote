@@ -431,7 +431,7 @@ pnpm test:headed       # Run tests with visible browser
 
 **Featured Tests:**
 
-- **collaboration.spec.ts**: Verifies that two users (e.g., Akarsh and Mary) can register, share a note URL, and edit simultaneously without conflicts.
+- **collaboration.spec.ts**: Verifies that two users (e.g., User A and User B) can register, share a note URL, and edit simultaneously without conflicts.
 - **comprehensive-test.spec.ts**: Tests basic CRUD operations and authentication.
 
 ## Project Structure

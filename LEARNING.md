@@ -1278,7 +1278,7 @@ Initially, we relied on manual testing. However, as the collaboration features g
 
 **Why Playwright?**
 
-- **Multi-Context Support**: Essential for testing collaboration. We can spawn two separate browser contexts (Akarsh and Mary) and verify they see each other's changes.
+- **Multi-Context Support**: Essential for testing collaboration. We can spawn two separate browser contexts (User A and User B) and verify they see each other's changes.
 - **Auto-waiting**: Reduces flakiness when interacting with asynchronous UI elements like the TipTap editor.
 - **Video & Screenshots**: Makes debugging failures in CI much easier.
 

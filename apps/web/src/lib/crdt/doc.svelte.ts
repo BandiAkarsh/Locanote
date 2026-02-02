@@ -25,8 +25,8 @@
 // - Automatic sync between tabs/browsers on same device
 // ============================================================================
 
-import * as Y from 'yjs';                                        // Import Yjs library
-import { IndexeddbPersistence } from 'y-indexeddb';              // Local persistence
+import * as Y from "yjs"; // Import Yjs library
+import { IndexeddbPersistence } from "y-indexeddb"; // Local persistence
 // Yjs types are available on the Y namespace
 
 // ============================================================================
@@ -45,7 +45,7 @@ import { IndexeddbPersistence } from 'y-indexeddb';              // Local persis
 // ============================================================================
 // We keep track of open documents to avoid creating duplicates
 
-const activeDocuments = new Map<string, Y.Doc>();                // Map of noteId -> Y.Doc
+const activeDocuments = new Map<string, Y.Doc>(); // Map of noteId -> Y.Doc
 const activeProviders = new Map<string, IndexeddbPersistence>(); // Map of noteId -> Provider
 
 // ============================================================================
@@ -69,33 +69,33 @@ export function openDocument(noteId: string): {
   if (activeDocuments.has(noteId)) {
     const existingDoc = activeDocuments.get(noteId)!;
     const existingProvider = activeProviders.get(noteId)!;
-    
+
     return {
       document: existingDoc,
       provider: existingProvider,
-      content: existingDoc.getXmlFragment('content'),
-      title: existingDoc.getText('title'),
-      tags: existingDoc.getArray('tags'),
-      meta: existingDoc.getMap('meta'),
-      destroy: () => closeDocument(noteId)                       // Cleanup function
+      content: existingDoc.getXmlFragment("content"),
+      title: existingDoc.getText("title"),
+      tags: existingDoc.getArray("tags"),
+      meta: existingDoc.getMap("meta"),
+      destroy: () => closeDocument(noteId), // Cleanup function
     };
   }
 
   // --------------------------------------------------------------------
   // CREATE NEW DOCUMENT
   // --------------------------------------------------------------------
-  const doc = new Y.Doc();                                       // Create new Yjs document
-  
+  const doc = new Y.Doc(); // Create new Yjs document
+
   // Initialize shared types with defaults
-  const content = doc.getXmlFragment('content');                 // Rich text content
-  const title = doc.getText('title');                            // Plain text title
-  const tags = doc.getArray<string>('tags');                     // Tag IDs array
-  const meta = doc.getMap('meta');                               // Metadata
+  const content = doc.getXmlFragment("content"); // Rich text content
+  const title = doc.getText("title"); // Plain text title
+  const tags = doc.getArray<string>("tags"); // Tag IDs array
+  const meta = doc.getMap("meta"); // Metadata
 
   // Set default metadata if new document
-  if (meta.get('createdAt') === undefined) {
-    meta.set('createdAt', Date.now());
-    meta.set('updatedAt', Date.now());
+  if (meta.get("createdAt") === undefined) {
+    meta.set("createdAt", Date.now());
+    meta.set("updatedAt", Date.now());
   }
 
   // --------------------------------------------------------------------
@@ -113,16 +113,8 @@ export function openDocument(noteId: string): {
   // SYNC EVENT HANDLER
   // --------------------------------------------------------------------
   // Fires when document is synced with IndexedDB (loaded or saved)
-  provider.on('synced', () => {
+  provider.on("synced", () => {
     console.log(`Document ${noteId} synced with IndexedDB`);
-  });
-
-  // --------------------------------------------------------------------
-  // UPDATE HANDLER
-  // --------------------------------------------------------------------
-  // Update the 'updatedAt' timestamp when content changes
-  doc.on('update', () => {
-    meta.set('updatedAt', Date.now());
   });
 
   // --------------------------------------------------------------------
@@ -135,7 +127,7 @@ export function openDocument(noteId: string): {
     title,
     tags,
     meta,
-    destroy: () => closeDocument(noteId)
+    destroy: () => closeDocument(noteId),
   };
 }
 
@@ -151,12 +143,12 @@ export function closeDocument(noteId: string): void {
   const provider = activeProviders.get(noteId);
 
   if (provider) {
-    provider.destroy();                                          // Stop persistence
+    provider.destroy(); // Stop persistence
     activeProviders.delete(noteId);
   }
 
   if (doc) {
-    doc.destroy();                                               // Destroy document
+    doc.destroy(); // Destroy document
     activeDocuments.delete(noteId);
   }
 }
@@ -194,9 +186,9 @@ export function isDocumentOpen(noteId: string): boolean {
 
 export function getDocumentText(noteId: string): string {
   const doc = activeDocuments.get(noteId);
-  if (!doc) return '';
+  if (!doc) return "";
 
-  const content = doc.getXmlFragment('content');
+  const content = doc.getXmlFragment("content");
   // Convert Y.XmlFragment to plain text
   // This is a simplified version - in practice you'd parse the XML structure
   return content.toString();
@@ -217,11 +209,11 @@ export function getDocumentMeta(noteId: string): {
   const doc = activeDocuments.get(noteId);
   if (!doc) return null;
 
-  const meta = doc.getMap('meta');
+  const meta = doc.getMap("meta");
   return {
-    createdAt: meta.get('createdAt') as number,
-    updatedAt: meta.get('updatedAt') as number,
-    ...Object.fromEntries(meta.entries())
+    createdAt: meta.get("createdAt") as number,
+    updatedAt: meta.get("updatedAt") as number,
+    ...Object.fromEntries(meta.entries()),
   };
 }
 
@@ -251,17 +243,17 @@ export function exportDocumentToJSON(noteId: string): any | null {
 
 export function importDocumentFromJSON(
   noteId: string,
-  json: any
+  json: any,
 ): ReturnType<typeof openDocument> {
   // Close existing document if any
   closeDocument(noteId);
 
   // Create new document
   const result = openDocument(noteId);
-  
+
   // Import the JSON state
   // Note: This requires careful handling to avoid conflicts
   // In practice, you'd use Y.applyUpdate with the encoded state
-  
+
   return result;
 }
