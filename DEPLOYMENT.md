@@ -127,6 +127,7 @@ curl https://locanote-signaling.YOUR_SUBDOMAIN.workers.dev/health
 ```
 
 Should return:
+
 ```json
 {
   "status": "ok",
@@ -169,10 +170,12 @@ The GitHub Actions workflow is set up to:
    - Deploy signaling server
    - Build and deploy frontend
    - Run type checking
+   - **Run Playwright E2E tests** (Ensures no regression in collaboration/UI)
    - Verify build
 
 2. **On pull requests:**
    - Run type checking
+   - **Run Playwright E2E tests**
    - Build verification
    - No deployment (preview only)
 
@@ -180,13 +183,13 @@ The GitHub Actions workflow is set up to:
 
 Your deployment will use:
 
-| Service | Free Limit | Your Usage |
-|---------|-----------|------------|
-| **Pages** | Unlimited bandwidth | ✅ Perfect |
-| **Workers** | 100K requests/day | ✅ ~1K/day expected |
-| **Durable Objects** | 1M requests/month | ✅ ~10K/month expected |
-| **KV** | 1GB storage | ✅ <10MB expected |
-| **Builds** | 500/month | ✅ ~20/month expected |
+| Service             | Free Limit          | Your Usage             |
+| ------------------- | ------------------- | ---------------------- |
+| **Pages**           | Unlimited bandwidth | ✅ Perfect             |
+| **Workers**         | 100K requests/day   | ✅ ~1K/day expected    |
+| **Durable Objects** | 1M requests/month   | ✅ ~10K/month expected |
+| **KV**              | 1GB storage         | ✅ <10MB expected      |
+| **Builds**          | 500/month           | ✅ ~20/month expected  |
 
 **Estimated cost: $0/month** for typical usage!
 
@@ -227,6 +230,7 @@ ALLOWED_ORIGINS = "https://yourdomain.com,https://www.yourdomain.com"
 ```
 
 Then redeploy:
+
 ```bash
 cd packages/signaling
 npx wrangler deploy
@@ -235,12 +239,14 @@ npx wrangler deploy
 ## 🎉 You're Live!
 
 Your Locanote instance is now:
+
 - ✅ Hosted on Cloudflare's global CDN
 - ✅ Deployed automatically via GitHub Actions
 - ✅ Using free tier (no credit card required)
 - ✅ Ready for production use
 
 **Next Steps:**
+
 - Share your app URL with users
 - Add a custom domain for branding
 - Monitor usage in Cloudflare dashboard

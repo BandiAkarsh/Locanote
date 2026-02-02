@@ -33,6 +33,7 @@ These goals led us to a unique architecture: local-first storage + P2P collabora
 Traditional apps store data on servers first, with local caching as an optimization. Local-first flips this:
 
 **Traditional:**
+
 ```
 User → API → Database → User (with cache)
          ↑
@@ -40,6 +41,7 @@ User → API → Database → User (with cache)
 ```
 
 **Local-First:**
+
 ```
 User → Local DB → Sync → Other Devices
          ↑
@@ -47,6 +49,7 @@ User → Local DB → Sync → Other Devices
 ```
 
 Benefits:
+
 - Works offline by default
 - Better performance (no network latency)
 - User owns their data
@@ -54,6 +57,7 @@ Benefits:
 - No server = no data breaches
 
 Challenges:
+
 - Syncing is complex
 - Conflict resolution required
 - Collaboration is harder
@@ -64,25 +68,29 @@ Challenges:
 ### Decision 1: SvelteKit + Svelte 5
 
 **Why we chose it:**
+
 - Svelte's compiler approach produces smaller bundles
 - Svelte 5 runes provide cleaner reactivity
 - Built-in SSR for better SEO and initial load
 - File-based routing is intuitive
 
 **The good:**
+
 - Excellent developer experience
 - Truly reactive with `$state` and `$effect`
 - No virtual DOM overhead
 
 **The challenging:**
+
 - Svelte 5 was still evolving during development
 - Some third-party libraries hadn't updated yet
 - Migration from Svelte 4 patterns required learning
 
 **Code Example:**
+
 ```typescript
 // Svelte 4 style (old)
-import { writable } from 'svelte/store';
+import { writable } from "svelte/store";
 const count = writable(0);
 
 // Svelte 5 style (new) - cleaner!
@@ -93,29 +101,33 @@ let doubled = $derived(count * 2);
 
 // Side effects
 $effect(() => {
-  console.log('Count changed:', count);
+  console.log("Count changed:", count);
 });
 ```
 
 ### Decision 2: Yjs for CRDTs
 
 **Why we chose it:**
+
 - Battle-tested in production (Figma, Notion use it)
 - Excellent performance
 - Great ecosystem (providers for different sync methods)
 - TypeScript support
 
 **Alternatives considered:**
+
 - **Automerge**: More features but larger bundle size
 - **Diamond Types**: Experimental, less mature
 - **ProseMirror collab**: Requires central server
 
 **The good:**
+
 - Conflict resolution "just works"
 - Tiny update messages
 - Works with any editor (TipTap, Quill, etc.)
 
 **The challenging:**
+
 - Learning curve for CRDT concepts
 - Debugging distributed state is hard
 - Yjs has specific patterns that must be followed
@@ -123,11 +135,13 @@ $effect(() => {
 ### Decision 3: WebRTC for P2P
 
 **Why we chose it:**
+
 - Browser-native (no plugins)
 - Direct P2P = no server bandwidth costs
 - NAT traversal built-in
 
 **The Architecture:**
+
 ```
 ┌─────────┐         ┌──────────────┐         ┌─────────┐
 │  User A │◄───────►│   Signaling  │◄───────►│  User B │
@@ -141,11 +155,13 @@ $effect(() => {
 ```
 
 **The good:**
+
 - Once connected, server is out of the loop
 - Encrypted by default (DTLS)
 - Low latency
 
 **The challenging:**
+
 - NAT traversal doesn't always work
 - Complex to debug (network issues)
 - Requires signaling server anyway
@@ -154,11 +170,13 @@ $effect(() => {
 ### Decision 4: WebAuthn for Auth
 
 **Why we chose it:**
+
 - Passwordless = no password database to breach
 - Uses device's secure hardware
 - Phishing-resistant
 
 **The Trade-off:**
+
 ```
 Standard WebAuthn:       Our Approach:
 ┌─────────┐              ┌─────────┐
@@ -173,19 +191,66 @@ Standard WebAuthn:       Our Approach:
 ```
 
 We verify client-side because:
+
 - No server to compromise
 - Credential is bound to our domain anyway
 - Simpler architecture
 
 **The good:**
+
 - Face ID / Touch ID / PIN support
 - No passwords to remember
 - Cryptographically secure
 
 **The challenging:**
+
 - Complex API (many options)
 - Browser support varies
 - Recovery is hard (no "forgot password")
+
+### Decision 5: Centralizing Browser Utilities
+
+When building with SvelteKit, code often runs in both Node.js (during SSR) and the Browser. Initially, we had duplicate checks like `typeof window !== 'undefined'` or `globalThis.window` in every file. This was fragile and verbose.
+
+**The Solution:**
+We created a centralized `lib/utils/browser.ts` module that provides safe access to browser-only APIs and environment detection.
+
+```typescript
+// lib/utils/browser.ts
+export const isBrowser =
+  typeof globalThis !== "undefined" &&
+  typeof (globalThis as any).window !== "undefined";
+
+export function getLocalStorage(): Storage | undefined {
+  if (!isBrowser) return undefined;
+  return (globalThis as any).window?.localStorage;
+}
+```
+
+**Lesson:** Centralizing environment detection prevents runtime errors during server-side rendering and provides a single source of truth for browser-only APIs like WebAuthn or Crypto.
+
+### Decision 6: Eliminating the "Dark Mode Flash"
+
+A common issue in web apps is the "flash of light mode" when a page is refreshed in dark mode. This happens because the browser renders the default light CSS before JavaScript (Svelte) can load and apply the `.dark` class.
+
+**The Solution:**
+We added a small, blocking inline script in the `<head>` of `app.html`. This script runs before the body is rendered, checking `localStorage` and applying the theme immediately.
+
+```html
+<script>
+  (function () {
+    try {
+      const theme = localStorage.getItem("locanote-theme") || "system";
+      const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const isDark =
+        theme === "dark" || (theme === "system" && darkQuery.matches);
+      if (isDark) document.documentElement.classList.add("dark");
+    } catch (e) {}
+  })();
+</script>
+```
+
+**Lesson:** Blocking scripts in the head are usually bad for performance, but for theme initialization, they are essential for a professional user experience.
 
 ## Svelte 5 Runes
 
@@ -194,13 +259,14 @@ Svelte 5 introduced a new reactivity model with "runes". This was one of the big
 ### Understanding Runes
 
 **The Old Way (Svelte 4):**
+
 ```svelte
 <script>
   import { writable, derived } from 'svelte/store';
-  
+
   const count = writable(0);
   const doubled = derived(count, $c => $c * 2);
-  
+
   function increment() {
     count.update(c => c + 1);
   }
@@ -212,11 +278,12 @@ Svelte 5 introduced a new reactivity model with "runes". This was one of the big
 ```
 
 **The New Way (Svelte 5):**
+
 ```svelte
 <script>
   let count = $state(0);           // Reactive state
   let doubled = $derived(count * 2); // Derived value
-  
+
   function increment() {
     count++;                        // Direct mutation!
   }
@@ -239,12 +306,12 @@ let count = $state(0);
 
 // Object state (deeply reactive!)
 let user = $state({
-  name: 'John',
-  preferences: { theme: 'dark' }
+  name: "John",
+  preferences: { theme: "dark" },
 });
 
 // Changing nested properties works
-user.preferences.theme = 'light'; // UI updates!
+user.preferences.theme = "light"; // UI updates!
 ```
 
 #### `$derived` - Computed Values
@@ -252,8 +319,8 @@ user.preferences.theme = 'light'; // UI updates!
 Automatically updates when dependencies change:
 
 ```typescript
-let firstName = $state('John');
-let lastName = $state('Doe');
+let firstName = $state("John");
+let lastName = $state("Doe");
 
 // Re-runs when firstName or lastName changes
 let fullName = $derived(`${firstName} ${lastName}`);
@@ -274,14 +341,14 @@ Runs when dependencies change, for side effects:
 ```typescript
 // Basic effect
 $effect(() => {
-  console.log('Count is now:', count);
+  console.log("Count is now:", count);
   document.title = `Count: ${count}`;
 });
 
 // Cleanup with $effect.pre
 $effect.pre(() => {
   const connection = createConnection();
-  
+
   return () => {
     // Cleanup runs before next effect or unmount
     connection.disconnect();
@@ -298,10 +365,10 @@ Replaces `export let`:
   // Old way
   export let title;
   export let count = 0;
-  
+
   // New way
   let { title, count = 0 } = $props();
-  
+
   // With rest props
   let { title, ...rest } = $props();
 </script>
@@ -314,26 +381,34 @@ This pattern revolutionized our store architecture:
 ```typescript
 // stores/theme.svelte.ts
 export function createThemeStore() {
-  let theme = $state('system');
+  let theme = $state("system");
   let systemPrefersDark = $state(false);
-  
+
   // Computed
   let isDark = $derived(
-    theme === 'dark' || (theme === 'system' && systemPrefersDark)
+    theme === "dark" || (theme === "system" && systemPrefersDark),
   );
-  
+
   // Effect for persistence
   $effect(() => {
-    localStorage.setItem('theme', theme);
+    localStorage.setItem("theme", theme);
     applyTheme(theme);
   });
-  
+
   // Public API
   return {
-    get theme() { return theme; },
-    set theme(value) { theme = value; },
-    get isDark() { return isDark; },
-    toggle() { theme = isDark ? 'light' : 'dark'; }
+    get theme() {
+      return theme;
+    },
+    set theme(value) {
+      theme = value;
+    },
+    get isDark() {
+      return isDark;
+    },
+    toggle() {
+      theme = isDark ? "light" : "dark";
+    },
   };
 }
 
@@ -366,12 +441,20 @@ export const auth = writable({ user: null });
 export function createAuthStore() {
   let user = $state<User | null>(null);
   let isAuthenticated = $derived(!!user);
-  
+
   return {
-    get user() { return user; },
-    get isAuthenticated() { return isAuthenticated; },
-    login(userData: User) { user = userData; },
-    logout() { user = null; }
+    get user() {
+      return user;
+    },
+    get isAuthenticated() {
+      return isAuthenticated;
+    },
+    login(userData: User) {
+      user = userData;
+    },
+    logout() {
+      user = null;
+    },
   };
 }
 
@@ -385,11 +468,11 @@ Svelte 5 has `$inspect` for debugging, but remove it before production:
 
 ```typescript
 // Development only
-$inspect(state);  // Logs when state changes
+$inspect(state); // Logs when state changes
 
 // Use $effect for production logging if needed
 $effect(() => {
-  console.log('State changed:', state);
+  console.log("State changed:", state);
 });
 ```
 
@@ -416,32 +499,32 @@ User B: "Hi" ────┘       Both changes preserved!
 **1. The Document Structure:**
 
 ```typescript
-import * as Y from 'yjs';
+import * as Y from "yjs";
 
 // Create a document
 const doc = new Y.Doc();
 
 // Add shared types
-const ytext = doc.getText('content');
-const yarray = doc.getArray('tags');
-const ymap = doc.getMap('metadata');
+const ytext = doc.getText("content");
+const yarray = doc.getArray("tags");
+const ymap = doc.getMap("metadata");
 ```
 
 **2. Making Changes:**
 
 ```typescript
 // Text operations
-ytext.insert(0, 'Hello');           // Insert at position 0
-ytext.insert(5, ' World');          // Append
-ytext.delete(5, 6);                 // Delete " World"
+ytext.insert(0, "Hello"); // Insert at position 0
+ytext.insert(5, " World"); // Append
+ytext.delete(5, 6); // Delete " World"
 
 // Array operations
-yarray.push(['tag1', 'tag2']);
-yarray.delete(0, 1);                // Remove first item
+yarray.push(["tag1", "tag2"]);
+yarray.delete(0, 1); // Remove first item
 
 // Map operations
-ymap.set('title', 'My Note');
-ymap.set('updatedAt', Date.now());
+ymap.set("title", "My Note");
+ymap.set("updatedAt", Date.now());
 ```
 
 **3. The Magic - Update Encoding:**
@@ -477,13 +560,13 @@ Y.applyUpdate(docB, updateA);
 
 ### Yjs Data Types
 
-| Type | Use Case | Example |
-|------|----------|---------|
-| `Y.Text` | Plain text, collaborative editing | Editor content |
-| `Y.XmlFragment` | Rich text (HTML-like) | TipTap content |
-| `Y.Array` | Ordered lists | Tags, todo lists |
-| `Y.Map` | Key-value data | Metadata, settings |
-| `Y.XmlElement` | XML nodes | Custom elements |
+| Type            | Use Case                          | Example            |
+| --------------- | --------------------------------- | ------------------ |
+| `Y.Text`        | Plain text, collaborative editing | Editor content     |
+| `Y.XmlFragment` | Rich text (HTML-like)             | TipTap content     |
+| `Y.Array`       | Ordered lists                     | Tags, todo lists   |
+| `Y.Map`         | Key-value data                    | Metadata, settings |
+| `Y.XmlElement`  | XML nodes                         | Custom elements    |
 
 ### Our Implementation
 
@@ -493,26 +576,23 @@ Y.applyUpdate(docB, updateA);
 // lib/crdt/doc.svelte.ts
 export function openDocument(noteId: string) {
   const doc = new Y.Doc();
-  
+
   // Rich text for TipTap editor
-  const content = doc.getXmlFragment('content');
-  
+  const content = doc.getXmlFragment("content");
+
   // Plain text title
-  const title = doc.getText('title');
-  
+  const title = doc.getText("title");
+
   // Array of tag IDs
-  const tags = doc.getArray<string>('tags');
-  
+  const tags = doc.getArray<string>("tags");
+
   // Metadata map
-  const meta = doc.getMap('meta');
-  meta.set('createdAt', Date.now());
-  
+  const meta = doc.getMap("meta");
+  meta.set("createdAt", Date.now());
+
   // Persistence
-  const provider = new IndexeddbPersistence(
-    `locanote-${noteId}`, 
-    doc
-  );
-  
+  const provider = new IndexeddbPersistence(`locanote-${noteId}`, doc);
+
   return { document: doc, content, title, tags, meta, provider };
 }
 ```
@@ -523,15 +603,15 @@ export function openDocument(noteId: string) {
 // lib/crdt/providers.ts
 export function createWebRTCProvider(roomId, ydoc, user) {
   const provider = new WebrtcProvider(roomId, ydoc, {
-    signaling: ['wss://signaling.locanote.app'],
-    password: roomPassword  // Room access control
+    signaling: ["wss://signaling.locanote.app"],
+    password: roomPassword, // Room access control
   });
-  
+
   // Set user awareness (cursor position, selection)
   provider.awareness.setLocalState({
-    user: { name: user.name, color: user.color, id: user.id }
+    user: { name: user.name, color: user.color, id: user.id },
   });
-  
+
   return provider;
 }
 ```
@@ -543,30 +623,24 @@ export function createWebRTCProvider(roomId, ydoc, user) {
 ```typescript
 // ❌ Don't use integer positions for tracking
 const pos = 5;
-ytext.insert(pos, 'X');  // Position may shift!
+ytext.insert(pos, "X"); // Position may shift!
 
 // ✅ Use relative positions
-const relativePos = Y.createRelativePositionFromAbsoluteIndex(
-  ytext, 
-  5
-);
+const relativePos = Y.createRelativePositionFromAbsoluteIndex(ytext, 5);
 // Later, convert back accounting for concurrent changes
-const absolutePos = Y.createAbsolutePositionFromRelative(
-  relativePos,
-  ytext
-);
+const absolutePos = Y.createAbsolutePositionFromRelative(relativePos, ytext);
 ```
 
 **2. Initialization Order:**
 
 ```typescript
 // ❌ Access before initialization
-const ytext = doc.getText('content');
-console.log(ytext.toString());  // May be empty!
+const ytext = doc.getText("content");
+console.log(ytext.toString()); // May be empty!
 
 // ✅ Wait for sync
-provider.on('synced', () => {
-  console.log(ytext.toString());  // Now safe
+provider.on("synced", () => {
+  console.log(ytext.toString()); // Now safe
 });
 ```
 
@@ -574,13 +648,13 @@ provider.on('synced', () => {
 
 ```typescript
 // ❌ Memory leak
-doc.on('update', handler);
+doc.on("update", handler);
 // Never removed!
 
 // ✅ Clean up
-doc.on('update', handler);
+doc.on("update", handler);
 return () => {
-  doc.off('update', handler);
+  doc.off("update", handler);
   provider.destroy();
   doc.destroy();
 };
@@ -624,9 +698,9 @@ await pc.setLocalDescription(offer);
 
 // Send offer to Peer B via signaling server
 signalingServer.send({
-  type: 'offer',
+  type: "offer",
   sdp: offer.sdp,
-  to: 'peer-b'
+  to: "peer-b",
 });
 
 // Peer B receives offer
@@ -636,9 +710,9 @@ await pc.setLocalDescription(answer);
 
 // Send answer back
 signalingServer.send({
-  type: 'answer',
+  type: "answer",
   sdp: answer.sdp,
-  to: 'peer-a'
+  to: "peer-a",
 });
 ```
 
@@ -659,9 +733,9 @@ Paths Tried (in order):
 pc.onicecandidate = (event) => {
   if (event.candidate) {
     signalingServer.send({
-      type: 'ice-candidate',
+      type: "ice-candidate",
       candidate: event.candidate,
-      to: remotePeerId
+      to: remotePeerId,
     });
   }
 };
@@ -672,12 +746,12 @@ pc.onicecandidate = (event) => {
 ```typescript
 pc.onconnectionstatechange = () => {
   switch (pc.connectionState) {
-    case 'new':        // Initial state
-    case 'connecting': // Establishing connection
-    case 'connected':  // P2P established! 🎉
-    case 'disconnected': // Temporary failure
-    case 'failed':     // Could not connect
-    case 'closed':     // Connection closed
+    case "new": // Initial state
+    case "connecting": // Establishing connection
+    case "connected": // P2P established! 🎉
+    case "disconnected": // Temporary failure
+    case "failed": // Could not connect
+    case "closed": // Connection closed
   }
 };
 ```
@@ -691,19 +765,20 @@ We built a lightweight signaling server on Cloudflare Workers:
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const roomId = url.searchParams.get('room');
-    
+    const roomId = url.searchParams.get("room");
+
     // Get Durable Object for this room
     const id = env.SIGNALING_ROOMS.idFromName(roomId);
     const room = env.SIGNALING_ROOMS.get(id);
-    
+
     // Handle WebSocket upgrade
     return room.fetch(request);
-  }
+  },
 };
 ```
 
 **Why Durable Objects?**
+
 - State persists across requests
 - Room state survives worker restarts
 - Automatic scaling
@@ -714,30 +789,30 @@ export default {
 **y-webrtc** abstracts most WebRTC complexity:
 
 ```typescript
-import { WebrtcProvider } from 'y-webrtc';
+import { WebrtcProvider } from "y-webrtc";
 
 const provider = new WebrtcProvider(
-  'room-name',           // Room identifier
-  ydoc,                  // Yjs document
+  "room-name", // Room identifier
+  ydoc, // Yjs document
   {
-    signaling: ['wss://signaling.server'],
-    password: 'optional-room-password',
-    maxConns: 20,        // Max peers
+    signaling: ["wss://signaling.server"],
+    password: "optional-room-password",
+    maxConns: 20, // Max peers
     filterBcConns: true, // Filter broadcast connections
-  }
+  },
 );
 
 // Events
-provider.on('status', ({ connected }) => {
-  console.log('Connected to signaling:', connected);
+provider.on("status", ({ connected }) => {
+  console.log("Connected to signaling:", connected);
 });
 
-provider.on('peers', ({ webrtcPeers, bcPeers }) => {
-  console.log('WebRTC peers:', webrtcPeers.length);
+provider.on("peers", ({ webrtcPeers, bcPeers }) => {
+  console.log("WebRTC peers:", webrtcPeers.length);
 });
 
-provider.on('synced', ({ synced }) => {
-  console.log('Document synced:', synced);
+provider.on("synced", ({ synced }) => {
+  console.log("Document synced:", synced);
 });
 ```
 
@@ -750,13 +825,13 @@ provider.on('synced', ({ synced }) => {
 // Solution: Use TURN relay server
 const pc = new RTCPeerConnection({
   iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: "stun:stun.l.google.com:19302" },
     {
-      urls: 'turn:turnserver.com',
-      username: 'user',
-      credential: 'pass'
-    }
-  ]
+      urls: "turn:turnserver.com",
+      username: "user",
+      credential: "pass",
+    },
+  ],
 });
 ```
 
@@ -768,14 +843,14 @@ const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 if (isSafari) {
   // May need additional configuration
-  pc.configuration.bundlePolicy = 'max-compat';
+  pc.configuration.bundlePolicy = "max-compat";
 }
 ```
 
 **3. Reconnection Logic:**
 
 ```typescript
-provider.on('status', ({ connected }) => {
+provider.on("status", ({ connected }) => {
   if (!connected) {
     // Attempt reconnection after delay
     setTimeout(() => {
@@ -837,26 +912,24 @@ export function generateRoomKey(): Uint8Array {
 
 // Derive from password (for shared access)
 export function deriveKeyFromPassword(
-  password: string, 
-  salt?: Uint8Array
+  password: string,
+  salt?: Uint8Array,
 ): { key: Uint8Array; salt: Uint8Array } {
   const usedSalt = salt || nacl.randomBytes(16);
-  
+
   // In production: Use PBKDF2 or Argon2
   const encoder = new TextEncoder();
   const passwordBytes = encoder.encode(password);
-  
+
   // Combine and hash
-  const combined = new Uint8Array(
-    passwordBytes.length + usedSalt.length
-  );
+  const combined = new Uint8Array(passwordBytes.length + usedSalt.length);
   combined.set(passwordBytes);
   combined.set(usedSalt, passwordBytes.length);
-  
+
   const hash = nacl.hash(combined);
-  return { 
-    key: hash.slice(0, 32), 
-    salt: usedSalt 
+  return {
+    key: hash.slice(0, 32),
+    salt: usedSalt,
   };
 }
 
@@ -864,7 +937,7 @@ export function deriveKeyFromPassword(
 const roomKeys = new Map<string, Uint8Array>();
 
 export function storeRoomKey(roomId: string, key: Uint8Array): void {
-  roomKeys.set(roomId, key);  // Memory only - no persistence
+  roomKeys.set(roomId, key); // Memory only - no persistence
 }
 ```
 
@@ -872,37 +945,37 @@ export function storeRoomKey(roomId: string, key: Uint8Array): void {
 
 ```typescript
 export function encryptMessage(
-  message: string, 
-  key: Uint8Array
+  message: string,
+  key: Uint8Array,
 ): EncryptedMessage {
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(message);
-  
+
   // 24-byte nonce for XSalsa20
   const nonce = nacl.randomBytes(24);
-  
+
   // Encrypt with XSalsa20-Poly1305
   const ciphertext = nacl.secretbox(plaintext, nonce, key);
-  
+
   return {
     ciphertext: naclUtil.encodeBase64(ciphertext),
-    nonce: naclUtil.encodeBase64(nonce)
+    nonce: naclUtil.encodeBase64(nonce),
   };
 }
 
 export function decryptMessage(
-  encrypted: EncryptedMessage, 
-  key: Uint8Array
+  encrypted: EncryptedMessage,
+  key: Uint8Array,
 ): string | null {
   try {
     const ciphertext = naclUtil.decodeBase64(encrypted.ciphertext);
     const nonce = naclUtil.decodeBase64(encrypted.nonce);
-    
+
     // Decrypt and verify
     const plaintext = nacl.secretbox.open(ciphertext, nonce, key);
-    
-    if (!plaintext) return null;  // Decryption failed
-    
+
+    if (!plaintext) return null; // Decryption failed
+
     const decoder = new TextDecoder();
     return decoder.decode(plaintext);
   } catch (error) {
@@ -939,28 +1012,28 @@ User ──► Biometric/PIN ──► Secure Hardware
 const credential = await navigator.credentials.create({
   publicKey: {
     challenge: generateChallenge(),
-    rp: { name: 'Locanote', id: window.location.hostname },
+    rp: { name: "Locanote", id: window.location.hostname },
     user: {
       id: encodeUserId(userId),
       name: username,
-      displayName: username
+      displayName: username,
     },
     pubKeyCredParams: [
-      { type: 'public-key', alg: -7 },   // ES256
-      { type: 'public-key', alg: -257 }  // RS256
+      { type: "public-key", alg: -7 }, // ES256
+      { type: "public-key", alg: -257 }, // RS256
     ],
     authenticatorSelection: {
-      residentKey: 'required',
-      userVerification: 'preferred'
-    }
-  }
+      residentKey: "required",
+      userVerification: "preferred",
+    },
+  },
 });
 
 // Store credential data
 await createCredential({
   userId,
   credentialId: credential.rawId,
-  publicKey: response.getPublicKey()
+  publicKey: response.getPublicKey(),
 });
 ```
 
@@ -968,23 +1041,23 @@ await createCredential({
 
 **What We're Protected Against:**
 
-| Threat | Protection | Confidence |
-|--------|-----------|------------|
-| Server compromise | E2E encryption | High |
-| Network eavesdropping | DTLS + NaCl | High |
-| Man-in-the-middle | WebAuthn + HTTPS | High |
-| Replay attacks | Nonces + timestamps | High |
-| XSS | CSP + input sanitization | Medium |
-| Device theft | WebAuthn + device encryption | Medium |
+| Threat                | Protection                   | Confidence |
+| --------------------- | ---------------------------- | ---------- |
+| Server compromise     | E2E encryption               | High       |
+| Network eavesdropping | DTLS + NaCl                  | High       |
+| Man-in-the-middle     | WebAuthn + HTTPS             | High       |
+| Replay attacks        | Nonces + timestamps          | High       |
+| XSS                   | CSP + input sanitization     | Medium     |
+| Device theft          | WebAuthn + device encryption | Medium     |
 
 **What We're NOT Protected Against:**
 
-| Threat | Reason | Mitigation |
-|--------|--------|------------|
-| Malware on device | Runs with user permissions | Keep device secure |
-| Shoulder surfing | Visual observation | Privacy screens |
-| Collaborator leaks | They have decryption keys | Trust your collaborators |
-| Brute force (password) | Weak user passwords | Use passkeys |
+| Threat                 | Reason                     | Mitigation               |
+| ---------------------- | -------------------------- | ------------------------ |
+| Malware on device      | Runs with user permissions | Keep device secure       |
+| Shoulder surfing       | Visual observation         | Privacy screens          |
+| Collaborator leaks     | They have decryption keys  | Trust your collaborators |
+| Brute force (password) | Weak user passwords        | Use passkeys             |
 
 ## Challenges We Faced
 
@@ -993,6 +1066,7 @@ await createCredential({
 **Problem:** Svelte 5 was evolving rapidly during development. APIs changed between releases.
 
 **Solution:**
+
 - Pinned exact versions in package.json
 - Joined Svelte Discord for real-time updates
 - Wrote abstraction layers around unstable APIs
@@ -1004,6 +1078,7 @@ await createCredential({
 **Problem:** Managing Yjs document creation/cleanup with Svelte component lifecycle.
 
 **The Issue:**
+
 ```typescript
 // ❌ Creates new doc on every reactive change
 $: doc = new Y.Doc();
@@ -1016,13 +1091,14 @@ onMount(() => {
 ```
 
 **Solution:**
+
 ```typescript
 // ✅ Proper lifecycle management
 let docInfo = $state<ReturnType<typeof openDocument> | null>(null);
 
 onMount(() => {
   docInfo = openDocument(noteId);
-  
+
   return () => {
     // Cleanup on unmount
     docInfo?.destroy();
@@ -1038,30 +1114,32 @@ onMount(() => {
 **Problem:** Connections would randomly drop, especially on mobile networks.
 
 **Root Causes:**
+
 1. Aggressive NAT timeouts
 2. Mobile network switching (WiFi ↔ Cellular)
 3. Browser background tab throttling
 
 **Solution:**
+
 ```typescript
 // Reconnection logic
 function setupReconnection(provider) {
   let reconnectTimer;
-  
-  provider.on('status', ({ connected }) => {
+
+  provider.on("status", ({ connected }) => {
     clearTimeout(reconnectTimer);
-    
+
     if (!connected) {
       reconnectTimer = setTimeout(() => {
-        console.log('Attempting reconnection...');
+        console.log("Attempting reconnection...");
         provider.connect();
       }, 5000);
     }
   });
-  
+
   // Handle page visibility changes
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
       provider.connect();
     }
   });
@@ -1075,19 +1153,21 @@ function setupReconnection(provider) {
 **Problem:** How do you share encryption keys with collaborators securely?
 
 **Options Considered:**
+
 1. **Password-protected rooms**: Share password out-of-band
 2. **Key server**: Server distributes keys (compromises E2E)
 3. **QR codes**: In-person key exchange
 4. **URL fragments**: Key in URL hash (never sent to server)
 
 **Our Solution:**
+
 ```typescript
 // Key embedded in URL fragment (not sent to server)
 // https://locanote.app/note/abc123#key=base64encodedkey
 
 function getKeyFromUrl(): Uint8Array | null {
   const hash = window.location.hash;
-  if (hash.startsWith('#key=')) {
+  if (hash.startsWith("#key=")) {
     const keyBase64 = hash.slice(5);
     return decodeBase64(keyBase64);
   }
@@ -1098,7 +1178,7 @@ function getKeyFromUrl(): Uint8Array | null {
 const key = getKeyFromUrl();
 if (key) {
   storeRoomKey(roomId, key);
-  history.replaceState(null, '', window.location.pathname);
+  history.replaceState(null, "", window.location.pathname);
 }
 ```
 
@@ -1114,18 +1194,18 @@ if (key) {
 
 ```typescript
 // Show sync status
-let syncStatus = $state<'synced' | 'syncing' | 'offline'>('offline');
+let syncStatus = $state<"synced" | "syncing" | "offline">("offline");
 
-provider.on('synced', () => {
-  syncStatus = 'synced';
+provider.on("synced", () => {
+  syncStatus = "synced";
 });
 
-window.addEventListener('online', () => {
-  syncStatus = 'syncing';
+window.addEventListener("online", () => {
+  syncStatus = "syncing";
 });
 
-window.addEventListener('offline', () => {
-  syncStatus = 'offline';
+window.addEventListener("offline", () => {
+  syncStatus = "offline";
 });
 ```
 
@@ -1136,20 +1216,21 @@ window.addEventListener('offline', () => {
 **Problem:** Browsers limit IndexedDB storage (usually ~50MB-2GB).
 
 **Strategies:**
+
 1. **Compression**: Compress Yjs updates
 2. **Selective sync**: Don't sync all history
 3. **Storage estimation**: Check before operations
 
 ```typescript
 async function checkStorage() {
-  if ('storage' in navigator && 'estimate' in navigator.storage) {
+  if ("storage" in navigator && "estimate" in navigator.storage) {
     const estimate = await navigator.storage.estimate();
     const used = estimate.usage || 0;
     const total = estimate.quota || Infinity;
     const percent = (used / total) * 100;
-    
+
     if (percent > 80) {
-      showWarning('Storage nearly full. Export old notes.');
+      showWarning("Storage nearly full. Export old notes.");
     }
   }
 }
@@ -1162,6 +1243,7 @@ async function checkStorage() {
 **Problem:** WebAuthn has no "forgot password" flow.
 
 **Solutions Implemented:**
+
 1. **Multiple credentials**: Allow multiple passkeys per account
 2. **Password fallback**: Optional password for recovery
 3. **Export/Import**: Backup encrypted data manually
@@ -1174,17 +1256,14 @@ async function exportUserData(userId: string): Promise<Blob> {
     userId,
     exportedAt: Date.now(),
     notes: await Promise.all(
-      notes.map(async note => ({
+      notes.map(async (note) => ({
         ...note,
-        yjsState: await exportYjsState(note.id)
-      }))
-    )
+        yjsState: await exportYjsState(note.id),
+      })),
+    ),
   };
-  
-  return new Blob(
-    [JSON.stringify(exportData)],
-    { type: 'application/json' }
-  );
+
+  return new Blob([JSON.stringify(exportData)], { type: "application/json" });
 }
 ```
 
@@ -1195,44 +1274,38 @@ async function exportUserData(userId: string): Promise<Blob> {
 ### 1. Testing Strategy
 
 **What we did:**
-- Manual testing
-- Some unit tests
-- Integration tests added late
+Initially, we relied on manual testing. However, as the collaboration features grew complex, we implemented a comprehensive end-to-end testing suite using **Playwright**.
 
-**What we'd do:**
-- Start with E2E tests using Playwright
-- Test CRDT convergence properties
-- Mock WebRTC for testing
+**Why Playwright?**
+
+- **Multi-Context Support**: Essential for testing collaboration. We can spawn two separate browser contexts (Akarsh and Mary) and verify they see each other's changes.
+- **Auto-waiting**: Reduces flakiness when interacting with asynchronous UI elements like the TipTap editor.
+- **Video & Screenshots**: Makes debugging failures in CI much easier.
+
+**Key Test Case: Real-Time Collaboration**
 
 ```typescript
-// Example: Testing CRDT convergence
-test('concurrent edits converge', async () => {
-  const docA = new Y.Doc();
-  const docB = new Y.Doc();
-  
-  // Concurrent edits
-  docA.getText().insert(0, 'Hello');
-  docB.getText().insert(0, 'World');
-  
-  // Sync
-  Y.applyUpdate(docA, Y.encodeStateAsUpdate(docB));
-  Y.applyUpdate(docB, Y.encodeStateAsUpdate(docA));
-  
-  // Assert convergence
-  expect(docA.getText().toString()).toBe(
-    docB.getText().toString()
-  );
+test("Two users can collaborate", async ({ browser }) => {
+  const contextA = await browser.newContext();
+  const contextB = await browser.newContext();
+  // ... steps to register both and join same note
+  await typeInEditor(pageA, "Hello");
+  await expect(getEditorContent(pageB)).toContain("Hello");
 });
 ```
+
+**Lesson:** Testing distributed systems (like collaborative apps) is significantly easier with multi-context automation than manual testing. Start E2E testing early.
 
 ### 2. State Management
 
 **What we did:**
+
 - Multiple store files
 - Some global state
 - Prop drilling in places
 
 **What we'd do:**
+
 - Single state tree with context
 - Clear ownership of each domain
 - Better TypeScript inference
@@ -1244,7 +1317,7 @@ export function createAppStore() {
   const auth = createAuthStore();
   const notes = createNotesStore(auth.userId);
   const ui = createUIStore();
-  
+
   return {
     auth,
     notes,
@@ -1252,7 +1325,7 @@ export function createAppStore() {
     // Computed cross-domain state
     get isReady() {
       return auth.isInitialized && notes.isLoaded;
-    }
+    },
   };
 }
 ```
@@ -1260,11 +1333,13 @@ export function createAppStore() {
 ### 3. Error Handling
 
 **What we did:**
+
 - Console.error for debugging
 - Some try/catch blocks
 - Generic error messages
 
 **What we'd do:**
+
 - Structured error taxonomy
 - User-friendly error recovery
 - Error boundaries in Svelte
@@ -1276,7 +1351,7 @@ class LocanoteError extends Error {
     message: string,
     public code: string,
     public recoverable: boolean,
-    public action?: () => void
+    public action?: () => void,
   ) {
     super(message);
   }
@@ -1284,21 +1359,23 @@ class LocanoteError extends Error {
 
 // Usage
 throw new LocanoteError(
-  'Failed to connect to peer',
-  'RTC_CONNECTION_FAILED',
+  "Failed to connect to peer",
+  "RTC_CONNECTION_FAILED",
   true,
-  () => reconnect()
+  () => reconnect(),
 );
 ```
 
 ### 4. Documentation
 
 **What we did:**
+
 - Inline code comments
 - This learning document (post-hoc)
 - README
 
 **What we'd do:**
+
 - Architecture Decision Records (ADRs)
 - API documentation
 - Onboarding guide for contributors
@@ -1306,10 +1383,12 @@ throw new LocanoteError(
 ### 5. Performance Monitoring
 
 **What we did:**
+
 - DevTools profiling
 - Some console.time calls
 
 **What we'd do:**
+
 - Real User Monitoring (RUM)
 - Web Vitals tracking
 - CRDT operation metrics
@@ -1318,13 +1397,13 @@ throw new LocanoteError(
 // ✅ Better: Performance tracking
 function trackOperation(name: string, operation: () => void) {
   const start = performance.now();
-  
+
   try {
     operation();
   } finally {
     const duration = performance.now() - start;
-    analytics.track('operation', { name, duration });
-    
+    analytics.track("operation", { name, duration });
+
     if (duration > 100) {
       console.warn(`Slow operation: ${name} took ${duration}ms`);
     }

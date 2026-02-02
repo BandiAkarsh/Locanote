@@ -38,40 +38,40 @@ Locanote is a privacy-focused, collaborative note-taking application built with 
 
 ### Core Features
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Rich Text Editor** | Full-featured editor with formatting, lists, and tasks | ✅ |
-| **Offline Support** | Complete offline functionality with automatic sync | ✅ |
-| **Dark Mode** | Automatic and manual theme switching | ✅ |
-| **Tags & Organization** | Categorize notes with color-coded tags | ✅ |
-| **Export** | Export notes to HTML and Markdown | ✅ |
+| Feature                 | Description                                            | Status |
+| ----------------------- | ------------------------------------------------------ | ------ |
+| **Rich Text Editor**    | Full-featured editor with formatting, lists, and tasks | ✅     |
+| **Offline Support**     | Complete offline functionality with automatic sync     | ✅     |
+| **Dark Mode**           | Automatic and manual theme switching                   | ✅     |
+| **Tags & Organization** | Categorize notes with color-coded tags                 | ✅     |
+| **Export**              | Export notes to HTML and Markdown                      | ✅     |
 
 ### Authentication & Security
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **WebAuthn/Passkeys** | Passwordless authentication with biometrics | ✅ |
-| **Password Login** | Traditional password-based authentication | ✅ |
-| **End-to-End Encryption** | XSalsa20-Poly1305 encryption for collaboration | ✅ |
-| **Local Storage** | All data stored locally in IndexedDB | ✅ |
+| Feature                   | Description                                    | Status |
+| ------------------------- | ---------------------------------------------- | ------ |
+| **WebAuthn/Passkeys**     | Passwordless authentication with biometrics    | ✅     |
+| **Password Login**        | Traditional password-based authentication      | ✅     |
+| **End-to-End Encryption** | XSalsa20-Poly1305 encryption for collaboration | ✅     |
+| **Local Storage**         | All data stored locally in IndexedDB           | ✅     |
 
 ### Collaboration
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Real-time Collaboration** | Edit simultaneously with multiple users | ✅ |
-| **Live Cursors** | See where others are typing | ✅ |
-| **Conflict Resolution** | Automatic merge with CRDTs (no conflicts) | ✅ |
-| **P2P Connections** | Direct browser-to-browser communication | ✅ |
+| Feature                     | Description                               | Status |
+| --------------------------- | ----------------------------------------- | ------ |
+| **Real-time Collaboration** | Edit simultaneously with multiple users   | ✅     |
+| **Live Cursors**            | See where others are typing               | ✅     |
+| **Conflict Resolution**     | Automatic merge with CRDTs (no conflicts) | ✅     |
+| **P2P Connections**         | Direct browser-to-browser communication   | ✅     |
 
 ### Advanced Features
 
-| Feature | Description | Status |
-|---------|-------------|--------|
-| **Service Worker** | Background sync and offline caching | ✅ |
-| **Keyboard Shortcuts** | Power-user shortcuts for efficiency | ✅ |
-| **Responsive Design** | Works on desktop, tablet, and mobile | ✅ |
-| **PWA Ready** | Installable as a Progressive Web App | ✅ |
+| Feature                | Description                          | Status |
+| ---------------------- | ------------------------------------ | ------ |
+| **Service Worker**     | Background sync and offline caching  | ✅     |
+| **Keyboard Shortcuts** | Power-user shortcuts for efficiency  | ✅     |
+| **Responsive Design**  | Works on desktop, tablet, and mobile | ✅     |
+| **PWA Ready**          | Installable as a Progressive Web App | ✅     |
 
 ## Tech Stack
 
@@ -108,12 +108,13 @@ Durable Objects      - Room state management
 KV Storage           - Room metadata persistence
 ```
 
-### Build Tools
+### Build & Test Tools
 
 ```
 Vite 6               - Next-gen build tool
 Turborepo            - Monorepo task runner
 pnpm                 - Fast, disk-space efficient package manager
+Playwright           - End-to-end testing for collaboration and UI
 ```
 
 ## Architecture
@@ -123,7 +124,7 @@ pnpm                 - Fast, disk-space efficient package manager
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    User Interface                           │
-│              (SvelteKit 5 + Tailwind CSS)                   │
+│              (SvelteKit 5 + Tailwind CSS 4)                 │
 └──────────────────┬──────────────────────────────────────────┘
                    │
 ┌──────────────────▼──────────────────────────────────────────┐
@@ -162,6 +163,7 @@ The rich text editor is built on **TipTap** (ProseMirror abstraction) with Yjs i
 - **extensions.ts**: Custom TipTap extensions
 
 **Features:**
+
 - Rich text formatting (bold, italic, headings, lists)
 - Task lists with checkboxes
 - Text highlighting
@@ -177,6 +179,7 @@ The rich text editor is built on **TipTap** (ProseMirror abstraction) with Yjs i
 - **providers.ts**: WebRTC provider configuration
 
 **How it works:**
+
 1. Each note has a Yjs `Y.Doc` instance
 2. Document contains `Y.XmlFragment` for editor content
 3. `y-indexeddb` persists to browser storage
@@ -191,18 +194,20 @@ Multiple authentication methods for flexibility:
 - **challenge.ts**: Cryptographic challenge generation
 - **types.ts**: Auth type definitions
 
-**Security Features:**
-- Client-side credential verification
-- No server storage of private keys
-- Biometric/PIN verification via WebAuthn
+#### 4. **Utility Layer** (`lib/utils/`)
 
-#### 4. **Encryption Layer** (`lib/crypto/`)
+Centralized browser environment management:
+
+- **browser.ts**: SSR-safe window/crypto/storage access and base64 utilities.
+
+#### 5. **Encryption Layer** (`lib/crypto/`)
 
 End-to-end encryption using **TweetNaCl**:
 
 - **e2e.ts**: Room key management and encryption
 
 **Encryption Scheme:**
+
 - Algorithm: XSalsa20-Poly1305 (authenticated encryption)
 - Keys: 32-byte random keys per room
 - Storage: Keys kept in memory only (never persisted)
@@ -219,11 +224,37 @@ End-to-end encryption using **TweetNaCl**:
 - **tags.ts**: Tag definitions
 
 **Schema:**
+
 ```typescript
-interface User { id, username, createdAt, lastLoginAt }
-interface Credential { id, userId, type, publicKey, credentialId }
-interface Note { id, userId, title, tags, createdAt, updatedAt, yjsDocId }
-interface Tag { id, userId, name, color, createdAt }
+interface User {
+  id;
+  username;
+  createdAt;
+  lastLoginAt;
+}
+interface Credential {
+  id;
+  userId;
+  type;
+  publicKey;
+  credentialId;
+}
+interface Note {
+  id;
+  userId;
+  title;
+  tags;
+  createdAt;
+  updatedAt;
+  yjsDocId;
+}
+interface Tag {
+  id;
+  userId;
+  name;
+  color;
+  createdAt;
+}
 ```
 
 #### 6. **Service Worker** (`service-worker.js`)
@@ -231,7 +262,7 @@ interface Tag { id, userId, name, color, createdAt }
 Enables offline functionality and PWA features:
 
 - **Caching**: Static assets cached for offline use
-- **Strategies**: 
+- **Strategies**:
   - Cache-first for assets (JS, CSS, images)
   - Network-first for HTML pages
 - **Background Sync**: Queue changes when offline
@@ -245,6 +276,7 @@ Enables offline functionality and PWA features:
 - **room.ts**: Durable Object for room management
 
 **Role:**
+
 - ONLY helps peers find each other
 - Never sees document content
 - Relays signaling messages (offers/answers/ICE)
@@ -291,6 +323,7 @@ pnpm deploy
 ```
 
 **wrangler.toml configuration:**
+
 ```toml
 name = "locanote-signaling"
 main = "src/index.ts"
@@ -365,15 +398,15 @@ PUBLIC_APP_URL=https://locanote.app
 
 ### Keyboard Shortcuts
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl/Cmd + B` | Bold |
-| `Ctrl/Cmd + I` | Italic |
-| `Ctrl/Cmd + U` | Underline |
-| `Ctrl/Cmd + K` | Insert link |
-| `Ctrl/Cmd + Shift + 7` | Numbered list |
-| `Ctrl/Cmd + Shift + 8` | Bulleted list |
-| `Ctrl/Cmd + /` | Toggle dark mode |
+| Shortcut               | Action           |
+| ---------------------- | ---------------- |
+| `Ctrl/Cmd + B`         | Bold             |
+| `Ctrl/Cmd + I`         | Italic           |
+| `Ctrl/Cmd + U`         | Underline        |
+| `Ctrl/Cmd + K`         | Insert link      |
+| `Ctrl/Cmd + Shift + 7` | Numbered list    |
+| `Ctrl/Cmd + Shift + 8` | Bulleted list    |
+| `Ctrl/Cmd + /`         | Toggle dark mode |
 
 ### Exporting Notes
 
@@ -382,83 +415,131 @@ PUBLIC_APP_URL=https://locanote.app
 3. Choose format: **HTML** or **Markdown**
 4. File downloads automatically
 
+### Testing
+
+The project uses **Playwright** for end-to-end testing, covering critical flows like registration and real-time collaboration.
+
+```bash
+# Start development server
+pnpm dev
+
+# In a separate terminal, run tests
+cd apps/web
+pnpm test              # Run all tests headlessly
+pnpm test:headed       # Run tests with visible browser
+```
+
+**Featured Tests:**
+
+- **collaboration.spec.ts**: Verifies that two users (e.g., Akarsh and Mary) can register, share a note URL, and edit simultaneously without conflicts.
+- **comprehensive-test.spec.ts**: Tests basic CRUD operations and authentication.
+
 ## Project Structure
 
 ```
 locanote/
 ├── apps/
 │   └── web/                    # Main SvelteKit application
+│       ├── e2e/                # Playwright end-to-end tests
 │       ├── src/
 │       │   ├── routes/         # SvelteKit routes
-│       │   │   ├── +page.svelte       # Landing page
-│       │   │   ├── app/               # App routes
-│       │   │   │   ├── +page.svelte   # Dashboard
-│       │   │   │   └── note/[id]/     # Note editor
-│       │   │   └── +layout.svelte     # Root layout
 │       │   ├── lib/
 │       │   │   ├── auth/       # Authentication modules
-│       │   │   │   ├── webauthn.svelte.ts
-│       │   │   │   ├── password.svelte.ts
-│       │   │   │   └── types.ts
-│       │   │   ├── components/ # Svelte components
-│       │   │   │   ├── Button.svelte
-│       │   │   │   ├── Modal.svelte
-│       │   │   │   └── Toast.svelte
+│       │   │   ├── components/ # UI components
 │       │   │   ├── crdt/       # Yjs/CRDT modules
-│       │   │   │   ├── doc.svelte.ts
-│       │   │   │   └── providers.ts
 │       │   │   ├── crypto/     # Encryption modules
-│       │   │   │   └── e2e.ts
 │       │   │   ├── db/         # IndexedDB modules
-│       │   │   │   ├── index.ts
-│       │   │   │   ├── users.ts
-│       │   │   │   ├── notes.ts
-│       │   │   │   └── tags.ts
 │       │   │   ├── editor/     # Editor components
-│       │   │   │   ├── Editor.svelte
-│       │   │   │   └── Toolbar.svelte
-│       │   │   ├── export/     # Export utilities
-│       │   │   │   ├── html.ts
-│       │   │   │   └── markdown.ts
-│       │   │   ├── keyboard/   # Keyboard shortcuts
-│       │   │   │   └── shortcuts.ts
-│       │   │   └── stores/     # Svelte 5 stores
-│       │   │       ├── auth.svelte.ts
-│       │   │       ├── theme.svelte.ts
-│       │   │       └── network.svelte.ts
-│       │   ├── app.html        # HTML template
-│       │   ├── app.css         # Global styles
-│       │   ├── app.d.ts        # Type declarations
-│       │   └── service-worker.js # PWA service worker
-│       ├── static/             # Static assets
-│       ├── package.json
-│       ├── svelte.config.js
+│       │   │   ├── stores/     # Svelte 5 stores
+│       │   │   └── utils/      # Shared utilities (browser detection, etc.)
+│       │   ├── app.html        # HTML template (with theme initialization)
+│       │   ├── app.css         # Global styles (Tailwind 4)
+│       │   └── service-worker.js
+│       ├── playwright.config.ts # Playwright configuration
 │       └── vite.config.ts
 │
 ├── packages/
 │   └── signaling/              # WebRTC signaling server
-│       ├── src/
-│       │   ├── index.ts        # Worker entry point
-│       │   └── room.ts         # Durable Object
-│       ├── wrangler.toml
-│       └── package.json
 │
-├── package.json                # Root package.json
-├── pnpm-workspace.yaml         # pnpm workspace config
-├── turbo.json                  # Turborepo configuration
-└── README.md                   # This file
+├── README.md                   # This file
+└── LEARNING.md                 # Technical deep-dive
+```
+
+locanote/
+├── apps/
+│ └── web/ # Main SvelteKit application
+│ ├── src/
+│ │ ├── routes/ # SvelteKit routes
+│ │ │ ├── +page.svelte # Landing page
+│ │ │ ├── app/ # App routes
+│ │ │ │ ├── +page.svelte # Dashboard
+│ │ │ │ └── note/[id]/ # Note editor
+│ │ │ └── +layout.svelte # Root layout
+│ │ ├── lib/
+│ │ │ ├── auth/ # Authentication modules
+│ │ │ │ ├── webauthn.svelte.ts
+│ │ │ │ ├── password.svelte.ts
+│ │ │ │ └── types.ts
+│ │ │ ├── components/ # Svelte components
+│ │ │ │ ├── Button.svelte
+│ │ │ │ ├── Modal.svelte
+│ │ │ │ └── Toast.svelte
+│ │ │ ├── crdt/ # Yjs/CRDT modules
+│ │ │ │ ├── doc.svelte.ts
+│ │ │ │ └── providers.ts
+│ │ │ ├── crypto/ # Encryption modules
+│ │ │ │ └── e2e.ts
+│ │ │ ├── db/ # IndexedDB modules
+│ │ │ │ ├── index.ts
+│ │ │ │ ├── users.ts
+│ │ │ │ ├── notes.ts
+│ │ │ │ └── tags.ts
+│ │ │ ├── editor/ # Editor components
+│ │ │ │ ├── Editor.svelte
+│ │ │ │ └── Toolbar.svelte
+│ │ │ ├── export/ # Export utilities
+│ │ │ │ ├── html.ts
+│ │ │ │ └── markdown.ts
+│ │ │ ├── keyboard/ # Keyboard shortcuts
+│ │ │ │ └── shortcuts.ts
+│ │ │ └── stores/ # Svelte 5 stores
+│ │ │ ├── auth.svelte.ts
+│ │ │ ├── theme.svelte.ts
+│ │ │ └── network.svelte.ts
+│ │ ├── app.html # HTML template
+│ │ ├── app.css # Global styles
+│ │ ├── app.d.ts # Type declarations
+│ │ └── service-worker.js # PWA service worker
+│ ├── static/ # Static assets
+│ ├── package.json
+│ ├── svelte.config.js
+│ └── vite.config.ts
+│
+├── packages/
+│ └── signaling/ # WebRTC signaling server
+│ ├── src/
+│ │ ├── index.ts # Worker entry point
+│ │ └── room.ts # Durable Object
+│ ├── wrangler.toml
+│ └── package.json
+│
+├── package.json # Root package.json
+├── pnpm-workspace.yaml # pnpm workspace config
+├── turbo.json # Turborepo configuration
+└── README.md # This file
+
 ```
 
 ### Key Files
 
-| File | Purpose |
-|------|---------|
-| `apps/web/src/lib/editor/Editor.svelte` | Main collaborative editor |
-| `apps/web/src/lib/crdt/doc.svelte.ts` | Yjs document management |
-| `apps/web/src/lib/crypto/e2e.ts` | End-to-end encryption |
-| `apps/web/src/lib/auth/webauthn.svelte.ts` | Passkey authentication |
-| `apps/web/src/service-worker.js` | Offline/PWA support |
-| `packages/signaling/src/index.ts` | WebRTC signaling server |
+| File                                       | Purpose                   |
+| ------------------------------------------ | ------------------------- |
+| `apps/web/src/lib/editor/Editor.svelte`    | Main collaborative editor |
+| `apps/web/src/lib/crdt/doc.svelte.ts`      | Yjs document management   |
+| `apps/web/src/lib/crypto/e2e.ts`           | End-to-end encryption     |
+| `apps/web/src/lib/auth/webauthn.svelte.ts` | Passkey authentication    |
+| `apps/web/src/service-worker.js`           | Offline/PWA support       |
+| `packages/signaling/src/index.ts`          | WebRTC signaling server   |
 
 ## Security
 
@@ -467,37 +548,41 @@ locanote/
 Locanote is designed with privacy as the top priority:
 
 ```
+
 ┌──────────────────────────────────────────────────────────────┐
-│                    Security Layers                           │
+│ Security Layers │
 ├──────────────────────────────────────────────────────────────┤
-│  Layer 1: Local-First                                        │
-│  • Data stored on device first                               │
-│  • No cloud dependency for core functionality                │
+│ Layer 1: Local-First │
+│ • Data stored on device first │
+│ • No cloud dependency for core functionality │
 ├──────────────────────────────────────────────────────────────┤
-│  Layer 2: E2E Encryption                                     │
-│  • XSalsa20-Poly1305 encryption for all collaboration        │
-│  • Keys never leave the device                               │
+│ Layer 2: E2E Encryption │
+│ • XSalsa20-Poly1305 encryption for all collaboration │
+│ • Keys never leave the device │
 ├──────────────────────────────────────────────────────────────┤
-│  Layer 3: WebAuthn                                           │
-│  • Biometric/PIN authentication                              │
-│  • No passwords stored on server                             │
+│ Layer 3: WebAuthn │
+│ • Biometric/PIN authentication │
+│ • No passwords stored on server │
 ├──────────────────────────────────────────────────────────────┤
-│  Layer 4: WebRTC P2P                                         │
-│  • Direct browser-to-browser connections                     │
-│  • Signaling server sees only metadata                       │
+│ Layer 4: WebRTC P2P │
+│ • Direct browser-to-browser connections │
+│ • Signaling server sees only metadata │
 └──────────────────────────────────────────────────────────────┘
-```
+
+````
 
 ### End-to-End Encryption
 
 **Algorithm:** XSalsa20-Poly1305 (NaCl standard)
 
 **Key Properties:**
+
 - **Confidentiality**: Only room members with the key can read content
 - **Authenticity**: Tampered messages are detected and rejected
 - **Forward Secrecy**: Compromised key doesn't reveal past messages
 
 **Key Management:**
+
 ```typescript
 // Generate random 32-byte key
 const key = generateRoomKey();
@@ -513,27 +598,29 @@ const encrypted = encryptMessage(message, key);
 
 // Decrypt on receipt
 const decrypted = decryptMessage(encrypted, key);
-```
+````
 
 ### Privacy Guarantees
 
-| What | How | Guarantee |
-|------|-----|-----------|
-| Note Content | Yjs + E2E Encryption | Only you and collaborators can read |
-| Authentication | WebAuthn | No passwords on our servers |
-| Collaboration | WebRTC P2P | Direct connection, no middleman |
-| Storage | IndexedDB | Data stays on your device |
-| Metadata | Minimal collection | We don't track your usage |
+| What           | How                  | Guarantee                           |
+| -------------- | -------------------- | ----------------------------------- |
+| Note Content   | Yjs + E2E Encryption | Only you and collaborators can read |
+| Authentication | WebAuthn             | No passwords on our servers         |
+| Collaboration  | WebRTC P2P           | Direct connection, no middleman     |
+| Storage        | IndexedDB            | Data stays on your device           |
+| Metadata       | Minimal collection   | We don't track your usage           |
 
 ### Threat Model
 
 **Protected Against:**
+
 - Server compromise (no access to content)
 - Network eavesdropping (E2E encrypted)
 - Man-in-the-middle attacks (DTLS + NaCl)
 - Offline data access (device encryption)
 
 **Not Protected Against:**
+
 - Device compromise (malware with root access)
 - Shoulder surfing (use privacy screens)
 - Collaborator betrayal (they have the key)
@@ -544,19 +631,19 @@ const decrypted = decryptMessage(encrypted, key);
 
 ```markdown
 ![Dashboard](screenshots/dashboard.png)
-*Main dashboard showing all your notes with search and tags*
+_Main dashboard showing all your notes with search and tags_
 
 ![Editor](screenshots/editor.png)
-*Collaborative editor with formatting toolbar and live cursors*
+_Collaborative editor with formatting toolbar and live cursors_
 
 ![Dark Mode](screenshots/dark-mode.png)
-*The same editor in dark mode - automatically follows system preference*
+_The same editor in dark mode - automatically follows system preference_
 
 ![Collaboration](screenshots/collaboration.png)
-*Multiple users editing simultaneously with live cursors*
+_Multiple users editing simultaneously with live cursors_
 
 ![Mobile](screenshots/mobile.png)
-*Responsive design works great on mobile devices*
+_Responsive design works great on mobile devices_
 ```
 
 ## Contributing
@@ -594,6 +681,7 @@ pnpm build
 For a deep dive into the technical decisions and what we learned building Locanote, see [LEARNING.md](./LEARNING.md).
 
 Topics covered:
+
 - Svelte 5 runes patterns
 - CRDTs and Yjs internals
 - WebRTC deep dive
@@ -608,4 +696,4 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Built with ❤️ using SvelteKit, Yjs, and WebRTC**
 
-*Your notes, your control.*
+_Your notes, your control._
