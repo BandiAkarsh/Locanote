@@ -9,6 +9,7 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 	import type { Snippet } from 'svelte';                        // Type for renderable content
 	import { theme } from '$stores/theme.svelte';                 // Theme store
 	import { isBrowser } from '$utils/browser';                   // Browser check
+  import ThemeBackground from '$lib/components/ThemeBackground.svelte';
 	import '../app.css';                                          // Global CSS (Tailwind + custom styles)
 
 	// ========================================================================
@@ -34,11 +35,15 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 			html.setAttribute('data-theme', 'light');
 		}
 
-		// Sync Accent Color
+		// Sync Accent Color & Visual Theme
 		html.setAttribute('data-accent', theme.accent);
+    html.setAttribute('data-visual-theme', theme.style);
 	});
 </script>
 
-<div class="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+<!-- Global Background Layer -->
+<ThemeBackground />
+
+<div class="min-h-screen transition-colors duration-300 relative z-0">
 	{@render children()}
 </div>

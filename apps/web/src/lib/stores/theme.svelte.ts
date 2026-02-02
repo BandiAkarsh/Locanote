@@ -1,8 +1,8 @@
 // ============================================================================
 // THEME STORE
 // ============================================================================
-// Reactive store that manages the application's color theme and accent color.
-// Supports 'light', 'dark', and 'system' modes.
+// Reactive store that manages the application's color theme, accent color,
+// and visual style (Glass, Cyberpunk, Inception).
 // ============================================================================
 
 import { isBrowser, getLocalStorage, getWindow } from "$utils/browser";
@@ -17,14 +17,17 @@ export type AccentColor =
   | "amber"
   | "blue"
   | "fuchsia";
+export type VisualStyle = "classic" | "glass" | "cyberpunk" | "inception";
 
 // Storage keys
 const THEME_KEY = "locanote-theme";
 const ACCENT_KEY = "locanote-accent";
+const STYLE_KEY = "locanote-style";
 
 // Default values
 const DEFAULT_THEME: Theme = "system";
 const DEFAULT_ACCENT: AccentColor = "indigo";
+const DEFAULT_STYLE: VisualStyle = "classic";
 
 // Get stored values
 function getStoredTheme(): Theme {
@@ -56,6 +59,22 @@ function getStoredAccent(): AccentColor {
   return DEFAULT_ACCENT;
 }
 
+function getStoredStyle(): VisualStyle {
+  const storage = getLocalStorage();
+  if (!storage) return DEFAULT_STYLE;
+  const stored = storage.getItem(STYLE_KEY);
+  const validStyles: VisualStyle[] = [
+    "classic",
+    "glass",
+    "cyberpunk",
+    "inception",
+  ];
+  if (validStyles.includes(stored as VisualStyle)) {
+    return stored as VisualStyle;
+  }
+  return DEFAULT_STYLE;
+}
+
 // Check if system prefers dark mode
 function systemPrefersDark(): boolean {
   const win = getWindow();
@@ -65,12 +84,13 @@ function systemPrefersDark(): boolean {
 
 /**
  * Theme Store
- * Manages light/dark/system theme and accent colors with persistence.
+ * Manages light/dark/system theme, accent colors, and visual styles.
  */
 function createThemeStore() {
   // Reactive state
   let currentTheme = $state<Theme>(getStoredTheme());
   let currentAccent = $state<AccentColor>(getStoredAccent());
+  let currentStyle = $state<VisualStyle>(getStoredStyle());
   let systemDark = $state<boolean>(systemPrefersDark());
 
   // Listen for system theme changes
@@ -106,6 +126,14 @@ function createThemeStore() {
       currentAccent = value;
       const storage = getLocalStorage();
       if (storage) storage.setItem(ACCENT_KEY, value);
+    },
+    get style(): VisualStyle {
+      return currentStyle;
+    },
+    set style(value: VisualStyle) {
+      currentStyle = value;
+      const storage = getLocalStorage();
+      if (storage) storage.setItem(STYLE_KEY, value);
     },
     get isDark(): boolean {
       return isDark;

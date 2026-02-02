@@ -22,3 +22,4 @@ export { default as AuthCard } from "./AuthCard.svelte"; // Beautiful authentica
 export { default as RegisterCard } from "./RegisterCard.svelte"; // Beautiful registration card
 export { default as OfflineBanner } from "./OfflineBanner.svelte"; // Offline status indicator
 export { default as TagBadge } from "./TagBadge.svelte"; // Tag display component
+export { default as Toggle } from "./Toggle.svelte"; // Reusable toggle switch component

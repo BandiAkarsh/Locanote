@@ -11,10 +11,9 @@ GLOBAL CSS FILE (app.css)
 CUSTOM THEME CONFIGURATION
 ============================================================================ */
 @theme {
-  /* Default primary color (indigo) */
-  --color-primary: var(--brand-color, #6366f1);
-  --color-primary-hover: var(--brand-color-hover, #4f46e5);
-  --color-primary-light: var(--brand-color-light, #a5b4fc);
+  --color-primary: var(--brand-color);
+  --color-primary-hover: var(--brand-color-hover);
+  --color-primary-light: var(--brand-color-light);
 
   --font-sans:
     ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
@@ -22,50 +21,68 @@ CUSTOM THEME CONFIGURATION
     ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
 }
 
-/* Accent Color Definitions */
+/* ============================================================================
+THEME VARIABLES
+============================================================================ */
 :root {
-  /* Default: Indigo */
+  /* Default Accent: Indigo */
   --brand-color: #6366f1;
   --brand-color-hover: #4f46e5;
   --brand-color-light: #a5b4fc;
   --brand-gradient: linear-gradient(to bottom right, #6366f1, #a855f7, #ec4899);
+
+  /* UI Semantic Variables - Default (Classic) */
+  --ui-radius: 0.75rem;
+  --ui-bg: #f9fafb;
+  --ui-surface: #ffffff;
+  --ui-border: #e5e7eb;
+  --ui-text: #111827;
+  --ui-text-muted: #6b7280;
+  --ui-glow: transparent;
+  --ui-blur: 0px;
+  --ui-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
+.dark {
+  --ui-bg: #030712;
+  --ui-surface: #111827;
+  --ui-border: #1f2937;
+  --ui-text: #f9fafb;
+  --ui-text-muted: #9ca3af;
+  --ui-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+/* Accent Color Overrides */
 [data-accent="violet"] {
   --brand-color: #8b5cf6;
   --brand-color-hover: #7c3aed;
   --brand-color-light: #c4b5fd;
   --brand-gradient: linear-gradient(to bottom right, #8b5cf6, #d946ef, #f43f5e);
 }
-
 [data-accent="rose"] {
   --brand-color: #f43f5e;
   --brand-color-hover: #e11d48;
   --brand-color-light: #fda4af;
   --brand-gradient: linear-gradient(to bottom right, #f43f5e, #fb7185, #fda4af);
 }
-
 [data-accent="emerald"] {
   --brand-color: #10b981;
   --brand-color-hover: #059669;
   --brand-color-light: #6ee7b7;
   --brand-gradient: linear-gradient(to bottom right, #10b981, #3b82f6, #06b6d4);
 }
-
 [data-accent="amber"] {
   --brand-color: #f59e0b;
   --brand-color-hover: #d97706;
   --brand-color-light: #fcd34d;
   --brand-gradient: linear-gradient(to bottom right, #f59e0b, #f97316, #ef4444);
 }
-
 [data-accent="blue"] {
   --brand-color: #3b82f6;
   --brand-color-hover: #2563eb;
   --brand-color-light: #93c5fd;
   --brand-gradient: linear-gradient(to bottom right, #3b82f6, #06b6d4, #2dd4bf);
 }
-
 [data-accent="fuchsia"] {
   --brand-color: #d946ef;
   --brand-color-hover: #c026d3;
@@ -73,10 +90,63 @@ CUSTOM THEME CONFIGURATION
   --brand-gradient: linear-gradient(to bottom right, #d946ef, #8b5cf6, #6366f1);
 }
 
+/* ============================================================================
+VISUAL THEMES
+============================================================================ */
+
+/* --- GLASS DESIGN --- */
+[data-visual-theme="glass"] {
+  --ui-bg: transparent;
+  --ui-surface: rgba(255, 255, 255, 0.1);
+  --ui-border: rgba(255, 255, 255, 0.2);
+  --ui-blur: 16px;
+  --ui-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  --ui-radius: 1.25rem;
+}
+
+.dark[data-visual-theme="glass"] {
+  --ui-surface: rgba(0, 0, 0, 0.2);
+  --ui-border: rgba(255, 255, 255, 0.1);
+}
+
+/* --- RADIUM CYBERPUNK --- */
+[data-visual-theme="cyberpunk"] {
+  --ui-bg: #050505;
+  --ui-surface: #0a0a0a;
+  --ui-border: var(--brand-color);
+  --ui-glow: var(--brand-color);
+  --ui-text: #fff;
+  --ui-text-muted: var(--brand-color-light);
+  --ui-radius: 0.25rem;
+  --ui-shadow: 0 0 15px var(--brand-color);
+}
+
+.dark[data-visual-theme="cyberpunk"] {
+  --ui-bg: #000;
+  --ui-surface: #050505;
+}
+
+/* --- MODERN INCEPTION --- */
+[data-visual-theme="inception"] {
+  --ui-bg: #f3f4f6;
+  --ui-surface: #ffffff;
+  --ui-border: transparent;
+  --ui-radius: 1rem;
+  --ui-shadow: 20px 20px 60px #cfd0d3, -20px -20px 60px #ffffff;
+}
+
+.dark[data-visual-theme="inception"] {
+  --ui-bg: #111827;
+  --ui-surface: #111827;
+  --ui-shadow: inset 6px 6px 12px #070a10, inset -6px -6px 12px #1b263e;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    background-color: var(--ui-bg);
+    color: var(--ui-text);
   }
 
   body {
@@ -84,62 +154,100 @@ CUSTOM THEME CONFIGURATION
     min-height: 100vh;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  :focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-  }
-
-  ::selection {
-    background-color: var(--color-primary-light);
-    color: #1e1b4b;
+  /* Universal Theme Transition */
+  *,
+  *::before,
+  *::after {
+    transition:
+      background-color 0.3s ease,
+      border-color 0.3s ease,
+      box-shadow 0.3s ease,
+      backdrop-filter 0.3s ease,
+      color 0.3s ease;
   }
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+/* ============================================================================
+ANIMATED BACKGROUNDS
+============================================================================ */
 
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
+.glass-fragments {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--brand-gradient);
+}
 
-  /* Brand Gradient Utility */
-  .bg-brand-gradient {
-    background: var(--brand-gradient);
+.fragment {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  animation: float-fragment var(--duration) var(--delay) infinite ease-in-out
+    alternate;
+  opacity: var(--opacity);
+  transform: rotate(var(--rotation));
+}
+
+@keyframes float-fragment {
+  0% {
+    transform: translate(var(--startX), var(--startY)) rotate(var(--rotation))
+      scale(1);
+  }
+  100% {
+    transform: translate(var(--endX), var(--endY))
+      rotate(calc(var(--rotation) + 180deg)) scale(var(--scale));
   }
 }
 
 @layer components {
-  .editor-content {
-    & .is-empty::before {
-      content: attr(data-placeholder);
-      color: #9ca3af;
-      pointer-events: none;
-      position: absolute;
-    }
+  .themed-card {
+    background-color: var(--ui-surface);
+    border: 1px solid var(--ui-border);
+    backdrop-filter: blur(var(--ui-blur));
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
 
-    & p {
-      margin-top: 0.5em;
-      margin-bottom: 0.5em;
-    }
+  [data-visual-theme="cyberpunk"] .btn-primary {
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow:
+      4px 0px 0px var(--brand-color-light),
+      0 0 15px var(--brand-color);
+    border: 1px solid var(--brand-color);
+  }
 
-    & ul[data-type="taskList"] {
-      list-style: none;
-      padding-left: 0;
-    }
+  [data-visual-theme="cyberpunk"] .btn-primary:hover {
+    box-shadow:
+      -4px 0px 0px var(--brand-color-light),
+      0 0 25px var(--brand-color);
+    background: var(--brand-color);
+    text-shadow: 2px 2px #000;
+  }
 
-    & ul[data-type="taskList"] li {
-      display: flex;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
+  [data-visual-theme="inception"] .btn-primary {
+    box-shadow:
+      6px 6px 12px #cfd0d3,
+      -6px -6px 12px #ffffff;
+    border: none;
+    color: var(--brand-color);
+    background: var(--ui-surface);
+  }
+}
+
+@layer utilities {
+  .bg-brand-gradient {
+    background: var(--brand-gradient);
+  }
+
+  .glow-border {
+    box-shadow: 0 0 10px var(--ui-glow);
   }
 }

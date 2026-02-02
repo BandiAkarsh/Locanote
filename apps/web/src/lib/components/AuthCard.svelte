@@ -127,13 +127,6 @@ AUTHENTICATION CARD (AuthCard.svelte)
             </div>
           {/if}
 
-          <!-- Loading State -->
-          {#if authState.status === 'loading'}
-            <div class="flex items-center justify-center py-4">
-              <Spinner class="text-white" />
-            </div>
-          {/if}
-
           <!-- Action Buttons -->
           <div class="space-y-3 pt-2">
             {#if !showPasswordForm}
@@ -175,7 +168,11 @@ AUTHENTICATION CARD (AuthCard.svelte)
                        transition-all duration-200
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               >
-                Sign In
+                {#if isLoading}
+                  <Spinner class="w-5 h-5 mx-auto" />
+                {:else}
+                  Sign In
+                {/if}
               </button>
 
               <button

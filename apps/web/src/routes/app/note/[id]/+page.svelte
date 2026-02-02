@@ -1,12 +1,5 @@
 <!-- =========================================================================
 NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
-============================================================================
-The main note editing page with collaborative editing capabilities.
-Features:
-- Real-time collaboration via WebRTC
-- Rich text editing with TipTap
-- Connection status indicator
-- Back button to dashboard
 ============================================================================ -->
 
 <script lang="ts">
@@ -46,7 +39,6 @@ Features:
     }
     
     try {
-      // Use getNoteForCollaboration which supports shared notes
       const loadedNote = await getNoteForCollaboration(noteId);
       if (!loadedNote) {
         error = 'Note not found or you do not have access';
@@ -60,60 +52,18 @@ Features:
     }
   });
 
-  // Handle editor update
-  function handleEditorUpdate(content: any) {
-    // Content is automatically synced via Yjs
-    // We could save metadata here if needed
-  }
+  function handleEditorUpdate(content: any) {}
 
-  // Handle connection status change
   function handleConnectionStatus(status: { connected: boolean; peerCount: number }) {
     connectionStatus = status;
   }
 
-  // Handle editor ready - store the editor instance
   function handleEditorReady(editor: any) {
     editorInstance = editor;
   }
 
-  // Navigate back to dashboard
   function goBack() {
     goto('/app');
-  }
-
-  // Handle toolbar commands
-  function handleToolbarCommand(command: string) {
-    if (editorInstance) {
-      switch (command) {
-        case 'bold':
-          editorInstance.chain().focus().toggleBold().run();
-          break;
-        case 'italic':
-          editorInstance.chain().focus().toggleItalic().run();
-          break;
-        case 'heading':
-          editorInstance.chain().focus().toggleHeading({ level: 1 }).run();
-          break;
-        case 'bulletList':
-          editorInstance.chain().focus().toggleBulletList().run();
-          break;
-        case 'orderedList':
-          editorInstance.chain().focus().toggleOrderedList().run();
-          break;
-        case 'taskList':
-          editorInstance.chain().focus().toggleTaskList().run();
-          break;
-        case 'blockquote':
-          editorInstance.chain().focus().toggleBlockquote().run();
-          break;
-        case 'code':
-          editorInstance.chain().focus().toggleCode().run();
-          break;
-        case 'highlight':
-          editorInstance.chain().focus().toggleHighlight().run();
-          break;
-      }
-    }
   }
 </script>
 
@@ -121,87 +71,82 @@ Features:
   <title>{note ? note.title : 'Note'} - Locanote</title>
 </svelte:head>
 
-<div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+<div class="flex flex-col h-screen bg-[var(--ui-bg)] transition-colors duration-500">
   <!-- Header -->
-  <header class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-    <div class="flex items-center gap-4">
-      <Button variant="ghost" size="sm" onclick={goBack}>
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+  <header class="flex items-center justify-between px-6 py-4 bg-[var(--ui-surface)] border-b border-[var(--ui-border)] backdrop-blur-[var(--ui-blur)] z-30">
+    <div class="flex items-center gap-6">
+      <Button variant="ghost" size="sm" onclick={goBack} class="hover:bg-primary/10">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
-        <span class="ml-2">Back</span>
       </Button>
       
       {#if note}
         <div class="flex flex-col">
-          <h1 class="text-lg font-semibold text-gray-900 dark:text-white">{note.title}</h1>
-          <span class="text-xs text-gray-500 dark:text-gray-400">
-            Last updated {new Date(note.updatedAt).toLocaleDateString()}
+          <h1 class="text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none mb-1">{note.title}</h1>
+          <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--ui-text-muted)]">
+            Saved to device
           </span>
         </div>
       {/if}
     </div>
 
     <!-- Connection Status -->
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full text-xs">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-full text-xs font-bold uppercase tracking-tighter">
         <span 
-          class="w-2 h-2 rounded-full {connectionStatus.peerCount > 0 ? 'bg-green-500' : connectionStatus.connected ? 'bg-yellow-500' : 'bg-red-500'}"
+          class="w-2.5 h-2.5 rounded-full shadow-sm {connectionStatus.peerCount > 0 ? 'bg-green-500 animate-pulse' : connectionStatus.connected ? 'bg-amber-500' : 'bg-red-500'}"
         ></span>
-        <span class="text-gray-600 dark:text-gray-300 hidden sm:inline">
+        <span class="text-[var(--ui-text)]">
           {#if connectionStatus.peerCount > 0}
-            {connectionStatus.peerCount} {connectionStatus.peerCount === 1 ? 'collaborator' : 'collaborators'}
+            {connectionStatus.peerCount} {connectionStatus.peerCount === 1 ? 'Peer' : 'Peers'}
           {:else if connectionStatus.connected}
-            Online
+            Searching
           {:else}
             Offline
           {/if}
         </span>
       </div>
       
-      <Button variant="secondary" size="sm" onclick={() => {
-        // Copy note URL to clipboard
+      <Button variant="primary" size="sm" onclick={() => {
         navigator.clipboard.writeText(window.location.href).then(() => {
-          alert('Note URL copied to clipboard!');
-        }).catch(() => {
-          alert('Failed to copy URL. Please copy manually.');
+          alert('Share link copied!');
         });
       }}>
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
         </svg>
-        <span class="ml-2 hidden sm:inline">Share</span>
+        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Share</span>
       </Button>
     </div>
   </header>
 
-  <!-- Toolbar -->
-  <Toolbar editor={editorInstance} />
+  <!-- Toolbar Container -->
+  <div class="bg-[var(--ui-surface)] border-b border-[var(--ui-border)] px-4 py-1 z-20 backdrop-blur-[var(--ui-blur)]">
+    <Toolbar editor={editorInstance} />
+  </div>
 
   <!-- Main Content -->
-  <main class="flex-1 overflow-hidden p-4">
+  <main class="flex-1 overflow-hidden p-6 lg:p-10 relative">
     {#if isLoading}
       <div class="flex items-center justify-center h-full">
-        <div class="flex flex-col items-center gap-3">
-          <div class="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
-          <span class="text-sm text-gray-500 dark:text-gray-400">Loading note...</span>
-        </div>
+        <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
       </div>
     {:else if error}
       <div class="flex items-center justify-center h-full">
-        <div class="text-center">
-          <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-            <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        <div class="themed-card p-10 text-center max-w-md">
+          <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/10 flex items-center justify-center">
+            <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
-          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Error</h2>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
-          <Button onclick={goBack}>Go Back</Button>
+          <h2 class="text-2xl font-black text-[var(--ui-text)] mb-4 uppercase tracking-tighter">Access Denied</h2>
+          <p class="text-[var(--ui-text-muted)] mb-8 font-medium">{error}</p>
+          <Button fullWidth onclick={goBack}>Return to Safety</Button>
         </div>
       </div>
     {:else if note && noteId}
-      <div class="h-full max-w-4xl mx-auto">
+      <div class="h-full max-w-5xl mx-auto themed-card shadow-2xl p-2">
         <Editor
           noteId={noteId}
           user={currentUser}
