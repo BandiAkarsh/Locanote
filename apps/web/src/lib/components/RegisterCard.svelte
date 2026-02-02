@@ -1,17 +1,6 @@
 <!-- =========================================================================
 REGISTRATION CARD (RegisterCard.svelte)
-============================================================================
-A beautiful registration interface with glassmorphism design.
-Allows users to create accounts with passkey or password.
-
-FEATURES:
-- Beautiful gradient background with floating elements
-- Glassmorphism card with backdrop blur
-- Animated transitions between steps
-- Method selection (Passkey vs Password)
-- Real-time password validation feedback
-- Loading states and error handling
-========================================================================== -->
+============================================================================ -->
 
 <script lang="ts">
   import { Spinner } from '$components';
@@ -76,13 +65,13 @@ FEATURES:
   }
 </script>
 
-<!-- Main Container with Animated Gradient -->
-<div class="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500">
+<!-- Main Container with Dynamic Brand Gradient -->
+<div class="relative min-h-screen w-full overflow-hidden bg-brand-gradient transition-all duration-700">
   <!-- Animated Background Elements -->
   <div class="absolute inset-0 overflow-hidden">
     <div class="absolute top-10 left-10 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-    <div class="absolute bottom-20 right-10 w-72 h-72 bg-yellow-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-300/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    <div class="absolute bottom-20 right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-white/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
   </div>
 
   <!-- Content -->
@@ -93,7 +82,7 @@ FEATURES:
         <!-- Header -->
         <div class="p-8 text-center">
           <!-- Icon -->
-          <div class="mx-auto mb-6 w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-400 to-fuchsia-600 flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-3 transition-transform duration-300">
+          <div class="mx-auto mb-6 w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transform -rotate-3 hover:rotate-3 transition-transform duration-300">
             <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
@@ -123,19 +112,18 @@ FEATURES:
             />
           </div>
 
-          <!-- Method Selection (only shown if no method selected) -->
+          <!-- Method Selection -->
           {#if !selectedMethod}
             <div class="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
               <span class="block text-sm font-medium text-white/90 ml-1">Choose authentication method</span>
               
-              <!-- Passkey Option -->
               <button
                 onclick={() => selectedMethod = 'passkey'}
                 class="w-full p-4 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30
                        transition-all duration-200 text-left group"
               >
                 <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
@@ -152,14 +140,13 @@ FEATURES:
                 </div>
               </button>
 
-              <!-- Password Option -->
               <button
                 onclick={() => selectedMethod = 'password'}
                 class="w-full p-4 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 hover:border-white/30
                        transition-all duration-200 text-left group"
               >
                 <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <div class="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                     <svg class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
@@ -209,7 +196,6 @@ FEATURES:
 
               <!-- Password Requirements -->
               <div class="space-y-2 text-sm">
-                <!-- Length requirement -->
                 <div class="flex items-center gap-2" style="color: {password.length >= 8 ? '#4ade80' : 'rgba(255,255,255,0.6)'}">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {#if password.length >= 8}
@@ -221,7 +207,6 @@ FEATURES:
                   <span>At least 8 characters</span>
                 </div>
                 
-                <!-- Uppercase requirement -->
                 <div class="flex items-center gap-2" style="color: {/[A-Z]/.test(password) ? '#4ade80' : 'rgba(255,255,255,0.6)'}">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {#if /[A-Z]/.test(password)}
@@ -233,7 +218,6 @@ FEATURES:
                   <span>One uppercase letter</span>
                 </div>
                 
-                <!-- Number requirement -->
                 <div class="flex items-center gap-2" style="color: {/[0-9]/.test(password) ? '#4ade80' : 'rgba(255,255,255,0.6)'}">
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     {#if /[0-9]/.test(password)}
@@ -246,7 +230,6 @@ FEATURES:
                 </div>
               </div>
 
-              <!-- Change Method Button -->
               <button
                 onclick={() => { selectedMethod = null; password = ''; confirmPassword = ''; }}
                 class="text-white/60 hover:text-white text-sm transition-colors duration-200 underline underline-offset-4"
@@ -260,7 +243,7 @@ FEATURES:
           {#if selectedMethod === 'passkey'}
             <div class="p-4 rounded-xl bg-white/10 border border-white/20 animate-in slide-in-from-right-2 duration-300">
               <div class="flex items-start gap-3">
-                <div class="w-10 h-10 rounded-xl bg-indigo-500/30 flex items-center justify-center flex-shrink-0">
+                <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
                   <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -279,50 +262,27 @@ FEATURES:
             </div>
           {/if}
 
-          <!-- Error Message -->
-          {#if authState.status === 'error'}
-            <div class="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-200 text-sm flex items-center gap-2">
-              <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {authState.error}
-            </div>
-          {/if}
-
-          <!-- Loading State -->
-          {#if authState.status === 'loading'}
-            <div class="flex items-center justify-center py-4">
-              <Spinner class="text-white" />
-            </div>
-          {/if}
-
           <!-- Submit Button -->
           {#if selectedMethod}
             <button
               onclick={handleRegister}
               disabled={isLoading || !username || (selectedMethod === 'password' && (!password || password !== confirmPassword || passwordErrors.length > 0))}
-              class="w-full py-4 px-6 rounded-xl bg-white text-fuchsia-600 font-semibold 
-                     shadow-lg shadow-white/25 hover:shadow-xl hover:shadow-white/30
+              class="w-full py-4 px-6 rounded-xl bg-white text-gray-900 font-bold 
+                     shadow-lg shadow-black/10 hover:shadow-xl
                      hover:scale-[1.02] active:scale-[0.98]
                      transition-all duration-200
                      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              {selectedMethod === 'passkey' ? 'Create Account with Passkey' : 'Create Account'}
+              {#if isLoading}
+                <Spinner class="w-5 h-5 mx-auto" />
+              {:else}
+                {selectedMethod === 'passkey' ? 'Create Account with Passkey' : 'Create Account'}
+              {/if}
             </button>
           {/if}
 
-          <!-- Divider -->
-          <div class="relative py-4">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-white/20"></div>
-            </div>
-            <div class="relative flex justify-center">
-              <span class="px-4 text-xs font-medium text-white/50 bg-transparent">or</span>
-            </div>
-          </div>
-
           <!-- Login Link -->
-          <div class="text-center">
+          <div class="text-center pt-4 border-t border-white/10">
             <button
               onclick={onSwitchToLogin}
               class="text-white/80 hover:text-white font-medium text-sm transition-colors duration-200
@@ -330,14 +290,6 @@ FEATURES:
             >
               Already have an account? Sign in
             </button>
-          </div>
-
-          <!-- Security Note -->
-          <div class="flex items-center justify-center gap-2 text-xs text-white/50 pt-2">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            <span>Your data stays on your device</span>
           </div>
         </div>
       </div>

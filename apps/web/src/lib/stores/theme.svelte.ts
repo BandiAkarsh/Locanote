@@ -1,43 +1,59 @@
 // ============================================================================
 // THEME STORE
 // ============================================================================
-// Reactive store that manages the application's color theme.
+// Reactive store that manages the application's color theme and accent color.
 // Supports 'light', 'dark', and 'system' modes.
-//
-// FEATURES:
-// - Persist theme preference to localStorage
-// - React to system theme changes
-// - Smooth transitions between themes
-//
-// USAGE:
-// import { theme } from '$stores/theme.svelte';
-//
-// theme.current = 'dark';  // Switch to dark mode
-// theme.toggle();          // Toggle between light/dark
 // ============================================================================
-
-// Type declarations for browser globals
-declare const globalThis: {
-  window?: any;
-};
 
 import { isBrowser, getLocalStorage, getWindow } from "$utils/browser";
 
-// Theme type
-type Theme = "light" | "dark" | "system";
+// Theme types
+export type Theme = "light" | "dark" | "system";
+export type AccentColor =
+  | "indigo"
+  | "violet"
+  | "rose"
+  | "emerald"
+  | "amber"
+  | "blue"
+  | "fuchsia";
 
-// Storage key
-const STORAGE_KEY = "locanote-theme";
+// Storage keys
+const THEME_KEY = "locanote-theme";
+const ACCENT_KEY = "locanote-accent";
 
-// Get stored theme or default to 'system'
+// Default values
+const DEFAULT_THEME: Theme = "system";
+const DEFAULT_ACCENT: AccentColor = "indigo";
+
+// Get stored values
 function getStoredTheme(): Theme {
   const storage = getLocalStorage();
-  if (!storage) return "system";
-  const stored = storage.getItem(STORAGE_KEY);
+  if (!storage) return DEFAULT_THEME;
+  const stored = storage.getItem(THEME_KEY);
   if (stored === "light" || stored === "dark" || stored === "system") {
     return stored as Theme;
   }
-  return "system";
+  return DEFAULT_THEME;
+}
+
+function getStoredAccent(): AccentColor {
+  const storage = getLocalStorage();
+  if (!storage) return DEFAULT_ACCENT;
+  const stored = storage.getItem(ACCENT_KEY);
+  const validAccents: AccentColor[] = [
+    "indigo",
+    "violet",
+    "rose",
+    "emerald",
+    "amber",
+    "blue",
+    "fuchsia",
+  ];
+  if (validAccents.includes(stored as AccentColor)) {
+    return stored as AccentColor;
+  }
+  return DEFAULT_ACCENT;
 }
 
 // Check if system prefers dark mode
@@ -49,11 +65,12 @@ function systemPrefersDark(): boolean {
 
 /**
  * Theme Store
- * Manages light/dark/system theme with persistence and system reaction.
+ * Manages light/dark/system theme and accent colors with persistence.
  */
 function createThemeStore() {
   // Reactive state
   let currentTheme = $state<Theme>(getStoredTheme());
+  let currentAccent = $state<AccentColor>(getStoredAccent());
   let systemDark = $state<boolean>(systemPrefersDark());
 
   // Listen for system theme changes
@@ -79,11 +96,16 @@ function createThemeStore() {
     },
     set current(value: Theme) {
       currentTheme = value;
-      // Persist to localStorage
       const storage = getLocalStorage();
-      if (storage) {
-        storage.setItem(STORAGE_KEY, value);
-      }
+      if (storage) storage.setItem(THEME_KEY, value);
+    },
+    get accent(): AccentColor {
+      return currentAccent;
+    },
+    set accent(value: AccentColor) {
+      currentAccent = value;
+      const storage = getLocalStorage();
+      if (storage) storage.setItem(ACCENT_KEY, value);
     },
     get isDark(): boolean {
       return isDark;
@@ -91,9 +113,7 @@ function createThemeStore() {
     toggle() {
       currentTheme = isDark ? "light" : "dark";
       const storage = getLocalStorage();
-      if (storage) {
-        storage.setItem(STORAGE_KEY, currentTheme);
-      }
+      if (storage) storage.setItem(THEME_KEY, currentTheme);
     },
     setLight() {
       this.current = "light";

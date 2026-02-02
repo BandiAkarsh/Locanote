@@ -1,20 +1,9 @@
 <!-- =========================================================================
 AUTHENTICATION CARD (AuthCard.svelte)
-============================================================================
-A beautiful, modern authentication card with glassmorphism effects.
-Features smooth animations, gradient backgrounds, and modern design patterns.
-
-DESIGN FEATURES:
-- Glassmorphism (backdrop blur, transparency)
-- Animated gradient background
-- Smooth transitions and hover effects
-- Modern typography and spacing
-- Accessible form elements
-- Beautiful iconography
-========================================================================== -->
+============================================================================ -->
 
 <script lang="ts">
-  import { Button, Input, Spinner } from '$components';
+  import { Spinner } from '$components';
   import type { AuthState } from '$auth/types';
 
   // Props
@@ -51,14 +40,13 @@ DESIGN FEATURES:
   }
 </script>
 
-<!-- Main Container with Animated Background -->
-<div class="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+<!-- Main Container with Dynamic Brand Gradient -->
+<div class="relative min-h-screen w-full overflow-hidden bg-brand-gradient transition-all duration-700">
   <!-- Animated Background Elements -->
   <div class="absolute inset-0 overflow-hidden">
-    <!-- Floating circles with blur -->
     <div class="absolute -top-20 -left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-    <div class="absolute top-1/2 -right-20 w-72 h-72 bg-purple-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-    <div class="absolute -bottom-20 left-1/3 w-80 h-80 bg-pink-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+    <div class="absolute top-1/2 -right-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+    <div class="absolute -bottom-20 left-1/3 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
   </div>
 
   <!-- Content Container -->
@@ -69,13 +57,12 @@ DESIGN FEATURES:
         <!-- Header Section -->
         <div class="relative p-8 text-center">
           <!-- Logo Icon -->
-          <div class="mx-auto mb-6 w-20 h-20 rounded-2xl bg-gradient-to-br from-indigo-400 to-purple-600 flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-6 transition-transform duration-300">
+          <div class="mx-auto mb-6 w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-6 transition-transform duration-300">
             <svg class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
           </div>
 
-          <!-- Title -->
           <h1 class="text-3xl font-bold text-white mb-2 tracking-tight">
             Welcome Back
           </h1>
@@ -86,7 +73,7 @@ DESIGN FEATURES:
 
         <!-- Form Section -->
         <div class="px-8 pb-8 space-y-4">
-          <!-- Username Input (always visible) -->
+          <!-- Username Input -->
           <div class="space-y-2">
             <label for="auth-username" class="block text-sm font-medium text-white/90 ml-1">Username</label>
             <div class="relative">
@@ -107,7 +94,7 @@ DESIGN FEATURES:
             </div>
           </div>
 
-          <!-- Password Form (toggled) -->
+          <!-- Password Form -->
           {#if showPasswordForm}
             <div class="space-y-2 animate-in slide-in-from-top-2 duration-300">
               <label for="auth-password" class="block text-sm font-medium text-white/90 ml-1">Password</label>
@@ -150,12 +137,11 @@ DESIGN FEATURES:
           <!-- Action Buttons -->
           <div class="space-y-3 pt-2">
             {#if !showPasswordForm}
-              <!-- Primary: Passkey -->
               <button
                 onclick={handlePasskeyLogin}
                 disabled={isLoading}
-                class="w-full py-4 px-6 rounded-xl bg-white text-indigo-600 font-semibold 
-                       shadow-lg shadow-white/25 hover:shadow-xl hover:shadow-white/30
+                class="w-full py-4 px-6 rounded-xl bg-white text-gray-900 font-bold 
+                       shadow-lg shadow-black/10 hover:shadow-xl
                        hover:scale-[1.02] active:scale-[0.98]
                        transition-all duration-200 flex items-center justify-center gap-3
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -166,7 +152,6 @@ DESIGN FEATURES:
                 Sign in with Passkey
               </button>
 
-              <!-- Secondary: Password -->
               <button
                 onclick={() => showPasswordForm = true}
                 disabled={isLoading}
@@ -181,12 +166,11 @@ DESIGN FEATURES:
                 Sign in with Password
               </button>
             {:else}
-              <!-- Password Submit -->
               <button
                 onclick={handlePasswordLogin}
                 disabled={isLoading || !username || !password}
-                class="w-full py-4 px-6 rounded-xl bg-white text-indigo-600 font-semibold 
-                       shadow-lg shadow-white/25 hover:shadow-xl hover:shadow-white/30
+                class="w-full py-4 px-6 rounded-xl bg-white text-gray-900 font-bold 
+                       shadow-lg shadow-black/10 hover:shadow-xl
                        hover:scale-[1.02] active:scale-[0.98]
                        transition-all duration-200
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -194,7 +178,6 @@ DESIGN FEATURES:
                 Sign In
               </button>
 
-              <!-- Back Button -->
               <button
                 onclick={() => { showPasswordForm = false; password = ''; }}
                 disabled={isLoading}
@@ -206,22 +189,10 @@ DESIGN FEATURES:
             {/if}
           </div>
 
-          <!-- Divider -->
-          <div class="relative py-4">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-white/20"></div>
-            </div>
-            <div class="relative flex justify-center">
-              <span class="px-4 text-xs font-medium text-white/50 bg-transparent">or</span>
-            </div>
-          </div>
-
           <!-- Register Link -->
-          <div class="text-center">
+          <div class="text-center pt-4 border-t border-white/10">
             <button
-              onclick={() => {
-                onSwitchToRegister();
-              }}
+              onclick={onSwitchToRegister}
               class="text-white/80 hover:text-white font-medium text-sm transition-colors duration-200
                      underline underline-offset-4 decoration-white/30 hover:decoration-white"
             >
@@ -245,7 +216,6 @@ DESIGN FEATURES:
 </div>
 
 <style>
-  /* Smooth input autofill styling */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
