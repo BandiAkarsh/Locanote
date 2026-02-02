@@ -16,7 +16,7 @@ Features:
   import Editor from '$lib/editor/Editor.svelte';
   import Toolbar from '$lib/editor/Toolbar.svelte';
   import Button from '$lib/components/Button.svelte';
-  import { getNote } from '$lib/services/notes.svelte';
+  import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
   import { auth } from '$stores/auth.svelte';
   import type { Note } from '$db';
 
@@ -46,7 +46,8 @@ Features:
     }
     
     try {
-      const loadedNote = await getNote(noteId);
+      // Use getNoteForCollaboration which supports shared notes
+      const loadedNote = await getNoteForCollaboration(noteId);
       if (!loadedNote) {
         error = 'Note not found or you do not have access';
       } else {
@@ -68,6 +69,11 @@ Features:
   // Handle connection status change
   function handleConnectionStatus(status: { connected: boolean; peerCount: number }) {
     connectionStatus = status;
+  }
+
+  // Handle editor ready - store the editor instance
+  function handleEditorReady(editor: any) {
+    editorInstance = editor;
   }
 
   // Navigate back to dashboard
@@ -153,7 +159,14 @@ Features:
         </span>
       </div>
       
-      <Button variant="secondary" size="sm">
+      <Button variant="secondary" size="sm" onclick={() => {
+        // Copy note URL to clipboard
+        navigator.clipboard.writeText(window.location.href).then(() => {
+          alert('Note URL copied to clipboard!');
+        }).catch(() => {
+          alert('Failed to copy URL. Please copy manually.');
+        });
+      }}>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
         </svg>
@@ -194,6 +207,7 @@ Features:
           user={currentUser}
           onUpdate={handleEditorUpdate}
           onConnectionStatusChange={handleConnectionStatus}
+          onEditorReady={handleEditorReady}
         />
       </div>
     {/if}

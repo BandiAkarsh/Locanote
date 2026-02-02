@@ -25,6 +25,8 @@ SVELTE 5 CONCEPTS USED:
 	// IMPORTS
 	// ========================================================================
 	import type { Snippet } from 'svelte';                        // Type for renderable content
+	import { theme } from '$stores/theme.svelte';                 // Theme store
+	import { isBrowser } from '$utils/browser';                   // Browser check
 	import '../app.css';                                          // Global CSS (Tailwind + custom styles)
 
 	// ========================================================================
@@ -33,6 +35,23 @@ SVELTE 5 CONCEPTS USED:
 	// In Svelte 5, we use $props() instead of "export let"
 	// "children" is a special prop - it's the page content to render
 	let { children }: { children: Snippet } = $props();           // Destructure the children prop
+
+	// ========================================================================
+	// THEME SYNC
+	// ========================================================================
+	// Keep the DOM in sync with the theme store
+	$effect(() => {
+		if (!isBrowser) return;
+		
+		const html = document.documentElement;
+		if (theme.isDark) {
+			html.classList.add('dark');
+			html.setAttribute('data-theme', 'dark');
+		} else {
+			html.classList.remove('dark');
+			html.setAttribute('data-theme', 'light');
+		}
+	});
 </script>
 
 <!-- ==========================================================================

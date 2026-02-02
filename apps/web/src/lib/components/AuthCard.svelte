@@ -220,7 +220,6 @@ DESIGN FEATURES:
           <div class="text-center">
             <button
               onclick={() => {
-                console.log('[DEBUG] Create account button clicked');
                 onSwitchToRegister();
               }}
               class="text-white/80 hover:text-white font-medium text-sm transition-colors duration-200

@@ -2,7 +2,7 @@
 // WEBRTC SIGNALING SERVER - Cloudflare Worker
 // ============================================================================
 // This server helps WebRTC peers discover and connect to each other.
-// 
+//
 // WHAT IT DOES:
 // 1. Peers connect via WebSocket to a "room" (identified by room ID)
 // 2. Server forwards signaling messages between peers in the same room
@@ -23,14 +23,14 @@
 // - No data persists - messages are forwarded, not stored
 // ============================================================================
 
-import { SignalingRoom } from './room';
+import { SignalingRoom } from "./room";
 
 // Export the Durable Object class for Cloudflare
 export { SignalingRoom };
 
 // Environment interface
 export interface Env {
-  // @ts-ignore - SignalingRoom doesn't have the branded type marker required by
+  // @ts-expect-error - SignalingRoom doesn't have the branded type marker required by
   // @cloudflare/workers-types v4.x, but the class works correctly at runtime.
   SIGNALING_ROOMS: DurableObjectNamespace<SignalingRoom>;
   ROOM_METADATA: KVNamespace;
@@ -44,26 +44,33 @@ export interface Env {
 // ============================================================================
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(
+    request: Request,
+    env: Env,
+    ctx: ExecutionContext,
+  ): Promise<Response> {
     // --------------------------------------------------------------------
     // CORS HEADERS
     // --------------------------------------------------------------------
     // Allow requests from specific origins (set in wrangler.toml)
-    const origin = request.headers.get('Origin') || '*';
-    const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
-    
+    const origin = request.headers.get("Origin") || "*";
+    const allowedOrigins = env.ALLOWED_ORIGINS.split(",").map((o) => o.trim());
+
     const corsHeaders = {
-      'Access-Control-Allow-Origin': allowedOrigins.includes('*') || allowedOrigins.includes(origin) ? origin : allowedOrigins[0],
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
+      "Access-Control-Allow-Origin":
+        allowedOrigins.includes("*") || allowedOrigins.includes(origin)
+          ? origin
+          : allowedOrigins[0],
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Max-Age": "86400",
     };
 
     // Handle preflight OPTIONS request
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { 
-        status: 204, 
-        headers: corsHeaders 
+    if (request.method === "OPTIONS") {
+      return new Response(null, {
+        status: 204,
+        headers: corsHeaders,
       });
     }
 
@@ -74,19 +81,20 @@ export default {
     const path = url.pathname;
 
     // Health check endpoint
-    if (path === '/health') {
+    if (path === "/health") {
       return new Response(
-        JSON.stringify({ 
-          status: 'ok', 
+        JSON.stringify({
+          status: "ok",
           timestamp: Date.now(),
-          version: '1.0.0'
-        }), {
+          version: "1.0.0",
+        }),
+        {
           status: 200,
           headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        },
       );
     }
 
@@ -94,17 +102,18 @@ export default {
     // WEBSOCKET UPGRADE HANDLING
     // --------------------------------------------------------------------
     // Only WebSocket upgrade requests are valid for signaling
-    const upgradeHeader = request.headers.get('Upgrade');
-    
-    if (upgradeHeader !== 'websocket') {
+    const upgradeHeader = request.headers.get("Upgrade");
+
+    if (upgradeHeader !== "websocket") {
       return new Response(
-        JSON.stringify({ error: 'Expected WebSocket upgrade' }), {
+        JSON.stringify({ error: "Expected WebSocket upgrade" }),
+        {
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
+            "Content-Type": "application/json",
+            ...corsHeaders,
+          },
+        },
       );
     }
 
@@ -115,43 +124,39 @@ export default {
     // - Query parameter: ?room=abc123
     // - Path parameter: /room/abc123
     // - Subprotocol: Sec-WebSocket-Protocol: abc123
-    
-    let roomId = url.searchParams.get('room');
-    
-    if (!roomId && path.startsWith('/room/')) {
-      roomId = path.split('/')[2];
+
+    let roomId = url.searchParams.get("room");
+
+    if (!roomId && path.startsWith("/room/")) {
+      roomId = path.split("/")[2];
     }
-    
+
     if (!roomId) {
-      const protocolHeader = request.headers.get('Sec-WebSocket-Protocol');
+      const protocolHeader = request.headers.get("Sec-WebSocket-Protocol");
       if (protocolHeader) {
-        roomId = protocolHeader.split(',')[0].trim();
+        roomId = protocolHeader.split(",")[0].trim();
       }
     }
 
     if (!roomId) {
-      return new Response(
-        JSON.stringify({ error: 'Room ID required' }), {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
-      );
+      return new Response(JSON.stringify({ error: "Room ID required" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      });
     }
 
     // Validate room ID (alphanumeric, hyphens, underscores only)
     if (!/^[a-zA-Z0-9_-]+$/.test(roomId)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid room ID format' }), {
-          status: 400,
-          headers: {
-            'Content-Type': 'application/json',
-            ...corsHeaders
-          }
-        }
-      );
+      return new Response(JSON.stringify({ error: "Invalid room ID format" }), {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
+      });
     }
 
     // --------------------------------------------------------------------
@@ -159,7 +164,7 @@ export default {
     // --------------------------------------------------------------------
     // Each room is a Durable Object instance
     // This ensures room state persists even if the worker restarts
-    
+
     const id = env.SIGNALING_ROOMS.idFromName(roomId);
     const room = env.SIGNALING_ROOMS.get(id);
 
@@ -167,9 +172,9 @@ export default {
     // FORWARD REQUEST TO DURABLE OBJECT
     // --------------------------------------------------------------------
     // The Durable Object handles the actual WebSocket connection
-    
+
     const response = await room.fetch(request);
-    
+
     // Add CORS headers to the response
     const newHeaders = new Headers(response.headers);
     Object.entries(corsHeaders).forEach(([key, value]) => {
@@ -179,7 +184,7 @@ export default {
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
-      headers: newHeaders
+      headers: newHeaders,
     });
-  }
+  },
 };

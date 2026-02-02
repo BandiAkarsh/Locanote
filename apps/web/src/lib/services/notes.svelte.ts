@@ -16,19 +16,27 @@
 // 4. Delete note → Delete from IndexedDB, destroy Yjs doc
 // ============================================================================
 
-import { createNote, getNoteById, getNotesByUser, updateNote, deleteNote, searchNotes } from '$db/notes';
-import { openDocument, closeDocument } from '$crdt/doc.svelte';
-import type { Note } from '$db';
-import { auth } from '$stores/auth.svelte';
+import {
+  createNote,
+  getNoteById,
+  getNotesByUser,
+  updateNote,
+  deleteNote,
+  searchNotes,
+} from "$db/notes";
+import { openDocument, closeDocument } from "$crdt/doc.svelte";
+import type { Note } from "$db";
+import { auth } from "$stores/auth.svelte";
 
 // ============================================================================
 // BROWSER ENVIRONMENT CHECK
 // ============================================================================
 // Note operations require browser-only APIs like crypto.randomUUID
 
-const isBrowser = typeof globalThis !== 'undefined' && 
-                  typeof (globalThis as any).window !== 'undefined' &&
-                  typeof (globalThis as any).crypto !== 'undefined';
+const isBrowser =
+  typeof globalThis !== "undefined" &&
+  typeof (globalThis as any).window !== "undefined" &&
+  typeof (globalThis as any).crypto !== "undefined";
 
 /**
  * Generate a unique ID for notes
@@ -37,14 +45,17 @@ const isBrowser = typeof globalThis !== 'undefined' &&
 function generateNoteId(): string {
   if (!isBrowser) {
     // Fallback for SSR - generate a pseudo-random ID
-    const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
+    const uuid = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+      /[xy]/g,
+      function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === "x" ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      },
+    );
     return `note-${uuid}`;
   }
-  
+
   return `note-${(globalThis as any).crypto.randomUUID()}`;
 }
 
@@ -58,12 +69,12 @@ function generateNoteId(): string {
 // @returns The created note object
 
 export async function createNewNote(
-  title: string = 'Untitled Note',
-  initialTags: string[] = []
+  title: string = "Untitled Note",
+  initialTags: string[] = [],
 ): Promise<Note> {
   const session = auth.session;
   if (!session) {
-    throw new Error('User not authenticated');
+    throw new Error("User not authenticated");
   }
 
   const now = Date.now();
@@ -77,18 +88,11 @@ export async function createNewNote(
     tags: initialTags,
     createdAt: now,
     updatedAt: now,
-    yjsDocId: noteId
+    yjsDocId: noteId,
   });
 
-  // 2. Create Yjs document (this initializes the content)
-  const docInfo = openDocument(noteId);
-  
-  // Set initial title in Yjs
-  docInfo.title.insert(0, title);
-  
-  // Cleanup - we don't need to keep it open
-  // It will be reopened when user opens the note
-  docInfo.destroy();
+  // Note: Yjs document will be created automatically when user opens the note
+  // We don't create it here to avoid race conditions with IndexedDB persistence
 
   return note;
 }
@@ -124,7 +128,7 @@ export async function getNote(noteId: string): Promise<Note | undefined> {
   }
 
   const note = await getNoteById(noteId);
-  
+
   // Verify ownership
   if (note && note.userId !== session.userId) {
     return undefined;
@@ -144,7 +148,7 @@ export async function getNote(noteId: string): Promise<Note | undefined> {
 
 export async function updateNoteTitle(
   noteId: string,
-  newTitle: string
+  newTitle: string,
 ): Promise<Note | undefined> {
   const note = await getNote(noteId);
   if (!note) return undefined;
@@ -155,12 +159,12 @@ export async function updateNoteTitle(
   // Also update in Yjs
   const docInfo = openDocument(noteId);
   const currentTitle = docInfo.title.toString();
-  
+
   if (currentTitle !== newTitle) {
     docInfo.title.delete(0, currentTitle.length);
     docInfo.title.insert(0, newTitle);
   }
-  
+
   docInfo.destroy();
 
   return updateNote(note);
@@ -177,7 +181,7 @@ export async function updateNoteTitle(
 
 export async function updateNoteTags(
   noteId: string,
-  newTags: string[]
+  newTags: string[],
 ): Promise<Note | undefined> {
   const note = await getNote(noteId);
   if (!note) return undefined;
@@ -188,7 +192,7 @@ export async function updateNoteTags(
   // Update in Yjs
   const docInfo = openDocument(noteId);
   docInfo.tags.delete(0, docInfo.tags.length);
-  newTags.forEach(tag => docInfo.tags.push([tag]));
+  newTags.forEach((tag) => docInfo.tags.push([tag]));
   docInfo.destroy();
 
   return updateNote(note);
@@ -247,7 +251,7 @@ export async function getNotesByTagId(tagId: string): Promise<Note[]> {
   }
 
   const allNotes = await getNotesByUser(session.userId);
-  return allNotes.filter(note => note.tags.includes(tagId));
+  return allNotes.filter((note) => note.tags.includes(tagId));
 }
 
 // ============================================================================
@@ -281,4 +285,84 @@ export async function duplicateNote(noteId: string): Promise<Note | undefined> {
   newDoc.destroy();
 
   return newNote;
+}
+
+// ============================================================================
+// JOIN SHARED NOTE
+// ============================================================================
+// Allows a user to join a note shared via URL. Creates a local reference
+// to the note with the same yjsDocId, enabling real-time collaboration.
+//
+// @param noteId - The shared note ID (from URL)
+// @param title - Optional title (default: "Shared Note")
+// @returns The joined note or undefined if not authenticated
+
+export async function joinSharedNote(
+  noteId: string,
+  title: string = "Shared Note",
+): Promise<Note | undefined> {
+  const session = auth.session;
+  if (!session) {
+    return undefined;
+  }
+
+  // Check if user already has this note
+  const existingNote = await getNoteById(noteId);
+  if (existingNote) {
+    // If it's already the user's note, return it
+    if (existingNote.userId === session.userId) {
+      return existingNote;
+    }
+    // Note exists but belongs to another user - this is a shared note scenario
+    // For collaboration, we use the same Yjs document ID
+  }
+
+  const now = Date.now();
+
+  // Create a local reference to the shared note
+  // The key is using the SAME noteId as yjsDocId so Yjs syncs with the original
+  const note = await createNote({
+    id: noteId, // Use the same ID to reference the shared note
+    userId: session.userId,
+    title,
+    tags: [],
+    createdAt: now,
+    updatedAt: now,
+    yjsDocId: noteId, // Same as the original - enables Yjs sync
+  });
+
+  return note;
+}
+
+// ============================================================================
+// GET NOTE (WITH SHARED ACCESS)
+// ============================================================================
+// Gets a note, allowing access for collaboration (shared notes)
+//
+// @param noteId - The note ID
+// @param allowSharedAccess - If true, returns the note even if not the owner
+// @returns Note or undefined
+
+export async function getNoteForCollaboration(
+  noteId: string,
+): Promise<Note | undefined> {
+  const session = auth.session;
+  if (!session) {
+    return undefined;
+  }
+
+  const note = await getNoteById(noteId);
+
+  // If note exists and belongs to current user, return it
+  if (note && note.userId === session.userId) {
+    return note;
+  }
+
+  // If note doesn't exist locally, this might be a shared note
+  // Create a local reference for collaboration
+  if (!note) {
+    return joinSharedNote(noteId);
+  }
+
+  return undefined;
 }

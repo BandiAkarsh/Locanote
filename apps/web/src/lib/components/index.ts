@@ -13,11 +13,12 @@
 // import Modal from '$lib/components/Modal.svelte';
 // ============================================================================
 
-export { default as Button } from './Button.svelte';             // Reusable button component
-export { default as Input } from './Input.svelte';               // Text input with label/error
-export { default as Modal } from './Modal.svelte';               // Popup dialog component
-export { default as Spinner } from './Spinner.svelte';           // Loading spinner animation
-export { default as Toast } from './Toast.svelte';               // Notification toast messages
-export { default as AuthCard } from './AuthCard.svelte';         // Beautiful authentication card
-export { default as RegisterCard } from './RegisterCard.svelte'; // Beautiful registration card
-export { default as OfflineBanner } from './OfflineBanner.svelte'; // Offline status indicator
+export { default as Button } from "./Button.svelte"; // Reusable button component
+export { default as Input } from "./Input.svelte"; // Text input with label/error
+export { default as Modal } from "./Modal.svelte"; // Popup dialog component
+export { default as Spinner } from "./Spinner.svelte"; // Loading spinner animation
+export { default as Toast } from "./Toast.svelte"; // Notification toast messages
+export { default as AuthCard } from "./AuthCard.svelte"; // Beautiful authentication card
+export { default as RegisterCard } from "./RegisterCard.svelte"; // Beautiful registration card
+export { default as OfflineBanner } from "./OfflineBanner.svelte"; // Offline status indicator
+export { default as TagBadge } from "./TagBadge.svelte"; // Tag display component

@@ -66,6 +66,10 @@ lerna-debug.log*         # lerna debug logs
 # ============================================================================
 coverage/                # Code coverage reports
 .nyc_output/             # NYC (Istanbul) coverage tool output
+test-results/            # Playwright test results
+playwright-report/       # Playwright HTML report
+blob-report/             # Playwright blob report
+test-screenshots/        # Custom test screenshots folder
 
 # ============================================================================
 # TYPESCRIPT

@@ -17,21 +17,22 @@ FEATURES:
   import { loginWithPassword } from '$auth/password-login.svelte';
   import { registerWithPasskey } from '$auth/webauthn.svelte';
   import { registerWithPassword } from '$auth/password.svelte';
+  import { goto } from '$app/navigation';
 
   // Initialize auth state on mount
   $effect(() => {
-    console.log('[DEBUG] Page mounted, initializing auth...');
     auth.initialize();
-    console.log('[DEBUG] Auth initialized, viewMode:', viewMode);
+  });
+
+  // Redirect to /app if already authenticated
+  $effect(() => {
+    if (auth.isAuthenticated) {
+      goto('/app');
+    }
   });
 
   // Current view mode
   let viewMode = $state<'login' | 'register'>('login');
-  
-  // Debug: Log view mode changes
-  $effect(() => {
-    console.log('[DEBUG] View mode changed to:', viewMode);
-  });
 
   // Handle passkey login
   async function handlePasskeyLogin() {
@@ -107,7 +108,6 @@ FEATURES:
     onPasskeyLogin={handlePasskeyLogin}
     onPasswordLogin={handlePasswordLogin}
     onSwitchToRegister={() => {
-      console.log('[DEBUG] Switching to register view');
       viewMode = 'register';
     }}
   />

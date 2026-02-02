@@ -22,6 +22,9 @@ Tailwind 4 automatically detects which classes you use and only includes those.
 ============================================================================ */
 @import "tailwindcss";
 
+/* Ensure Tailwind 4 supports .dark class for dark mode */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================================
 CUSTOM THEME CONFIGURATION
 ============================================================================
@@ -44,9 +47,9 @@ NAMING CONVENTION:
   These are the main colors that define Locanote's visual identity.
   We use Tailwind's indigo palette as our primary color.
   ========================================================================== */
-  --color-primary: #6366f1;           /* Main brand color (indigo-500) */
-  --color-primary-hover: #4f46e5;     /* Darker shade for hover states (indigo-600) */
-  --color-primary-light: #a5b4fc;     /* Lighter shade for backgrounds (indigo-300) */
+  --color-primary: #6366f1; /* Main brand color (indigo-500) */
+  --color-primary-hover: #4f46e5; /* Darker shade for hover states (indigo-600) */
+  --color-primary-light: #a5b4fc; /* Lighter shade for backgrounds (indigo-300) */
 
   /* ==========================================================================
   FONT FAMILIES
@@ -54,8 +57,10 @@ NAMING CONVENTION:
   We use system fonts for fast loading and native look on each platform.
   The font stack falls back through available fonts on the user's system.
   ========================================================================== */
-  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
-  --font-mono: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
+  --font-sans:
+    ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono:
+    ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
 }
 
 /* ============================================================================
@@ -71,8 +76,8 @@ Useful for setting defaults that apply everywhere.
   Sets up smooth scrolling and prevents horizontal overflow.
   -------------------------------------------------------------------------- */
   html {
-    scroll-behavior: smooth;          /* Smooth scrolling for anchor links */
-    overflow-x: hidden;               /* Prevent horizontal scrollbar */
+    scroll-behavior: smooth; /* Smooth scrolling for anchor links */
+    overflow-x: hidden; /* Prevent horizontal scrollbar */
   }
 
   /* --------------------------------------------------------------------------
@@ -81,11 +86,11 @@ Useful for setting defaults that apply everywhere.
   Sets the default font and ensures full height for flex layouts.
   -------------------------------------------------------------------------- */
   body {
-    font-family: var(--font-sans);    /* Use our sans-serif font stack */
-    min-height: 100vh;                /* Body is at least full viewport height */
-    min-height: 100dvh;               /* Dynamic viewport height (mobile fix) */
-    -webkit-font-smoothing: antialiased;           /* Smoother fonts on Mac */
-    -moz-osx-font-smoothing: grayscale;            /* Smoother fonts on Firefox Mac */
+    font-family: var(--font-sans); /* Use our sans-serif font stack */
+    min-height: 100vh; /* Body is at least full viewport height */
+    min-height: 100dvh; /* Dynamic viewport height (mobile fix) */
+    -webkit-font-smoothing: antialiased; /* Smoother fonts on Mac */
+    -moz-osx-font-smoothing: grayscale; /* Smoother fonts on Firefox Mac */
   }
 
   /* --------------------------------------------------------------------------
@@ -94,8 +99,8 @@ Useful for setting defaults that apply everywhere.
   Custom focus ring for accessibility. Visible when using keyboard navigation.
   -------------------------------------------------------------------------- */
   :focus-visible {
-    outline: 2px solid var(--color-primary);       /* Indigo focus ring */
-    outline-offset: 2px;                           /* Space between element and ring */
+    outline: 2px solid var(--color-primary); /* Indigo focus ring */
+    outline-offset: 2px; /* Space between element and ring */
   }
 
   /* --------------------------------------------------------------------------
@@ -104,8 +109,8 @@ Useful for setting defaults that apply everywhere.
   Custom styling when user selects text.
   -------------------------------------------------------------------------- */
   ::selection {
-    background-color: var(--color-primary-light);  /* Light indigo background */
-    color: #1e1b4b;                                /* Dark indigo text */
+    background-color: var(--color-primary-light); /* Light indigo background */
+    color: #1e1b4b; /* Dark indigo text */
   }
 }
 
@@ -123,7 +128,7 @@ with Tailwind's responsive prefixes (sm:, md:, lg:) and state variants.
   Great for headings.
   -------------------------------------------------------------------------- */
   .text-balance {
-    text-wrap: balance;               /* Evenly distribute text across lines */
+    text-wrap: balance; /* Evenly distribute text across lines */
   }
 
   /* --------------------------------------------------------------------------
@@ -133,11 +138,11 @@ with Tailwind's responsive prefixes (sm:, md:, lg:) and state variants.
   Useful for custom scrollable areas.
   -------------------------------------------------------------------------- */
   .scrollbar-hide {
-    -ms-overflow-style: none;         /* Hide scrollbar in IE/Edge */
-    scrollbar-width: none;            /* Hide scrollbar in Firefox */
+    -ms-overflow-style: none; /* Hide scrollbar in IE/Edge */
+    scrollbar-width: none; /* Hide scrollbar in Firefox */
   }
   .scrollbar-hide::-webkit-scrollbar {
-    display: none;                    /* Hide scrollbar in Chrome/Safari */
+    display: none; /* Hide scrollbar in Chrome/Safari */
   }
 }
 
@@ -157,28 +162,28 @@ Reusable component styles. Use sparingly - prefer Tailwind utilities.
   .editor-content {
     /* Placeholder styles */
     & .is-empty::before {
-      content: attr(data-placeholder);             /* Show placeholder text */
-      color: #9ca3af;                              /* Gray-400 color */
-      pointer-events: none;                        /* Can't click placeholder */
-      position: absolute;                          /* Position over empty paragraph */
+      content: attr(data-placeholder); /* Show placeholder text */
+      color: #9ca3af; /* Gray-400 color */
+      pointer-events: none; /* Can't click placeholder */
+      position: absolute; /* Position over empty paragraph */
     }
 
     /* Editor paragraph spacing */
     & p {
-      margin-top: 0.5em;                           /* Space between paragraphs */
+      margin-top: 0.5em; /* Space between paragraphs */
       margin-bottom: 0.5em;
     }
 
     /* Task list checkbox styling */
     & ul[data-type="taskList"] {
-      list-style: none;                            /* Remove default bullets */
-      padding-left: 0;                             /* Remove default padding */
+      list-style: none; /* Remove default bullets */
+      padding-left: 0; /* Remove default padding */
     }
 
     & ul[data-type="taskList"] li {
-      display: flex;                               /* Align checkbox and text */
-      align-items: flex-start;                     /* Align to top */
-      gap: 0.5rem;                                 /* Space between checkbox and text */
+      display: flex; /* Align checkbox and text */
+      align-items: flex-start; /* Align to top */
+      gap: 0.5rem; /* Space between checkbox and text */
     }
   }
 }

@@ -1,25 +1,55 @@
 <!doctype html>
-<html lang="en" data-theme="light">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml">
-	<meta name="theme-color" content="#6366f1">
-	<link rel="manifest" href="%sveltekit.assets%/manifest.json">
-	<meta name="mobile-web-app-capable" content="yes">
-	<meta name="apple-mobile-web-app-status-bar-style" content="default">
-	<meta name="apple-mobile-web-app-title" content="Locanote">
-	%sveltekit.head%
-</head>
-<body>
-	<noscript>
-		<div style="padding: 20px; text-align: center; font-family: system-ui;">
-			<h1>JavaScript Required</h1>
-			<p>Locanote requires JavaScript to function. Please enable JavaScript in your browser settings.</p>
-		</div>
-	</noscript>
-	<div id="app" data-sveltekit-preload-data="hover">
-		%sveltekit.body%
-	</div>
-</body>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-cache, no-store, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <link
+      rel="icon"
+      href="%sveltekit.assets%/favicon.svg"
+      type="image/svg+xml"
+    />
+    <meta name="theme-color" content="#6366f1" />
+    <link rel="manifest" href="%sveltekit.assets%/manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Locanote" />
+    <script>
+      // Theme initialization script to prevent flash
+      (function () {
+        try {
+          const theme = localStorage.getItem("locanote-theme") || "system";
+          const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+          const isDark =
+            theme === "dark" || (theme === "system" && darkQuery.matches);
+
+          if (isDark) {
+            document.documentElement.classList.add("dark");
+            document.documentElement.setAttribute("data-theme", "dark");
+          } else {
+            document.documentElement.classList.remove("dark");
+            document.documentElement.setAttribute("data-theme", "light");
+          }
+        } catch (e) {}
+      })();
+    </script>
+    %sveltekit.head%
+  </head>
+  <body>
+    <noscript>
+      <div style="padding: 20px; text-align: center; font-family: system-ui">
+        <h1>JavaScript Required</h1>
+        <p>
+          Locanote requires JavaScript to function. Please enable JavaScript in
+          your browser settings.
+        </p>
+      </div>
+    </noscript>
+    <div id="app" data-sveltekit-preload-data="hover">%sveltekit.body%</div>
+  </body>
 </html>

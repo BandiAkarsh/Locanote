@@ -40,12 +40,14 @@ USAGE:
     noteId,
     user = { name: 'Anonymous', color: '#6366f1', id: 'anonymous' },
     onUpdate,
-    onConnectionStatusChange
+    onConnectionStatusChange,
+    onEditorReady
   }: {
     noteId: string;
     user?: { name: string; color: string; id: string };
     onUpdate?: (content: any) => void;
     onConnectionStatusChange?: (status: { connected: boolean; peerCount: number }) => void;
+    onEditorReady?: (editor: Editor) => void;
   } = $props();
 
   // Local state
@@ -58,35 +60,49 @@ USAGE:
 
   // Initialize editor on mount
   onMount(() => {
-    // Open the Yjs document for this note
-    docInfo = openDocument(noteId);
+    let isDestroyed = false;
+    
+    try {
+      // Open the Yjs document for this note
+      docInfo = openDocument(noteId);
 
-    // Create WebRTC provider for real-time collaboration
-    provider = createWebRTCProvider(
-      noteId,
-      docInfo.document,
-      user
-    );
+      // Create WebRTC provider for real-time collaboration
+      // Wrap in try-catch in case WebRTC fails (e.g., no signaling server)
+      try {
+        provider = createWebRTCProvider(
+          noteId,
+          docInfo.document,
+          user
+        );
+      } catch (webrtcError) {
+        console.warn('[Editor] WebRTC provider failed to initialize:', webrtcError);
+        // Continue without WebRTC - local editing still works
+        provider = null;
+      }
 
-    // Listen for connection status changes
-    const updateStatus = () => {
-      if (provider) {
-        connectionStatus = getWebRTCStatus(provider);
+      // Listen for connection status changes - only if provider exists
+      const updateStatus = () => {
+        if (provider) {
+          connectionStatus = getWebRTCStatus(provider);
+        } else {
+          connectionStatus = { connected: false, peerCount: 0, signalingConnected: false };
+        }
+        
         onConnectionStatusChange?.({
           connected: connectionStatus.connected,
           peerCount: connectionStatus.peerCount
         });
+      };
+
+      // Only attach provider event listeners if provider exists
+      if (provider) {
+        provider.on('status', updateStatus);
+        provider.on('peers', updateStatus);
+        provider.on('synced', updateStatus);
       }
-    };
 
-    provider.on('status', updateStatus);
-    provider.on('peers', updateStatus);
-    provider.on('synced', updateStatus);
-
-    // Create TipTap editor
-    editor = new Editor({
-      element: element,
-      extensions: [
+      // Build extensions array - conditionally include CollaborationCursor only if provider exists
+      const extensions: any[] = [
         StarterKit.configure({
           history: false, // Disable history - Yjs handles this
         }),
@@ -100,29 +116,54 @@ USAGE:
         }),
         Collaboration.configure({
           document: docInfo.document
-        }),
-        CollaborationCursor.configure({
-          provider: provider,
-          user: user
         })
-      ],
-      content: '',
-      editable: true,
-      autofocus: false,
-      injectCSS: false,
-      onUpdate: ({ editor }) => {
-        // Call the onUpdate callback if provided
-        if (onUpdate) {
-          onUpdate(editor.getJSON());
-        }
-      },
-      onCreate: () => {
-        isReady = true;
-        updateStatus();
+      ];
+
+      // Only add collaboration cursor if provider exists
+      if (provider) {
+        extensions.push(
+          CollaborationCursor.configure({
+            provider: provider,
+            user: user
+          })
+        );
       }
-    });
+
+      // Create TipTap editor
+      editor = new Editor({
+        element: element,
+        extensions: extensions,
+        content: '',
+        editable: true,
+        autofocus: false,
+        injectCSS: false,
+        onUpdate: ({ editor }) => {
+          // Call the onUpdate callback if provided
+          if (onUpdate) {
+            onUpdate(editor.getJSON());
+          }
+        },
+        onCreate: () => {
+          if (!isDestroyed) {
+            isReady = true;
+            updateStatus();
+            // Expose editor instance to parent component
+            if (editor) {
+              onEditorReady?.(editor);
+            }
+          }
+        },
+        onDestroy: () => {
+          isDestroyed = true;
+        }
+      });
+    } catch (error) {
+      console.error('[Editor] Failed to initialize editor:', error);
+      isReady = true; // Show editor even if initialization failed partially
+    }
 
     return () => {
+      isDestroyed = true;
       // Cleanup on destroy
       if (editor) {
         editor.destroy();
@@ -149,9 +190,9 @@ USAGE:
         collaborationCursor.options.user = user;
       }
     }
-    // Update provider awareness when user changes
-    if (provider) {
-      provider.awareness?.setLocalState({
+    // Update provider awareness when user changes - only if provider exists
+    if (provider && provider.awareness) {
+      provider.awareness.setLocalState({
         user: {
           name: user.name,
           color: user.color,
@@ -234,14 +275,12 @@ USAGE:
   }
 
   /* Dark mode scrollbar */
-  @media (prefers-color-scheme: dark) {
-    div :global(::-webkit-scrollbar-thumb) {
-      background: #475569;
-    }
-    
-    div :global(::-webkit-scrollbar-thumb:hover) {
-      background: #64748b;
-    }
+  :global(.dark) div :global(::-webkit-scrollbar-thumb) {
+    background: #475569;
+  }
+  
+  :global(.dark) div :global(::-webkit-scrollbar-thumb:hover) {
+    background: #64748b;
   }
 
   /* Collaboration cursor styles */
@@ -305,10 +344,8 @@ USAGE:
     border-radius: 0.2em;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :global(mark) {
-      background-color: #854d0e;
-      color: #fef08a;
-    }
+  :global(.dark mark) {
+    background-color: #854d0e;
+    color: #fef08a;
   }
 </style>
