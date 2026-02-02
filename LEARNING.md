@@ -252,7 +252,17 @@ We added a small, blocking inline script in the `<head>` of `app.html`. This scr
 
 **Lesson:** Blocking scripts in the head are usually bad for performance, but for theme initialization, they are essential for a professional user experience.
 
-## Svelte 5 Runes
+### Decision 7: Advanced Visual Theme Engine
+
+Instead of basic CSS classes, we implemented a semantic variable-based engine. This allows us to radically change the "physicality" of the UI (e.g., Neumorphism vs. Glassmorphism) just by swapping a single data attribute.
+
+### Decision 8: Mobile-First Sharing
+
+We integrated the Web Share API to provide a native mobile experience, combined with a custom modal fallback for desktop social sharing.
+
+## Conclusion
+
+Locanote is now a robust, production-ready application that proves local-first software can be just as collaborative and beautiful as traditional cloud apps.
 
 Svelte 5 introduced a new reactivity model with "runes". This was one of the biggest paradigm shifts we encountered.
 
