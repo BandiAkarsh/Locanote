@@ -5,79 +5,81 @@
 # These are typically generated files, secrets, or large dependencies.
 # ============================================================================
 
-# ============================================================================
 # DEPENDENCIES
-# ============================================================================
-# node_modules contains downloaded packages - very large, can be reinstalled
 node_modules/
-
-# pnpm store (local cache of packages)
 .pnpm-store/
 
-# ============================================================================
 # BUILD OUTPUTS
-# ============================================================================
-# These folders are generated when you run "build" - no need to track them
-dist/                    # Common build output folder
-build/                   # SvelteKit and other frameworks use this
-.svelte-kit/             # SvelteKit's internal build cache
-.turbo/                  # Turborepo's cache folder
-.vercel/                 # Vercel deployment cache
-.netlify/                # Netlify deployment cache
-.wrangler/               # Cloudflare Wrangler cache
+dist/
+build/
+.svelte-kit/
+.turbo/
+.vercel/
+.netlify/
+.wrangler/
+**/dist/
+**/build/
+**/.svelte-kit/
+**/.turbo/
+**/.vercel/
+**/.netlify/
+**/.wrangler/
 
-# ============================================================================
 # ENVIRONMENT & SECRETS
-# ============================================================================
-# NEVER commit these files - they may contain passwords or API keys!
-.env                     # Environment variables (may contain secrets)
-.env.local               # Local overrides (definitely contains secrets)
-.env.*.local             # Any environment-specific local files
-*.pem                    # SSL certificates (private keys!)
-*.key                    # Any key files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
 
-# ============================================================================
 # EDITOR & OS FILES
-# ============================================================================
-# These are created by your computer/editor - not part of the project
-.DS_Store                # macOS folder metadata
-.DS_Store?               # macOS folder metadata (alternate)
-Thumbs.db                # Windows thumbnail cache
-*.swp                    # Vim swap files
-*.swo                    # Vim swap files
-*~                       # Backup files created by some editors
-.idea/                   # JetBrains IDE (WebStorm, IntelliJ) settings
-.vscode/                 # VS Code settings (optional - some teams track this)
-*.sublime-*              # Sublime Text files
+.DS_Store
+.DS_Store?
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
 
-# ============================================================================
 # LOGS & DEBUG
-# ============================================================================
-# Log files can get very large and contain sensitive info
-*.log                    # Any log files
-npm-debug.log*           # npm debug logs
-pnpm-debug.log*          # pnpm debug logs
-yarn-debug.log*          # yarn debug logs
-yarn-error.log*          # yarn error logs
-lerna-debug.log*         # lerna debug logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
-# ============================================================================
 # TESTING
-# ============================================================================
-coverage/                # Code coverage reports
-.nyc_output/             # NYC (Istanbul) coverage tool output
-test-results/            # Playwright test results
-playwright-report/       # Playwright HTML report
-blob-report/             # Playwright blob report
-test-screenshots/        # Custom test screenshots folder
+coverage/
+.nyc_output/
+test-results/
+playwright-report/
+blob-report/
+test-screenshots/
+**/coverage/
+**/.nyc_output/
+**/test-results/
+**/playwright-report/
+**/blob-report/
+**/test-screenshots/
 
-# ============================================================================
 # TYPESCRIPT
-# ============================================================================
-*.tsbuildinfo            # TypeScript incremental build info (can be regenerated)
+*.tsbuildinfo
 
-# ============================================================================
 # MISC
-# ============================================================================
-.cache/                  # Various caching tools use this
-*.local                  # Local configuration files
+.cache/
+*.local
+
+# PROJECT SPECIFIC TEMPORARY FILES
+debug_selector.py
+manual_test_guide.py
+simple_toolbar_test.py
+test_multi_user_collab.py
+test_toolbar.py
+apps/web/run-tests.cjs
+
+# Redundant lockfiles
+package-lock.json
+yarn.lock
