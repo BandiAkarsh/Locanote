@@ -46,7 +46,8 @@ USAGE:
     noteId: string;
     user?: { name: string; color: string; id: string };
     onUpdate?: (content: any) => void;
-    onConnectionStatusChange?: (status: { connected: boolean; peerCount: number }) => void;
+    onConnectionStatusChange?: (status: { connected: boolean; peerCount: number; signalingConnected?: boolean }) => void;
+    onSyncStatusChange?: (status: 'syncing' | 'synced') => void;
     onEditorReady?: (editor: Editor) => void;
   } = $props();
 
@@ -90,15 +91,22 @@ USAGE:
         
         onConnectionStatusChange?.({
           connected: connectionStatus.connected,
-          peerCount: connectionStatus.peerCount
+          peerCount: connectionStatus.peerCount,
+          signalingConnected: connectionStatus.signalingConnected
         });
+      };
+
+      // When we sync with other peers
+      const handleSync = (isSynced: boolean) => {
+        onSyncStatusChange?.(isSynced ? 'synced' : 'syncing');
+        updateStatus();
       };
 
       // Only attach provider event listeners if provider exists
       if (provider) {
         provider.on('status', updateStatus);
         provider.on('peers', updateStatus);
-        provider.on('synced', updateStatus);
+        provider.on('synced', handleSync);
       }
 
       // Build extensions array - conditionally include CollaborationCursor only if provider exists

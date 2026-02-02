@@ -1,90 +1,109 @@
 // ============================================================================
 // NETWORK STATUS STORE
 // ============================================================================
-// Reactive store that tracks online/offline status and connection quality.
-// Uses the browser's navigator.onLine API and connection events.
-//
-// USAGE:
-// import { networkStatus } from '$stores/network.svelte';
-//
-// {#if !networkStatus.isOnline}
-//   <OfflineBanner />
-// {/if}
+// Reactive store that tracks online/offline status, connection quality,
+// and synchronization state.
 // ============================================================================
 
-// Type declarations for browser globals
-declare const navigator: Navigator & { onLine: boolean; connection?: any };
+import { isBrowser, getLocalStorage, getWindow } from "$utils/browser";
 
-// Check if running in browser
-const isBrowser =
-  typeof globalThis !== "undefined" &&
-  typeof (globalThis as any).window !== "undefined";
+// Connection states
+export type SyncStatus = "synced" | "syncing" | "offline" | "error";
+export type PeerStatus = "searching" | "connected" | "offline";
 
-// ============================================================================
-// CREATE NETWORK STORE
-// ============================================================================
 function createNetworkStore() {
-  // Reactive state - must be inside function
+  // 1. Browser Connectivity
   let isOnline = $state(isBrowser ? navigator.onLine : true);
   let connectionType = $state("unknown");
-  let isSlowConnection = $state(false);
 
-  // Initialize on client-side only
+  // 2. Synchronization State
+  let lastSynced = $state<number | null>(null);
+  let syncStatus = $state<SyncStatus>("synced");
+
+  // 3. P2P Collaboration State
+  let peerStatus = $state<PeerStatus>("offline");
+  let peerCount = $state(0);
+  let signalingConnected = $state(false);
+
   if (isBrowser) {
-    const win = (globalThis as any).window;
+    const win = getWindow();
 
-    // Listen for online/offline events
-    win.addEventListener("online", () => {
+    win?.addEventListener("online", () => {
       isOnline = true;
-      console.log("[Network] Back online");
+      if (peerStatus === "offline") peerStatus = "searching";
     });
 
-    win.addEventListener("offline", () => {
+    win?.addEventListener("offline", () => {
       isOnline = false;
-      console.log("[Network] Gone offline");
+      peerStatus = "offline";
+      syncStatus = "offline";
     });
 
-    // Check connection type (if supported)
-    const nav = win.navigator;
-    const connection = nav.connection;
+    // Check connection type
+    const nav = win?.navigator as any;
+    const connection = nav?.connection;
     if (connection) {
       connectionType = connection.effectiveType || "unknown";
-      isSlowConnection =
-        connection.saveData || connection.effectiveType === "2g";
-
       connection.addEventListener("change", () => {
         connectionType = connection.effectiveType;
-        isSlowConnection =
-          connection.saveData || connection.effectiveType === "2g";
       });
     }
   }
 
   return {
+    // Getters
     get isOnline() {
       return isOnline;
     },
     get connectionType() {
       return connectionType;
     },
-    get isSlowConnection() {
-      return isSlowConnection;
+    get lastSynced() {
+      return lastSynced;
+    },
+    get syncStatus() {
+      return syncStatus;
+    },
+    get peerStatus() {
+      return peerStatus;
+    },
+    get peerCount() {
+      return peerCount;
+    },
+    get signalingConnected() {
+      return signalingConnected;
     },
 
-    // Helper methods
-    get statusText() {
-      if (!isOnline) return "Offline";
-      if (isSlowConnection) return "Slow Connection";
-      return "Online";
+    // Setters (Internal use)
+    setSyncStatus(status: SyncStatus) {
+      syncStatus = status;
+      if (status === "synced") lastSynced = Date.now();
     },
 
-    get statusColor() {
-      if (!isOnline) return "red";
-      if (isSlowConnection) return "yellow";
-      return "green";
+    updatePeerState(connected: boolean, count: number, signaling: boolean) {
+      signalingConnected = signaling;
+      peerCount = count;
+
+      if (!isOnline) {
+        peerStatus = "offline";
+      } else if (count > 0) {
+        peerStatus = "connected";
+      } else if (signaling) {
+        peerStatus = "searching";
+      } else {
+        peerStatus = "offline";
+      }
+    },
+
+    // Formatted Helpers
+    get statusMessage() {
+      if (!isOnline) return "Working Offline";
+      if (peerStatus === "connected")
+        return `Collaborating (${peerCount} peer${peerCount > 1 ? "s" : ""})`;
+      if (peerStatus === "searching") return "Searching for peers...";
+      return "Online (Private Mode)";
     },
   };
 }
 
-// Export singleton instance
 export const networkStatus = createNetworkStore();

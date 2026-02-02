@@ -11,28 +11,24 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { Button, ShareModal } from '$components';
   import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
   import { auth } from '$stores/auth.svelte';
+  import { networkStatus } from '$stores/network.svelte';
   import { isBrowser } from '$utils/browser';
   import type { Note } from '$db';
 
-  // Get note ID from URL params
   const noteId = $derived(page.params.id);
 
-  // Local state
   let note = $state<Note | null>(null);
   let isLoading = $state(true);
   let error = $state<string | null>(null);
   let editorInstance = $state<any>(null);
-  let connectionStatus = $state({ connected: false, peerCount: 0 });
   let isShareModalOpen = $state(false);
 
-  // User info for collaboration
   const currentUser = $derived({
     name: auth.session?.username || 'Anonymous',
     color: '#6366f1',
     id: auth.session?.userId || 'anonymous'
   });
 
-  // Load note on mount
   onMount(async () => {
     if (!noteId) {
       error = 'Invalid note ID';
@@ -54,10 +50,17 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     }
   });
 
-  function handleEditorUpdate(content: any) {}
+  function handleEditorUpdate(content: any) {
+    // Local changes started
+    networkStatus.setSyncStatus('syncing');
+  }
 
-  function handleConnectionStatus(status: { connected: boolean; peerCount: number }) {
-    connectionStatus = status;
+  function handleSyncStatus(status: 'syncing' | 'synced') {
+    networkStatus.setSyncStatus(status);
+  }
+
+  function handleConnectionStatus(status: { connected: boolean; peerCount: number; signalingConnected?: boolean }) {
+    networkStatus.updatePeerState(status.connected, status.peerCount, status.signalingConnected || status.connected);
   }
 
   function handleEditorReady(editor: any) {
@@ -85,9 +88,22 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       
       {#if note}
         <div class="flex flex-col">
-          <h1 class="text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none mb-1">{note.title}</h1>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none">{note.title}</h1>
+            
+            <!-- Sync Indicator -->
+            <div class="flex items-center" title={networkStatus.syncStatus === 'syncing' ? 'Syncing...' : 'Saved to device'}>
+              {#if networkStatus.syncStatus === 'syncing'}
+                <div class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></div>
+              {:else}
+                <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              {/if}
+            </div>
+          </div>
           <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--ui-text-muted)]">
-            Saved to device
+            {networkStatus.syncStatus === 'syncing' ? 'Updating...' : 'All changes saved'}
           </span>
         </div>
       {/if}
@@ -95,19 +111,38 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
 
     <!-- Connection Status -->
     <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2 px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-full text-xs font-bold uppercase tracking-tighter">
+      <div 
+        class="group relative flex items-center gap-2 px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-xl text-xs font-bold uppercase tracking-tighter cursor-help transition-all hover:border-primary/30"
+      >
         <span 
-          class="w-2.5 h-2.5 rounded-full shadow-sm {connectionStatus.peerCount > 0 ? 'bg-green-500 animate-pulse' : connectionStatus.connected ? 'bg-amber-500' : 'bg-red-500'}"
+          class="w-2.5 h-2.5 rounded-full shadow-sm transition-colors duration-500
+                {networkStatus.peerStatus === 'connected' ? 'bg-green-500 animate-pulse' : 
+                 networkStatus.peerStatus === 'searching' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}"
         ></span>
-        <span class="text-[var(--ui-text)]">
-          {#if connectionStatus.peerCount > 0}
-            {connectionStatus.peerCount} {connectionStatus.peerCount === 1 ? 'Peer' : 'Peers'}
-          {:else if connectionStatus.connected}
-            Searching
-          {:else}
-            Offline
-          {/if}
+        <span class="text-[var(--ui-text)] min-w-[70px]">
+          {networkStatus.statusMessage}
         </span>
+
+        <!-- Tooltip -->
+        <div class="absolute top-full right-0 mt-2 w-48 p-3 themed-card opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+          <h5 class="text-[10px] font-black uppercase tracking-widest mb-2 border-b border-[var(--ui-border)] pb-1">Network Info</h5>
+          <div class="space-y-1.5">
+            <div class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Status:</span>
+              <span class="text-primary">{networkStatus.isOnline ? 'Online' : 'Offline'}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Peers:</span>
+              <span>{networkStatus.peerCount}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Signaling:</span>
+              <span class={networkStatus.signalingConnected ? 'text-green-500' : 'text-red-500'}>
+                {networkStatus.signalingConnected ? 'Connected' : 'Disconnected'}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
       
       <Button variant="primary" size="sm" onclick={() => isShareModalOpen = true}>
@@ -149,6 +184,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
           noteId={noteId}
           user={currentUser}
           onUpdate={handleEditorUpdate}
+          onSyncStatusChange={handleSyncStatus}
           onConnectionStatusChange={handleConnectionStatus}
           onEditorReady={handleEditorReady}
         />

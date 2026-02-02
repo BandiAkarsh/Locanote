@@ -9,7 +9,7 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 	import type { Snippet } from 'svelte';                        // Type for renderable content
 	import { theme } from '$stores/theme.svelte';                 // Theme store
 	import { isBrowser } from '$utils/browser';                   // Browser check
-  import ThemeBackground from '$lib/components/ThemeBackground.svelte';
+  import { ThemeBackground, OfflineBanner } from '$components';
 	import '../app.css';                                          // Global CSS (Tailwind + custom styles)
 
 	// ========================================================================
@@ -43,6 +43,9 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 
 <!-- Global Background Layer -->
 <ThemeBackground />
+
+<!-- Global Connectivity Alert -->
+<OfflineBanner />
 
 <div class="min-h-screen transition-colors duration-300 relative z-0">
 	{@render children()}
