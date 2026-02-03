@@ -12,7 +12,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
   import { auth } from '$stores/auth.svelte';
   import { networkStatus } from '$stores/network.svelte';
-  import { isBrowser, base64ToArrayBuffer } from '$utils/browser';
+  import { isBrowser, base64UrlToUint8Array, base64ToArrayBuffer } from '$utils/browser';
   import { storeRoomKey, hasRoomKey, deriveKeyFromPassword } from '$crypto/e2e';
   import type { Note } from '$db';
 
@@ -43,16 +43,25 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       return;
     }
 
-    // 1. Check for key in URL hash
+    // 1. Check for key in URL hash (URL-safe base64url format)
+    console.log('[DEBUG] Checking for key in URL hash. Current hash:', window.location.hash);
+    console.log('[DEBUG] hasRoomKey before extraction:', hasRoomKey(noteId));
+    
     if (isBrowser && window.location.hash.startsWith('#key=')) {
       try {
-        const base64Key = window.location.hash.slice(5);
-        const keyBuffer = base64ToArrayBuffer(base64Key);
-        storeRoomKey(noteId, new Uint8Array(keyBuffer));
+        const base64UrlKey = window.location.hash.slice(5);
+        console.log('[DEBUG] Extracted base64UrlKey from URL:', base64UrlKey);
+        const keyBytes = base64UrlToUint8Array(base64UrlKey);
+        console.log('[DEBUG] Decoded keyBytes length:', keyBytes.length);
+        storeRoomKey(noteId, keyBytes);
+        console.log('[DEBUG] Stored room key. hasRoomKey after:', hasRoomKey(noteId));
         history.replaceState(null, '', window.location.pathname);
+        console.log('[E2E] Decryption key extracted from URL hash');
       } catch (err) {
         console.error('[E2E] Failed to extract key from URL:', err);
       }
+    } else {
+      console.log('[DEBUG] No key found in URL hash');
     }
 
     // 2. Check for protection params in URL

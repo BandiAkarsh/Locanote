@@ -15,8 +15,6 @@ EDITOR COMPONENT (Editor.svelte)
   import Typography from '@tiptap/extension-typography';
   import { openDocument } from '$crdt/doc.svelte';
   import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
-  import { getRoomKey } from '$crypto/e2e';
-  import { uint8ArrayToBase64 } from '$utils/browser';
   import Toolbar from './Toolbar.svelte';
 
   // Props
@@ -41,6 +39,7 @@ EDITOR COMPONENT (Editor.svelte)
   let element: HTMLElement;
   let docInfo = $state<ReturnType<typeof openDocument> | null>(null);
   let isReady = $state(false);
+  let isContentLoaded = $state(false);
   let provider = $state<WebrtcProvider | null>(null);
   let isMobileToolbarOpen = $state(false);
   let connectionStatus = $state({ connected: false, peerCount: 0, signalingConnected: false });
@@ -49,19 +48,22 @@ EDITOR COMPONENT (Editor.svelte)
   onMount(() => {
     let isDestroyed = false;
     
+    console.log('[DEBUG] Editor onMount starting for noteId:', noteId);
+    
     try {
       docInfo = openDocument(noteId);
+      console.log('[DEBUG] Document opened for noteId:', noteId);
 
       try {
-        const key = getRoomKey(noteId);
-        const roomPassword = key ? uint8ArrayToBase64(key) : undefined;
-
+        console.log('[DEBUG] Creating WebRTC provider with noteId:', noteId, 'user:', user.name);
+        // FIX: No roomPassword needed - provider now uses noteId as password internally
+        // All users with same noteId will join same WebRTC room
         provider = createWebRTCProvider(
           noteId,
           docInfo.document,
-          user,
-          roomPassword
+          user
         );
+        console.log('[DEBUG] WebRTC provider created successfully');
       } catch (webrtcError) {
         console.warn('[Editor] WebRTC provider failed:', webrtcError);
         provider = null;
@@ -70,6 +72,12 @@ EDITOR COMPONENT (Editor.svelte)
       const updateStatus = () => {
         if (provider) {
           connectionStatus = getWebRTCStatus(provider);
+          console.log('[DEBUG] WebRTC Status Update:', {
+            connected: connectionStatus.connected,
+            peerCount: connectionStatus.peerCount,
+            signalingConnected: connectionStatus.signalingConnected,
+            noteId: noteId
+          });
         }
         
         onConnectionStatusChange?.({
@@ -85,9 +93,27 @@ EDITOR COMPONENT (Editor.svelte)
       };
 
       if (provider) {
-        provider.on('status', updateStatus);
-        provider.on('peers', updateStatus);
-        provider.on('synced', handleSync);
+        console.log('[DEBUG] Attaching WebRTC event listeners');
+        
+        provider.on('status', (event: { connected: boolean }) => {
+          console.log('[DEBUG] WebRTC status event:', event, 'for noteId:', noteId);
+          updateStatus();
+        });
+        
+        provider.on('peers', (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
+          console.log('[DEBUG] WebRTC peers event:', event, 'for noteId:', noteId);
+          updateStatus();
+        });
+        
+        provider.on('synced', (event: { synced: boolean }) => {
+          console.log('[DEBUG] WebRTC synced event:', event, 'for noteId:', noteId);
+          handleSync(event.synced);
+        });
+        
+        // Additional logging for connection errors
+        provider.on('connection-error', (event: any) => {
+          console.error('[DEBUG] WebRTC connection error:', event, 'for noteId:', noteId);
+        });
       }
 
       const extensions: any[] = [
@@ -117,7 +143,7 @@ EDITOR COMPONENT (Editor.svelte)
       editor = new Editor({
         element: element,
         extensions: extensions,
-        content: '',
+        // NO 'content' property - TipTap reads from Yjs document automatically
         editable: true,
         autofocus: true,
         injectCSS: false,
@@ -125,16 +151,58 @@ EDITOR COMPONENT (Editor.svelte)
           if (onUpdate) onUpdate(editor.getJSON());
         },
         onCreate: () => {
-          if (!isDestroyed) {
-            isReady = true;
-            updateStatus();
-            if (editor) onEditorReady?.(editor);
+          // Check if document already has content from IndexedDB
+          const hasContent = docInfo && docInfo.content && docInfo.content.length > 0;
+          if (hasContent) {
+            isContentLoaded = true;
           }
+          // Don't mark ready until content is confirmed loaded
         },
         onDestroy: () => {
           isDestroyed = true;
         }
       });
+
+      // Listen for IndexedDB sync (when local data is loaded)
+      docInfo.provider.on('synced', () => {
+        console.log(`[Editor] Document ${noteId} synced from IndexedDB`);
+        // Check if document has content after IndexedDB sync
+        const yContent = docInfo?.document.getXmlFragment('content');
+        const hasContent = yContent && yContent.length > 0;
+        
+        if (hasContent || isContentLoaded) {
+          isContentLoaded = true;
+          if (!isReady && !isDestroyed) {
+            isReady = true;
+            updateStatus();
+            if (editor) onEditorReady?.(editor);
+          }
+        }
+      });
+
+      // If no IndexedDB content, wait for WebRTC sync (collaborative loading)
+      if (provider) {
+        provider.on('synced', (event: { synced: boolean }) => {
+          if (event.synced && !isContentLoaded && !isDestroyed) {
+            console.log(`[Editor] Document ${noteId} synced via WebRTC`);
+            isContentLoaded = true;
+            isReady = true;
+            updateStatus();
+            if (editor) onEditorReady?.(editor);
+          }
+        });
+      }
+
+      // Fallback: If no sync events fire within 2 seconds, assume empty new note
+      setTimeout(() => {
+        if (!isContentLoaded && !isDestroyed) {
+          console.log(`[Editor] Document ${noteId} assuming new/empty note`);
+          isContentLoaded = true;
+          isReady = true;
+          updateStatus();
+          if (editor) onEditorReady?.(editor);
+        }
+      }, 2000);
     } catch (error) {
       console.error('[Editor] Failed to initialize:', error);
       isReady = true;
@@ -175,6 +243,17 @@ EDITOR COMPONENT (Editor.svelte)
 </script>
 
 <div class="relative w-full h-full bg-[var(--ui-surface)] backdrop-blur-[var(--ui-blur)] rounded-2xl overflow-hidden transition-all duration-500">
+  <!-- Loading State - Shows while syncing content -->
+  {#if !isContentLoaded}
+    <div class="absolute inset-0 flex items-center justify-center z-20 bg-[var(--ui-surface)]/80 backdrop-blur-sm">
+      <div class="text-center">
+        <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+        <p class="text-sm font-bold text-[var(--ui-text-muted)] uppercase tracking-widest">Syncing...</p>
+        <p class="text-xs text-[var(--ui-text-muted)] mt-2">Loading collaborative content</p>
+      </div>
+    </div>
+  {/if}
+
   <!-- Editor Content Area -->
   <div 
     bind:this={element}
@@ -188,6 +267,7 @@ EDITOR COMPONENT (Editor.svelte)
            [&_.is-empty]:before:text-[var(--ui-text-muted)]
            [&_.is-empty]:before:float-left 
            [&_.is-empty]:before:pointer-events-none"
+    class:opacity-50={!isContentLoaded}
   >
     <!-- TipTap mounts here -->
   </div>

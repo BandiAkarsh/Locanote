@@ -4,7 +4,7 @@
 // This module configures y-webrtc to enable peer-to-peer collaboration.
 //
 // WHAT IS WEBRTC?
-// WebRTC (Web Real-Time Communication) allows browsers to connect directly
+// WebRTC (Web Real-time Communication) allows browsers to connect directly
 // to each other without a server in the middle. Perfect for:
 // - Real-time collaborative editing
 // - Video/audio calls
@@ -32,19 +32,9 @@
 
 import { WebrtcProvider } from "y-webrtc"; // Import y-webrtc provider
 import type * as Y from "yjs"; // Yjs types
-import {
-  generateRoomKey,
-  storeRoomKey,
-  getRoomKey,
-  hasRoomKey,
-  removeRoomKey,
-  encryptBytes,
-  decryptBytes,
-  type EncryptedMessage,
-} from "$crypto/e2e"; // E2E encryption utilities
 
 // Re-export types
-export type { WebrtcProvider, EncryptedMessage };
+export type { WebrtcProvider };
 
 // ============================================================================
 // SIGNALING SERVER CONFIGURATION
@@ -75,8 +65,8 @@ const SIGNALING_SERVER_URL = (() => {
     }
   }
 
-  // Fallback for SSR or production
-  return "wss://locanote-signaling.your-subdomain.workers.dev";
+  // Production signaling server
+  return "wss://locanote-signaling.akarshbandi82.workers.dev";
 })();
 
 // ============================================================================
@@ -93,31 +83,24 @@ export function createWebRTCProvider(
   roomId: string, // Room/note identifier
   ydoc: Y.Doc, // Yjs document instance
   user: { name: string; color: string; id: string }, // Current user info
-  roomPassword?: string, // Optional room password for access control
-  encryptionKey?: Uint8Array, // Optional pre-generated encryption key
 ): WebrtcProvider {
-  // --------------------------------------------------------------------
-  // INITIALIZE E2E ENCRYPTION KEY
-  // --------------------------------------------------------------------
-  // Generate or store encryption key for this room
-  if (!hasRoomKey(roomId)) {
-    if (encryptionKey) {
-      // Use provided key
-      storeRoomKey(roomId, encryptionKey);
-      console.log(`[E2E] Using provided encryption key for room: ${roomId}`);
-    } else {
-      // Generate new random key
-      const newKey = generateRoomKey();
-      storeRoomKey(roomId, newKey);
-      console.log(`[E2E] Generated new encryption key for room: ${roomId}`);
-    }
-  }
+  console.log(`[DEBUG] createWebRTCProvider called for room: ${roomId}`);
 
   // --------------------------------------------------------------------
   // CREATE PROVIDER
   // --------------------------------------------------------------------
   // WebrtcProvider connects to signaling server and manages P2P connections
+  // 
+  // FIX: Use noteId as room password so ALL users with same note can connect
+  // The encryption key is separate and shared via URL hash for document content
 
+  // Build signaling URL
+  const signalingUrl = SIGNALING_SERVER_URL.includes("?")
+    ? `${SIGNALING_SERVER_URL}&room=${roomId}`
+    : `${SIGNALING_SERVER_URL}?room=${roomId}`;
+  console.log(`[DEBUG] Connecting to signaling server:`, signalingUrl);
+  console.log(`[DEBUG] Room password (noteId):`, roomId);
+  
   const provider = new WebrtcProvider(
     roomId, // Room ID - peers in same room sync together
     ydoc, // Yjs document to synchronize
@@ -127,20 +110,19 @@ export function createWebRTCProvider(
       // ----------------------------------------------------------------
       // Array of signaling server URLs
       // I use my Cloudflare Worker, appending the room ID for discovery
-      signaling: [
-        SIGNALING_SERVER_URL.includes("?")
-          ? `${SIGNALING_SERVER_URL}&room=${roomId}`
-          : `${SIGNALING_SERVER_URL}?room=${roomId}`,
-      ],
+      signaling: [signalingUrl],
 
       // ----------------------------------------------------------------
-      // ROOM PASSWORD (Optional)
+      // ROOM PASSWORD
       // ----------------------------------------------------------------
-      // When set, only users with the same password can join the room
-      // This provides basic access control (not encryption)
-      password: roomPassword,
+      // CRITICAL FIX: Use noteId as password so all users with same note can connect
+      // This ensures User A and User B join the same WebRTC room
+      // The E2E encryption key is shared separately via URL hash
+      password: roomId,
     },
   );
+  
+  console.log(`[DEBUG] WebRTC provider created for room: ${roomId}`);
 
   // --------------------------------------------------------------------
   // SET AWARENESS (USER PRESENCE)
@@ -165,9 +147,9 @@ export function createWebRTCProvider(
   // When I connect to the signaling server
   provider.on("status", (event: { connected: boolean }) => {
     if (event.connected) {
-      console.log(`[WebRTC] Connected to signaling server for room: ${roomId}`);
+      console.log(`[WebRTC] ✅ CONNECTED to signaling server for room: ${roomId}`);
     } else {
-      console.log(`[WebRTC] Disconnected from signaling server`);
+      console.log(`[WebRTC] ❌ Disconnected from signaling server for room: ${roomId}`);
     }
   });
 
@@ -175,14 +157,14 @@ export function createWebRTCProvider(
   provider.on(
     "peers",
     (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
-      console.log(`[WebRTC] Peers in room:`, event.webrtcPeers);
+      console.log(`[WebRTC] 👥 Peers in room ${roomId}:`, event.webrtcPeers.length, 'peers:', event.webrtcPeers);
     },
   );
 
   // When I sync with other peers
   provider.on("synced", (event: { synced: boolean }) => {
     if (event.synced) {
-      console.log(`[WebRTC] Document synced with all peers`);
+      console.log(`[WebRTC] Document synced with all peers in room ${roomId}`);
     }
   });
 
@@ -251,23 +233,3 @@ export function setAwareness(
     provider.awareness.setLocalState(state);
   }
 }
-
-// ============================================================================
-// E2E ENCRYPTION KEY MANAGEMENT
-// ============================================================================
-// Re-export encryption functions for use by the application
-
-export {
-  generateRoomKey,
-  storeRoomKey,
-  getRoomKey,
-  hasRoomKey,
-  removeRoomKey,
-  encryptBytes,
-  decryptBytes,
-  encryptMessage,
-  decryptMessage,
-  clearAllKeys,
-} from "$crypto/e2e";
-
-export type { RoomKey } from "$crypto/e2e";

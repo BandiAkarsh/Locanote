@@ -127,6 +127,62 @@ export function uint8ArrayToBase64(array: Uint8Array): string {
 }
 
 /**
+ * Convert Uint8Array to URL-safe Base64 string (base64url)
+ * Replaces: + → -, / → _, and removes = padding
+ * Safe for use in URLs without encoding issues
+ */
+export function uint8ArrayToBase64Url(array: Uint8Array): string {
+  if (!isBrowser) {
+    throw new Error(
+      "uint8ArrayToBase64Url() can only be called in browser environment",
+    );
+  }
+
+  let binary = "";
+  for (let i = 0; i < array.byteLength; i++) {
+    binary += String.fromCharCode(array[i]);
+  }
+  const base64 = (globalThis as any).btoa(binary);
+  // Convert to URL-safe base64url format
+  return base64
+    .replace(/\+/g, "-") // Replace + with -
+    .replace(/\//g, "_") // Replace / with _
+    .replace(/=/g, ""); // Remove padding
+}
+
+/**
+ * Convert URL-safe Base64 string (base64url) to Uint8Array
+ * Handles: - → +, _ → /, and adds padding if needed
+ */
+export function base64UrlToUint8Array(base64url: string): Uint8Array {
+  if (!isBrowser) {
+    throw new Error(
+      "base64UrlToUint8Array() can only be called in browser environment",
+    );
+  }
+
+  // Convert from URL-safe format back to standard base64
+  let base64 = base64url
+    .replace(/-/g, "+") // Replace - with +
+    .replace(/_/g, "/"); // Replace _ with /
+
+  // Add padding if needed
+  const padding = base64.length % 4;
+  if (padding === 2) {
+    base64 += "==";
+  } else if (padding === 3) {
+    base64 += "=";
+  }
+
+  const binary = (globalThis as any).atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes;
+}
+
+/**
  * Generate a UUID using crypto.randomUUID or fallback
  */
 export function generateUUID(): string {

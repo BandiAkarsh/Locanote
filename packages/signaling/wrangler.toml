@@ -23,8 +23,8 @@ id = "40e2054dfffd493ca5237d13bec57d43"
 
 # Environment variables (set via wrangler secret or dashboard)
 [vars]
-# CORS allowed origins - in production, set this to your domain
-ALLOWED_ORIGINS = "https://locanote.pages.dev,http://localhost:5173,https://localhost:5173"
+# CORS allowed origins - production only (no localhost for security)
+ALLOWED_ORIGINS = "https://locanote.pages.dev,https://locanote.akarshbandi82.pages.dev"
 # Max peers per room
 MAX_PEERS_PER_ROOM = "10"
 # Room timeout in milliseconds (30 minutes)

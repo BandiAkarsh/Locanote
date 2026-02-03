@@ -1,0 +1,101 @@
+# ============================================================================
+# MANUAL DEPLOYMENT WORKFLOW
+# ============================================================================
+# This workflow deploys Locanote to Cloudflare, but ONLY when you click
+# "Run workflow" in GitHub Actions. It does NOT deploy on every push!
+#
+# WHY MANUAL?
+# - Saves build minutes (500/month limit on Cloudflare free tier)
+# - Gives you full control over when to deploy
+# - Prevents accidental deployments during development
+#
+# HOW TO USE:
+# 1. Go to GitHub repo → Actions tab
+# 2. Select "Manual Deploy to Cloudflare"
+# 3. Click "Run workflow" button
+# 4. Select which parts to deploy (signaling, frontend, or both)
+# 5. Click "Run workflow" again
+#
+# REQUIREMENTS:
+# - CLOUDFLARE_API_TOKEN (set in GitHub Secrets)
+# - CLOUDFLARE_ACCOUNT_ID (set in GitHub Secrets)
+# ============================================================================
+
+name: Manual Deploy to Cloudflare
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_signaling:
+        description: 'Deploy signaling server?'
+        required: true
+        default: true
+        type: boolean
+      deploy_frontend:
+        description: 'Deploy frontend?'
+        required: true
+        default: true
+        type: boolean
+
+jobs:
+  deploy-signaling:
+    name: Deploy Signaling Server
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy_signaling == 'true' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+          
+      - name: Deploy signaling server
+        working-directory: packages/signaling
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          pnpm install
+          npx wrangler deploy
+          
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.deploy_frontend == 'true' }}
+    needs: deploy-signaling
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 10
+          
+      - name: Build frontend
+        working-directory: apps/web
+        run: |
+          pnpm install
+          pnpm build
+          
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: locanote
+          directory: apps/web/build
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}

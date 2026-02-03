@@ -6,7 +6,7 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
   import { Modal, Button, Input, Toggle } from '$components';
   import { onMount } from 'svelte';
   import { getRoomKey } from '$crypto/e2e';
-  import { uint8ArrayToBase64 } from '$utils/browser';
+  import { uint8ArrayToBase64Url } from '$utils/browser';
   import { protectNote, getNote } from '$lib/services/notes.svelte';
   import type { Note } from '$db';
 
@@ -60,7 +60,7 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
     const key = getRoomKey(noteId);
     if (!key) return baseUrl;
     
-    const base64Key = uint8ArrayToBase64(key);
+    const base64Key = uint8ArrayToBase64Url(key);
     // Append key to hash so it is not sent to the server
     return `${baseUrl}#key=${base64Key}`;
   });
