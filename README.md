@@ -13,7 +13,7 @@
 - **🌗 Advanced Visual Engine**: 4 distinct styles including **Glass Design**, **Radium Cyberpunk**, and **Modern Inception**.
 - **📶 Offline-Ready**: Works perfectly without an internet connection. Changes sync automatically when you're back online.
 - **📱 PWA Support**: Install it on your phone or desktop for a native-like experience.
-- **🔗 Smart Sharing**: Modern share menu with integration for WhatsApp, Telegram, X, and more.
+- **🔗 Smart Sharing**: Modern share menu with integration for WhatsApp, Telegram, X, and more. Keys are shared securely via URL fragments.
 
 ## 🤝 Open for Collaboration
 

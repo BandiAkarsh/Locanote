@@ -5,20 +5,35 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
 <script lang="ts">
   import { Modal, Button } from '$components';
   import { onMount } from 'svelte';
+  import { getRoomKey } from '$crypto/e2e';
+  import { uint8ArrayToBase64 } from '$utils/browser';
 
   let {
     open = $bindable(false),
     title = 'Share Note',
-    url = '',
+    noteId = '',
+    baseUrl = '',
     noteTitle = 'Check out this note on Locanote'
   }: {
     open: boolean;
     title?: string;
-    url: string;
+    noteId: string;
+    baseUrl: string;
     noteTitle?: string;
   } = $props();
 
   let hasShareApi = $state(false);
+  
+  // Compute final URL with encryption key
+  const shareUrl = $derived.by(() => {
+    if (!noteId) return baseUrl;
+    const key = getRoomKey(noteId);
+    if (!key) return baseUrl;
+    
+    const base64Key = uint8ArrayToBase64(key);
+    // Append key to hash so it's not sent to the server
+    return `${baseUrl}#key=${base64Key}`;
+  });
 
   onMount(() => {
     hasShareApi = !!navigator.share;
@@ -56,7 +71,7 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
       await navigator.share({
         title: noteTitle,
         text: 'Check out this collaborative note',
-        url: url
+        url: shareUrl
       });
       open = false;
     } catch (err) {
@@ -67,7 +82,7 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
   }
 
   function copyLink() {
-    navigator.clipboard.writeText(url).then(() => {
+    navigator.clipboard.writeText(shareUrl).then(() => {
       alert('Link copied to clipboard!');
     });
   }
@@ -94,7 +109,7 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
     <div class="grid grid-cols-2 gap-4">
       {#each shareOptions as option}
         <a
-          href={option.href(url, noteTitle)}
+          href={option.href(shareUrl, noteTitle)}
           target="_blank"
           rel="noopener noreferrer"
           class="flex flex-col items-center gap-3 p-4 rounded-2xl bg-[var(--ui-bg)] border border-[var(--ui-border)] hover:border-primary/50 transition-all group"
@@ -119,7 +134,7 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
         <input 
           type="text" 
           readonly 
-          value={url} 
+          value={shareUrl} 
           class="flex-1 bg-transparent text-xs font-mono text-[var(--ui-text-muted)] outline-none px-2 truncate"
         />
         <Button size="sm" onclick={copyLink}>

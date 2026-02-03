@@ -34,6 +34,8 @@ USAGE:
   import * as Y from 'yjs';
   import { openDocument } from '$crdt/doc.svelte';
   import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
+  import { getRoomKey } from '$crypto/e2e';
+  import { uint8ArrayToBase64 } from '$utils/browser';
 
   // Props
   let {
@@ -68,12 +70,16 @@ USAGE:
       docInfo = openDocument(noteId);
 
       // Create WebRTC provider for real-time collaboration
-      // Wrap in try-catch in case WebRTC fails (e.g., no signaling server)
       try {
+        // Get the encryption key for this room
+        const key = getRoomKey(noteId);
+        const roomPassword = key ? uint8ArrayToBase64(key) : undefined;
+
         provider = createWebRTCProvider(
           noteId,
           docInfo.document,
-          user
+          user,
+          roomPassword
         );
       } catch (webrtcError) {
         console.warn('[Editor] WebRTC provider failed to initialize:', webrtcError);

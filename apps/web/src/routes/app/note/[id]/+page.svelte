@@ -12,7 +12,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
   import { auth } from '$stores/auth.svelte';
   import { networkStatus } from '$stores/network.svelte';
-  import { isBrowser } from '$utils/browser';
+  import { isBrowser, base64ToArrayBuffer } from '$utils/browser';
+  import { storeRoomKey, hasRoomKey } from '$crypto/e2e';
   import type { Note } from '$db';
 
   const noteId = $derived(page.params.id);
@@ -34,6 +35,25 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       error = 'Invalid note ID';
       isLoading = false;
       return;
+    }
+
+    // --------------------------------------------------------------------
+    // EXTRACT ENCRYPTION KEY FROM URL
+    // --------------------------------------------------------------------
+    // If the URL contains #key=..., we use it for E2E encryption.
+    // This allows sharing notes without sending keys to the server.
+    if (isBrowser && window.location.hash.startsWith('#key=')) {
+      try {
+        const base64Key = window.location.hash.slice(5);
+        const keyBuffer = base64ToArrayBuffer(base64Key);
+        storeRoomKey(noteId, new Uint8Array(keyBuffer));
+        console.log('[E2E] Extracted encryption key from URL hash');
+        
+        // Clear hash from URL for security/cleanliness
+        history.replaceState(null, '', window.location.pathname);
+      } catch (err) {
+        console.error('[E2E] Failed to extract key from URL:', err);
+      }
     }
     
     try {
@@ -196,7 +216,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   {#if note}
     <ShareModal 
       bind:open={isShareModalOpen} 
-      url={isBrowser ? window.location.href : ''}
+      baseUrl={isBrowser ? window.location.origin + window.location.pathname : ''}
+      noteId={noteId}
       noteTitle={note.title}
     />
   {/if}
