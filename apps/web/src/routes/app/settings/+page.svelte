@@ -4,10 +4,10 @@ SETTINGS PAGE (+page.svelte for /app/settings)
 
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { auth } from '$stores/auth.svelte';
-  import { theme, type AccentColor, type VisualStyle } from '$stores/theme.svelte';
+  import { auth, theme, ui, type AccentColor, type VisualStyle } from '$stores';
   import Button from '$lib/components/Button.svelte';
   import Modal from '$lib/components/Modal.svelte';
+  import Toggle from '$lib/components/Toggle.svelte';
 
   // Local state
   let showDeleteConfirm = $state(false);
@@ -142,6 +142,17 @@ SETTINGS PAGE (+page.svelte for /app/settings)
                 <span class="text-[10px] font-bold uppercase tracking-wider {theme.accent === accent.id ? 'text-primary' : 'text-[var(--ui-text-muted)]'}">{accent.name}</span>
               </button>
             {/each}
+          </div>
+        </div>
+
+        <!-- Accessibility / Clean Mode -->
+        <div class="pt-6 border-t border-[var(--ui-border)]">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h3 class="text-lg font-bold text-[var(--ui-text)] mb-1">Clean Mode</h3>
+              <p class="text-sm text-[var(--ui-text-muted)]">Hide advanced technical info and simplify the interface</p>
+            </div>
+            <Toggle bind:checked={ui.cleanMode} />
           </div>
         </div>
       </div>

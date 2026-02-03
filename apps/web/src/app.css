@@ -27,6 +27,7 @@ THEME VARIABLES
 :root {
   /* Default Accent: Indigo */
   --brand-color: #6366f1;
+  --brand-color-rgb: 99, 102, 241;
   --brand-color-hover: #4f46e5;
   --brand-color-light: #a5b4fc;
   --brand-gradient: linear-gradient(to bottom right, #6366f1, #a855f7, #ec4899);
@@ -43,48 +44,62 @@ THEME VARIABLES
   --ui-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
+/* Modern Dark Mode - Linear-inspired depth system */
 .dark {
-  --ui-bg: #030712;
-  --ui-surface: #111827;
-  --ui-border: #1f2937;
-  --ui-text: #f9fafb;
-  --ui-text-muted: #9ca3af;
-  --ui-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  --ui-bg: #0a0a0a;                    /* Deepest background */
+  --ui-surface: #111111;               /* Card/surface background */
+  --ui-surface-elevated: #1a1a1a;      /* Elevated surfaces */
+  --ui-surface-hover: #222222;          /* Hover states */
+  --ui-border: rgba(255, 255, 255, 0.08);      /* Subtle borders */
+  --ui-border-hover: rgba(255, 255, 255, 0.15); /* Hover borders */
+  --ui-text: #fafafa;                  /* Primary text - near white */
+  --ui-text-secondary: #a1a1aa;         /* Secondary text */
+  --ui-text-muted: #71717a;            /* Muted text */
+  --ui-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --ui-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+  --ui-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6);
+  --ui-glow: 0 0 20px -5px var(--brand-color);
 }
 
 /* Accent Color Overrides */
 [data-accent="violet"] {
   --brand-color: #8b5cf6;
+  --brand-color-rgb: 139, 92, 246;
   --brand-color-hover: #7c3aed;
   --brand-color-light: #c4b5fd;
   --brand-gradient: linear-gradient(to bottom right, #8b5cf6, #d946ef, #f43f5e);
 }
 [data-accent="rose"] {
   --brand-color: #f43f5e;
+  --brand-color-rgb: 244, 63, 94;
   --brand-color-hover: #e11d48;
   --brand-color-light: #fda4af;
   --brand-gradient: linear-gradient(to bottom right, #f43f5e, #fb7185, #fda4af);
 }
 [data-accent="emerald"] {
   --brand-color: #10b981;
+  --brand-color-rgb: 16, 185, 129;
   --brand-color-hover: #059669;
   --brand-color-light: #6ee7b7;
   --brand-gradient: linear-gradient(to bottom right, #10b981, #3b82f6, #06b6d4);
 }
 [data-accent="amber"] {
   --brand-color: #f59e0b;
+  --brand-color-rgb: 245, 158, 11;
   --brand-color-hover: #d97706;
   --brand-color-light: #fcd34d;
   --brand-gradient: linear-gradient(to bottom right, #f59e0b, #f97316, #ef4444);
 }
 [data-accent="blue"] {
   --brand-color: #3b82f6;
+  --brand-color-rgb: 59, 130, 246;
   --brand-color-hover: #2563eb;
   --brand-color-light: #93c5fd;
   --brand-gradient: linear-gradient(to bottom right, #3b82f6, #06b6d4, #2dd4bf);
 }
 [data-accent="fuchsia"] {
   --brand-color: #d946ef;
+  --brand-color-rgb: 217, 70, 239;
   --brand-color-hover: #c026d3;
   --brand-color-light: #f0abfc;
   --brand-gradient: linear-gradient(to bottom right, #d946ef, #8b5cf6, #6366f1);
@@ -211,7 +226,49 @@ ANIMATED BACKGROUNDS
     backdrop-filter: blur(var(--ui-blur));
     border-radius: var(--ui-radius);
     box-shadow: var(--ui-shadow);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0, 0, 0.2, 1);
+  }
+
+  .themed-card:hover {
+    border-color: var(--ui-border-hover, rgba(255, 255, 255, 0.15));
+    transform: translateY(-2px);
+    box-shadow: var(--ui-shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.5));
+  }
+
+  /* Focus Ring Utility */
+  .focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  }
+
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+  }
+
+  /* Typography Utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .tracking-tight-custom {
+    letter-spacing: -0.02em;
+  }
+
+  /* Animation Utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   [data-visual-theme="cyberpunk"] .btn-primary {
@@ -249,5 +306,13 @@ ANIMATED BACKGROUNDS
 
   .glow-border {
     box-shadow: 0 0 10px var(--ui-glow);
+  }
+
+  /* Toolbar Active State Glow */
+  .toolbar-btn-active {
+    background-color: rgba(var(--brand-color-rgb), 0.15) !important;
+    color: var(--brand-color) !important;
+    border: 1px solid var(--brand-color) !important;
+    box-shadow: 0 0 12px rgba(var(--brand-color-rgb), 0.4) !important;
   }
 }

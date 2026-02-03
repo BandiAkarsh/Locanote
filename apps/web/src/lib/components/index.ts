@@ -24,4 +24,7 @@ export { default as OfflineBanner } from "./OfflineBanner.svelte"; // Offline st
 export { default as TagBadge } from "./TagBadge.svelte"; // Tag display component
 export { default as Toggle } from "./Toggle.svelte"; // Reusable toggle switch component
 export { default as ShareModal } from "./ShareModal.svelte"; // Social sharing modal
+export { default as TemplateModal } from "./TemplateModal.svelte"; // Template selection modal
+export { default as SearchBar } from "./SearchBar.svelte"; // Search input with filters
+export { default as ExportModal } from "./ExportModal.svelte"; // Export to MD/HTML/PDF
 export { default as ThemeBackground } from "./ThemeBackground.svelte"; // Animated background

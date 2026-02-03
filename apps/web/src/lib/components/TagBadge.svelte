@@ -39,11 +39,17 @@ USAGE:
 </script>
 
 <div
-  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all duration-200 {clickable ? 'cursor-pointer hover:opacity-80' : ''}"
+  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all duration-200 {clickable ? 'cursor-pointer hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-1' : ''}"
   style="background-color: {color}20; color: {color}; border: 1px solid {color}40;"
   onclick={onClick}
-  role={clickable ? 'button' : undefined}
-  tabindex={clickable ? 0 : undefined}
+  onkeydown={(e) => {
+    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      onClick?.();
+    }
+  }}
+  role={clickable ? 'button' : 'status'}
+  tabindex={clickable ? 0 : -1}
 >
   <!-- Tag Color Indicator -->
   <span

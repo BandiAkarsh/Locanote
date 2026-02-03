@@ -8,12 +8,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { onMount } from 'svelte';
   import Editor from '$lib/editor/Editor.svelte';
   import Toolbar from '$lib/editor/Toolbar.svelte';
-  import { Button, ShareModal, Modal, Input } from '$components';
+  import { Button, ShareModal, Modal, Input, ExportModal } from '$components';
   import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
-  import { auth } from '$stores/auth.svelte';
-  import { networkStatus } from '$stores/network.svelte';
+  import { auth, ui, networkStatus } from '$stores';
   import { isBrowser, base64UrlToUint8Array, base64ToArrayBuffer } from '$utils/browser';
   import { storeRoomKey, hasRoomKey, deriveKeyFromPassword } from '$crypto/e2e';
+  import { setupKeyboardShortcuts } from '$lib/keyboard/shortcuts';
   import type { Note } from '$db';
 
   const noteId = $derived(page.params.id);
@@ -23,6 +23,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   let error = $state<string | null>(null);
   let editorInstance = $state<any>(null);
   let isShareModalOpen = $state(false);
+  let isExportModalOpen = $state(false);
+  let templateContent = $state<any>(null);
 
   // Password Protection State
   let showPasswordPrompt = $state(false);
@@ -88,6 +90,20 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
           currentSalt = note.passwordSalt || null;
           showPasswordPrompt = true;
         }
+        
+        // 4. Check for template content in sessionStorage
+        if (isBrowser) {
+          const templateKey = `template-content-${noteId}`;
+          const storedTemplate = sessionStorage.getItem(templateKey);
+          if (storedTemplate) {
+            try {
+              templateContent = JSON.parse(storedTemplate);
+              sessionStorage.removeItem(templateKey);
+            } catch (err) {
+              console.error('[Template] Failed to parse template content:', err);
+            }
+          }
+        }
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load note';
@@ -137,6 +153,23 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
 
   function handleEditorReady(editor: any) {
     editorInstance = editor;
+    
+    // Setup keyboard shortcuts
+    if (editor) {
+      setupKeyboardShortcuts(editor, {
+        onSave: () => {
+          console.log('[Shortcut] Saving note...');
+          // Yjs auto-saves, but we can show feedback
+        },
+        onClose: () => {
+          if (isShareModalOpen) isShareModalOpen = false;
+          else if (isExportModalOpen) isExportModalOpen = false;
+        },
+        onTemplate: () => {
+          // Templates not available from editor yet
+        }
+      });
+    }
   }
 
   function goBack() {
@@ -152,7 +185,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   <!-- Header -->
   <header class="flex items-center justify-between px-4 sm:px-6 py-4 bg-[var(--ui-surface)] border-b border-[var(--ui-border)] backdrop-blur-[var(--ui-blur)] z-30">
     <div class="flex items-center gap-3 sm:gap-6">
-      <Button variant="ghost" size="sm" onclick={goBack} class="hover:bg-primary/10">
+      <Button variant="ghost" size="sm" onclick={goBack} class="hover:bg-primary/10" aria-label="Back to dashboard" title="Back">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
         </svg>
@@ -182,39 +215,48 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
 
     <!-- Connection Status -->
     <div class="flex items-center gap-2 sm:gap-4">
-      <div 
-        class="group relative flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-tighter cursor-help transition-all hover:border-primary/30"
-      >
-        <span 
-          class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-sm transition-colors duration-500
-                {networkStatus.peerStatus === 'connected' ? 'bg-green-500 animate-pulse' : 
-                 networkStatus.peerStatus === 'searching' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}"
-        ></span>
-        <span class="text-[var(--ui-text)] hidden xs:inline min-w-[70px]">
-          {networkStatus.statusMessage}
-        </span>
+      {#if !ui.cleanMode}
+        <div 
+          class="group relative flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-tighter cursor-help transition-all hover:border-primary/30"
+        >
+          <span 
+            class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-sm transition-colors duration-500
+                  {networkStatus.peerStatus === 'connected' ? 'bg-green-500 animate-pulse' : 
+                   networkStatus.peerStatus === 'searching' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}"
+          ></span>
+          <span class="text-[var(--ui-text)] hidden xs:inline min-w-[70px]">
+            {networkStatus.statusMessage}
+          </span>
 
-        <div class="absolute top-full right-0 mt-2 w-48 p-3 themed-card opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-          <h5 class="text-[10px] font-black uppercase tracking-widest mb-2 border-b border-[var(--ui-border)] pb-1">Network Info</h5>
-          <div class="space-y-1.5">
-            <div class="flex justify-between">
-              <span class="text-[var(--ui-text-muted)]">Status:</span>
-              <span class="text-primary">{networkStatus.isOnline ? 'Online' : 'Offline'}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--ui-text-muted)]">Peers:</span>
-              <span>{networkStatus.peerCount}</span>
-            </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--ui-text-muted)]">Signaling:</span>
-              <span class={networkStatus.signalingConnected ? 'text-green-500' : 'text-red-500'}>
-                {networkStatus.signalingConnected ? 'Connected' : 'Disconnected'}
-              </span>
+          <div class="absolute top-full right-0 mt-2 w-48 p-3 themed-card opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+            <h5 class="text-[10px] font-black uppercase tracking-widest mb-2 border-b border-[var(--ui-border)] pb-1">Network Info</h5>
+            <div class="space-y-1.5">
+              <div class="flex justify-between">
+                <span class="text-[var(--ui-text-muted)]">Status:</span>
+                <span class="text-primary">{networkStatus.isOnline ? 'Online' : 'Offline'}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[var(--ui-text-muted)]">Peers:</span>
+                <span>{networkStatus.peerCount}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-[var(--ui-text-muted)]">Signaling:</span>
+                <span class={networkStatus.signalingConnected ? 'text-green-500' : 'text-red-500'}>
+                  {networkStatus.signalingConnected ? 'Connected' : 'Disconnected'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      {/if}
       
+      <Button variant="ghost" size="sm" onclick={() => isExportModalOpen = true} class="hover:bg-primary/10">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Export</span>
+      </Button>
+
       <Button variant="primary" size="sm" onclick={() => isShareModalOpen = true}>
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
@@ -253,6 +295,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
         <Editor
           noteId={noteId}
           user={currentUser}
+          initialContent={templateContent}
           onUpdate={handleEditorUpdate}
           onSyncStatusChange={handleSyncStatus}
           onConnectionStatusChange={handleConnectionStatus}
@@ -284,6 +327,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       isProtected={note.isProtected}
       onUpdate={refreshNote}
     />
+
+    <ExportModal
+      bind:open={isExportModalOpen}
+      noteTitle={note.title}
+      noteContent={editorInstance?.getJSON() || {}}
+    />
   {/if}
 
   <!-- Password Prompt Modal -->
@@ -310,6 +359,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
         bind:value={passwordAttempt}
         error={passwordError}
         autofocus
+        onkeydown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handlePasswordSubmit();
+          }
+        }}
       />
 
       <div class="flex gap-3">

@@ -26,6 +26,7 @@
     "@tiptap/extension-typography": "^2.27.2",
     "@tiptap/pm": "^2.27.2",
     "@tiptap/starter-kit": "^2.27.2",
+    "html2pdf.js": "^0.14.0",
     "idb": "^8.0.3",
     "tweetnacl": "^1.0.3",
     "tweetnacl-util": "^0.15.1",

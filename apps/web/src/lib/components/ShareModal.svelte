@@ -44,6 +44,8 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
     }
   });
 
+  let copied = $state(false);
+  
   // Compute final URL
   const shareUrl = $derived.by(() => {
     if (!noteId) return baseUrl;
@@ -134,7 +136,8 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
 
   function copyLink() {
     navigator.clipboard.writeText(shareUrl).then(() => {
-      alert('Link copied to clipboard!');
+      copied = true;
+      setTimeout(() => copied = false, 2000);
     });
   }
 </script>
@@ -228,8 +231,8 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
           value={shareUrl} 
           class="flex-1 bg-transparent text-xs font-mono text-[var(--ui-text-muted)] outline-none px-2 truncate"
         />
-        <Button size="sm" onclick={copyLink}>
-          Copy
+        <Button size="sm" onclick={copyLink} variant={copied ? 'success' : 'primary'}>
+          {copied ? 'Copied!' : 'Copy'}
         </Button>
       </div>
     </div>

@@ -5,12 +5,16 @@ MODAL COMPONENT (Modal.svelte)
 <script lang="ts">
 	import type { Snippet } from 'svelte';                        
 
+	type Size = 'default' | 'large' | 'xl';
+
 	type Props = {
 		open?: boolean;                                             
 		title?: string;                                             
 		description?: string;                                       
 		closeOnBackdrop?: boolean;                                  
 		closeOnEscape?: boolean;                                    
+		size?: Size;
+		onEnter?: () => void;
 		children: Snippet;                                          
 	};
 
@@ -20,8 +24,16 @@ MODAL COMPONENT (Modal.svelte)
 		description,                                                
 		closeOnBackdrop = true,                                     
 		closeOnEscape = true,                                       
-		children                                                    
+		size = 'default',
+		onEnter,
+		children                                                   
 	}: Props = $props();
+
+	const sizeClasses: Record<Size, string> = {
+		default: 'max-w-md',
+		large: 'max-w-2xl lg:max-w-4xl',
+		xl: 'max-w-3xl lg:max-w-5xl'
+	};
 
 	let dialogRef: HTMLDialogElement;                              
 
@@ -57,26 +69,57 @@ MODAL COMPONENT (Modal.svelte)
 		}
 	}
 
+	// Focus management: when modal opens, focus the first interactive element
+	$effect(() => {
+		if (open && dialogRef) {
+			const focusable = dialogRef.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+			if (focusable.length > 0) {
+				(focusable[0] as HTMLElement).focus();
+			}
+		}
+	});
 	function handleClose() {
 		open = false;                                              
 	}
 </script>
 
+<svelte:window onkeydown={(e) => {
+	if (open) {
+		if (e.key === 'Escape' && closeOnEscape) {
+			open = false;
+		}
+		if (e.key === 'Enter' && onEnter && !e.shiftKey) {
+			const target = e.target as HTMLElement;
+			// Don't trigger if in textarea or contenteditable (unless it's an input)
+			if (target && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
+				e.preventDefault();
+				onEnter();
+			}
+		}
+	}
+}} />
+
 <dialog
 	bind:this={dialogRef}
 	onclick={handleBackdropClick}
-	onkeydown={handleKeydown}
 	onclose={handleClose}
 	aria-labelledby={title ? 'modal-title' : undefined}
 	aria-describedby={description ? 'modal-description' : undefined}
 	class="
-		m-0 p-4 max-w-md w-full max-h-[90vh] mx-auto my-auto
+		m-0 p-4 {sizeClasses[size]} w-full max-h-[90vh] mx-auto my-auto
 		bg-transparent backdrop:bg-black/60 backdrop:backdrop-blur-[var(--ui-blur)]
 		open:animate-in open:fade-in open:zoom-in-95
 	"
 >
 	<div
 		onclick={(e) => e.stopPropagation()}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				e.stopPropagation();
+			}
+		}}
+		role="dialog"
+		aria-modal="true"
 		class="
 			themed-card
 			p-6

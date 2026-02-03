@@ -1,65 +1,52 @@
 # 📝 Locanote
 
-**Locanote** is a next-generation, local-first, end-to-end encrypted collaborative note-taking application. Built with privacy and speed in mind, it allows you to capture ideas alone or collaborate with others in real-time, all while maintaining total ownership of your data.
+> **The Privacy-First, Collaborative Workspace of 2026.**
 
-👉 **Live Site**: [https://locanote.pages.dev](https://locanote.pages.dev)
+Locanote is a next-generation workspace built for absolute privacy and seamless teamwork. By combining **Peer-to-Peer (P2P)** synchronization with **Zero-Knowledge Encryption**, we've created a platform where you own your data, and no one else can see it—not even us.
 
----
-
-## 🌟 Key Features
-
-- **🔒 Privacy First**: All notes are end-to-end encrypted using TweetNaCl. Your private keys never leave your device.
-- **📡 Real-Time Collaboration**: Peer-to-peer sync via WebRTC and Yjs CRDTs. No central server sees your content.
-- **🌗 Advanced Visual Engine**: 4 distinct styles including **Glass Design**, **Radium Cyberpunk**, and **Modern Inception**.
-- **📶 Offline-Ready**: Works perfectly without an internet connection. Changes sync automatically when you're back online.
-- **📱 PWA Support**: Install it on your phone or desktop for a native-like experience.
-- **🔗 Smart Sharing**: Modern share menu with integration for WhatsApp, Telegram, X, and more. Keys are shared securely via URL fragments.
-
-## 🤝 Open for Collaboration
-
-I am actively looking for contributors! Whether you are a designer, developer, or documentation wizard, your help is welcome.
-
-**Areas where I need help:**
-
-- **UI/UX Design**: Creating new visual themes or refining existing ones.
-- **Backend/Edge**: Optimizing the signaling server performance.
-- **Editor Extensions**: Adding support for tables, images, and math (LaTeX).
-- **Mobile**: Improving the touch experience and PWA integration.
-
-Check out the [CONTRIBUTING.md](./CONTRIBUTING.md) to get started!
-
-## 🚀 Quick Start (Local Development)
-
-```bash
-# Clone the repository
-git clone https://github.com/BandiAkarsh/Locanote.git
-cd Locanote
-
-# Install dependencies
-pnpm install
-
-# Start development servers (Signaling + Frontend)
-pnpm dev
-```
-
-## 🏗️ Architecture
-
-- **Frontend**: SvelteKit 5, TipTap Editor, Tailwind CSS 4.
-- **Sync Engine**: Yjs (CRDT) + y-webrtc.
-- **Signaling**: Cloudflare Workers + Durable Objects.
-- **Encryption**: XSalsa20-Poly1305 (TweetNaCl).
-- **Storage**: IndexedDB (Local-first).
-
-## 🧪 Testing
-
-I use **Playwright** for robust E2E testing of the collaboration and theme engines.
-
-```bash
-cd apps/web
-pnpm test          # Run all tests
-pnpm test:headed   # Run with visible browser
-```
+👉 **Try it now**: [https://locanote.pages.dev](https://locanote.pages.dev)
 
 ---
 
-Built with ❤️ by [Bandi Akarsh](https://github.com/BandiAkarsh) and the open-source community.
+## ✨ Features Built for You
+
+### 🎙️ AI-Enhanced Writing
+- **Persistent Voice-to-Text**: Just tap the microphone and speak. Locanote transcribes your thoughts in real-time, staying active as long as you need.
+- **Smart Templates**: Instantly start with professional layouts for Meeting Notes, Daily Journals, Project Plans, and more.
+- **"Clean Mode"**: A distraction-free toggle that hides technical details, giving you a minimal canvas for pure focus.
+
+### 📡 Teamwork Without Boundaries
+- **Real-Time Collaboration**: Edit with others instantly. You'll see their cursors and changes as they happen.
+- **Offline-First**: Keep working even without internet. Locanote automatically syncs your changes the moment you're back online.
+- **True P2P Sync**: Your data travels directly between devices using WebRTC, ensuring the fastest possible performance.
+
+### 🔒 Unbreakable Privacy
+- **End-to-End Encryption**: Every character you type is locked with a unique key that never leaves your device.
+- **Zero-Knowledge**: Our servers are completely "blind" to your content. We don't have your keys, so we can't read your notes.
+- **Secure Exports**: Save your work anytime as Markdown, HTML, or high-fidelity PDF.
+
+---
+
+## 🎨 Premium Visual Engine
+
+Locanote is designed for clarity and focus. Choose from four professionally crafted themes:
+- **Glass**: Elegant transparency and depth.
+- **Cyberpunk**: High-contrast, vibrant focus.
+- **Inception**: Minimalist, structured hierarchy.
+- **Classic**: The timeless writing experience.
+
+---
+
+## 🏗️ For the Tech Enthusiast
+
+Built with the cutting-edge stack of 2026:
+- **Frontend**: SvelteKit 5 + Tailwind CSS 4
+- **Real-time Engine**: Yjs (CRDT) for conflict-free merging
+- **Networking**: WebRTC with custom Signaling on Cloudflare Edge
+- **Security**: TweetNaCl (XSalsa20-Poly1305)
+- **Deployment**: Manual GitHub Actions for maximum cost-efficiency
+
+---
+
+Built with ❤️ by [Bandi Akarsh](https://github.com/BandiAkarsh).
+*Reclaiming privacy for the modern web.*

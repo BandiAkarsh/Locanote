@@ -15,12 +15,14 @@ EDITOR COMPONENT (Editor.svelte)
   import Typography from '@tiptap/extension-typography';
   import { openDocument } from '$crdt/doc.svelte';
   import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
+  import { isBrowser } from '$utils/browser';
   import Toolbar from './Toolbar.svelte';
 
   // Props
   let {
     noteId,
     user = { name: 'Anonymous', color: '#6366f1', id: 'anonymous' },
+    initialContent = null,
     onUpdate,
     onConnectionStatusChange,
     onSyncStatusChange,
@@ -28,6 +30,7 @@ EDITOR COMPONENT (Editor.svelte)
   }: {
     noteId: string;
     user?: { name: string; color: string; id: string };
+    initialContent?: any | null;
     onUpdate?: (content: any) => void;
     onConnectionStatusChange?: (status: { connected: boolean; peerCount: number; signalingConnected?: boolean }) => void;
     onSyncStatusChange?: (status: 'syncing' | 'synced') => void;
@@ -140,21 +143,54 @@ EDITOR COMPONENT (Editor.svelte)
         );
       }
 
+      // Check for template content in sessionStorage if initialContent not provided
+      let editorContent: any = initialContent;
+      if (!editorContent && typeof window !== 'undefined') {
+        const templateKey = `template-content-${noteId}`;
+        const storedTemplate = window.sessionStorage.getItem(templateKey);
+        if (storedTemplate) {
+          try {
+            editorContent = JSON.parse(storedTemplate);
+            window.sessionStorage.removeItem(templateKey);
+            console.log('[Editor] Loaded template content from sessionStorage');
+          } catch (err) {
+            console.error('[Editor] Failed to parse template content:', err);
+          }
+        }
+      }
+
       editor = new Editor({
         element: element,
         extensions: extensions,
-        // NO 'content' property - TipTap reads from Yjs document automatically
+        // content property is ignored by Collaboration extension, 
+        // we'll set it manually if needed in onCreate
         editable: true,
         autofocus: true,
         injectCSS: false,
         onUpdate: ({ editor }) => {
           if (onUpdate) onUpdate(editor.getJSON());
         },
-        onCreate: () => {
+        onCreate: ({ editor }) => {
           // Check if document already has content from IndexedDB
           const hasContent = docInfo && docInfo.content && docInfo.content.length > 0;
           if (hasContent) {
             isContentLoaded = true;
+          } else if (editorContent) {
+            // If it's an empty document and we have template content, set it!
+            // This will sync to Yjs and then to other peers
+            setTimeout(() => {
+              // Wait a tiny bit for Yjs to fully initialize
+              const currentContent = editor.getJSON();
+              const isEmpty = !currentContent.content || 
+                             (currentContent.content.length === 1 && 
+                              !currentContent.content[0].content);
+              
+              if (isEmpty) {
+                console.log('[Editor] Applying template content to empty document');
+                editor.commands.setContent(editorContent);
+                isContentLoaded = true;
+              }
+            }, 100);
           }
           // Don't mark ready until content is confirmed loaded
         },
@@ -271,34 +307,6 @@ EDITOR COMPONENT (Editor.svelte)
   >
     <!-- TipTap mounts here -->
   </div>
-
-  <!-- Mobile Floating Bubble Toolbar -->
-  <div class="lg:hidden fixed bottom-6 right-6 z-50">
-    {#if isMobileToolbarOpen}
-      <div class="mb-4 p-2 themed-card bg-[var(--ui-surface)] border-primary/30 shadow-2xl animate-in zoom-in-90 slide-in-from-bottom-4 duration-300">
-        <div class="max-w-[85vw] overflow-x-auto scrollbar-hide">
-          <Toolbar {editor} />
-        </div>
-      </div>
-    {/if}
-    
-    <button 
-      onclick={() => isMobileToolbarOpen = !isMobileToolbarOpen}
-      class="w-14 h-14 rounded-full bg-primary text-white shadow-xl flex items-center justify-center 
-             hover:scale-110 active:scale-95 transition-all glow-border"
-      aria-label="Toggle toolbar"
-    >
-      {#if isMobileToolbarOpen}
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      {:else}
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-      {/if}
-    </button>
-  </div>
 </div>
 
 <style>
@@ -310,7 +318,50 @@ EDITOR COMPONENT (Editor.svelte)
     opacity: 0.3;
   }
 
-  /* Collaboration cursor styles */
+  /* Cursor visibility - always visible and solid */
+  :global(.ProseMirror) {
+    caret-color: var(--brand-color, #6366f1) !important;
+  }
+  
+  :global(.ProseMirror-focused) {
+    outline: none !important;
+  }
+  
+  /* Ensure cursor is visible immediately on empty editor */
+  :global(.ProseMirror p.is-empty) {
+    position: relative;
+  }
+  
+  :global(.ProseMirror p.is-empty::before) {
+    content: attr(data-placeholder);
+    float: left;
+    color: var(--ui-text-muted);
+    pointer-events: none;
+    height: 0;
+    z-index: 0;
+  }
+  
+  /* Make cursor always visible and solid */
+  :global(.ProseMirror) {
+    caret-color: var(--brand-color, #6366f1) !important;
+  }
+  
+  :global(.ProseMirror-focused) {
+    outline: none !important;
+  }
+  
+  /* Force cursor visibility and disable blinking */
+  :global(.ProseMirror .ProseMirror-cursor) {
+    border-left: 2px solid var(--brand-color, #6366f1) !important;
+    animation: none !important;
+    visibility: visible !important;
+    display: inline-block !important;
+  }
+
+  /* Solid caret for the native browser cursor if possible */
+  :global(.ProseMirror) {
+    caret-shape: block; /* Some browsers support this */
+  }
   :global(.collaboration-cursor__caret) {
     position: relative;
     width: 2px;
@@ -334,5 +385,12 @@ EDITOR COMPONENT (Editor.svelte)
     user-select: none;
     pointer-events: none;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  
+  /* Ensure cursor visible in empty state */
+  :global(.ProseMirror[data-placeholder]::before) {
+    position: absolute;
+    left: 0;
+    top: 0;
   }
 </style>

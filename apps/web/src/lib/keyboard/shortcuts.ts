@@ -59,6 +59,7 @@ interface ShortcutHandlers {
   onSave?: () => void;
   onHelp?: () => void;
   onClose?: () => void;
+  onTemplate?: () => void;
 }
 
 // ============================================================================
@@ -122,6 +123,13 @@ export function setupKeyboardShortcuts(
       return;
     }
     
+    // Cmd/Ctrl + T: Create from template
+    if (cmdOrCtrl && event.key === 't' && !event.shiftKey) {
+      event.preventDefault();
+      handlers.onTemplate?.();
+      return;
+    }
+    
     // Esc: Close/Clear
     if (event.key === 'Escape') {
       handlers.onClose?.();
@@ -168,6 +176,7 @@ Editor:
   Cmd/Ctrl + Shift + Z - Redo
   
 Navigation:
+  Cmd/Ctrl + T    - Create from template
   Esc             - Close modals/clear selection
   ?               - Show this help
 `;
