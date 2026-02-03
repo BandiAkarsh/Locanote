@@ -1,6 +1,6 @@
 # 📝 Locanote
 
-**Locanote** is a next-generation, local-first, end-to-end encrypted collaborative note-taking application. Built with privacy and speed in mind, it allows you to capture ideas alone or collaborate with a team in real-time, all while maintaining total ownership of your data.
+**Locanote** is a next-generation, local-first, end-to-end encrypted collaborative note-taking application. Built with privacy and speed in mind, it allows you to capture ideas alone or collaborate with others in real-time, all while maintaining total ownership of your data.
 
 👉 **Live Site**: [https://locanote.pages.dev](https://locanote.pages.dev)
 
@@ -17,16 +17,16 @@
 
 ## 🤝 Open for Collaboration
 
-We are actively looking for contributors! Whether you are a designer, developer, or documentation wizard, your help is welcome.
+I am actively looking for contributors! Whether you are a designer, developer, or documentation wizard, your help is welcome.
 
-**Areas where we need help:**
+**Areas where I need help:**
 
 - **UI/UX Design**: Creating new visual themes or refining existing ones.
 - **Backend/Edge**: Optimizing the signaling server performance.
 - **Editor Extensions**: Adding support for tables, images, and math (LaTeX).
 - **Mobile**: Improving the touch experience and PWA integration.
 
-Check out our [CONTRIBUTING.md](./CONTRIBUTING.md) to get started!
+Check out the [CONTRIBUTING.md](./CONTRIBUTING.md) to get started!
 
 ## 🚀 Quick Start (Local Development)
 
@@ -52,7 +52,7 @@ pnpm dev
 
 ## 🧪 Testing
 
-We use **Playwright** for robust E2E testing of our collaboration and theme engines.
+I use **Playwright** for robust E2E testing of the collaboration and theme engines.
 
 ```bash
 cd apps/web

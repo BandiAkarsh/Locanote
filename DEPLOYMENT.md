@@ -126,15 +126,7 @@ git push origin main
 curl https://locanote-signaling.YOUR_SUBDOMAIN.workers.dev/health
 ```
 
-Should return:
-
-```json
-{
-  "status": "ok",
-  "timestamp": 1234567890,
-  "version": "1.0.0"
-}
-```
+Should return: `OK`
 
 ### Test Frontend
 
@@ -244,13 +236,6 @@ Your Locanote instance is now:
 - ✅ Deployed automatically via GitHub Actions
 - ✅ Using free tier (no credit card required)
 - ✅ Ready for production use
-
-**Next Steps:**
-
-- Share your app URL with users
-- Add a custom domain for branding
-- Monitor usage in Cloudflare dashboard
-- Start Phase 2: E2E encryption integration
 
 ---
 

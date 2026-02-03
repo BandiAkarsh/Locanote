@@ -2,14 +2,14 @@
 
 First off, thank you for considering contributing to Locanote! It's people like you that make Locanote a great tool for everyone.
 
-We are an open-source project and we welcome contributions of all kinds: from new features and bug fixes to documentation improvements and design refinements.
+I am developing this as an open-source project and I welcome contributions of all kinds: from new features and bug fixes to documentation improvements and design refinements.
 
 ## 🚀 How to Get Started
 
 ### 1. Prerequisites
 
 - **Node.js**: v20 or higher.
-- **pnpm**: Our preferred package manager.
+- **pnpm**: The preferred package manager.
 - **Wrangler**: For testing Cloudflare Workers locally.
 
 ### 2. Local Setup
@@ -43,18 +43,18 @@ The `pnpm dev` command will start two servers:
 
 ## 🧪 Testing
 
-We take stability seriously. Please ensure that all tests pass before submitting a PR.
+I take stability seriously. Please ensure that all tests pass before submitting a PR.
 
 ```bash
 cd apps/web
 pnpm test
 ```
 
-We use **Playwright** for E2E testing. If you add a new feature, please consider adding a corresponding test in `apps/web/e2e/`.
+I use **Playwright** for E2E testing. If you add a new feature, please consider adding a corresponding test in `apps/web/e2e/`.
 
 ## 🎨 Visual Themes
 
-One of the best ways to contribute is by adding new **Visual Styles**. If you have a great idea for a theme (like the current Glass or Cyberpunk themes), check out `apps/web/src/app.css` to see how our CSS variable system works.
+One of the best ways to contribute is by adding new **Visual Styles**. If you have a great idea for a theme (like the current Glass or Cyberpunk themes), check out `apps/web/src/app.css` to see how the CSS variable system works.
 
 ## 💬 Communication
 
@@ -62,4 +62,4 @@ If you have questions or want to discuss a new feature, feel free to open an **I
 
 ---
 
-We are excited to see what you build! 🚀
+I am excited to see what you build! 🚀

@@ -1,8 +1,8 @@
-# What We Learned Building Locanote
+# What I Learned Building Locanote
 
 > A comprehensive technical deep-dive into building a local-first, E2E encrypted collaborative application
 
-This document captures the technical knowledge, architectural decisions, and lessons learned while building Locanote. Whether you're learning these technologies or building something similar, we hope this saves you time and prevents pitfalls.
+This document captures the technical knowledge, architectural decisions, and lessons learned while building Locanote. Whether you're learning these technologies or building something similar, I hope this saves you time and prevents pitfalls.
 
 ## Table of Contents
 
@@ -12,21 +12,21 @@ This document captures the technical knowledge, architectural decisions, and les
 - [CRDTs and Yjs](#crdts-and-yjs)
 - [WebRTC Deep Dive](#webrtc-deep-dive)
 - [Security Considerations](#security-considerations)
-- [Challenges We Faced](#challenges-we-faced)
-- [What We'd Do Differently](#what-wed-do-differently)
+- [Challenges I Faced](#challenges-i-faced)
+- [What I'd Do Differently](#what-id-do-differently)
 - [Resources and References](#resources-and-references)
 
 ## Introduction
 
 ### Project Goals
 
-When we started Locanote, we had three primary goals:
+When I started Locanote, I had three primary goals:
 
 1. **True Privacy**: No server should ever see user data in plain text
 2. **Seamless Collaboration**: Multiple users should edit simultaneously without conflicts
 3. **Offline-First**: The app must work without internet connectivity
 
-These goals led us to a unique architecture: local-first storage + P2P collaboration + E2E encryption. This combination is powerful but introduces significant complexity.
+These goals led me to a unique architecture: local-first storage + P2P collaboration + E2E encryption. This combination is powerful but introduces significant complexity.
 
 ### The Local-First Movement
 
@@ -67,7 +67,7 @@ Challenges:
 
 ### Decision 1: SvelteKit + Svelte 5
 
-**Why we chose it:**
+**Why I chose it:**
 
 - Svelte's compiler approach produces smaller bundles
 - Svelte 5 runes provide cleaner reactivity
@@ -107,7 +107,7 @@ $effect(() => {
 
 ### Decision 2: Yjs for CRDTs
 
-**Why we chose it:**
+**Why I chose it:**
 
 - Battle-tested in production (Figma, Notion use it)
 - Excellent performance
@@ -134,7 +134,7 @@ $effect(() => {
 
 ### Decision 3: WebRTC for P2P
 
-**Why we chose it:**
+**Why I chose it:**
 
 - Browser-native (no plugins)
 - Direct P2P = no server bandwidth costs
@@ -169,7 +169,7 @@ $effect(() => {
 
 ### Decision 4: WebAuthn for Auth
 
-**Why we chose it:**
+**Why I chose it:**
 
 - Passwordless = no password database to breach
 - Uses device's secure hardware
@@ -178,7 +178,7 @@ $effect(() => {
 **The Trade-off:**
 
 ```
-Standard WebAuthn:       Our Approach:
+Standard WebAuthn:       My Approach:
 ┌─────────┐              ┌─────────┐
 │  Client │              │  Client │
 └────┬────┘              └────┬────┘
@@ -190,10 +190,10 @@ Standard WebAuthn:       Our Approach:
 └─────────┘              └─────────┘
 ```
 
-We verify client-side because:
+I verify client-side because:
 
 - No server to compromise
-- Credential is bound to our domain anyway
+- Credential is bound to my domain anyway
 - Simpler architecture
 
 **The good:**
@@ -210,10 +210,10 @@ We verify client-side because:
 
 ### Decision 5: Centralizing Browser Utilities
 
-When building with SvelteKit, code often runs in both Node.js (during SSR) and the Browser. Initially, we had duplicate checks like `typeof window !== 'undefined'` or `globalThis.window` in every file. This was fragile and verbose.
+When building with SvelteKit, code often runs in both Node.js (during SSR) and the Browser. Initially, I had duplicate checks like `typeof window !== 'undefined'` or `globalThis.window` in every file. This was fragile and verbose.
 
 **The Solution:**
-We created a centralized `lib/utils/browser.ts` module that provides safe access to browser-only APIs and environment detection.
+I created a centralized `lib/utils/browser.ts` module that provides safe access to browser-only APIs and environment detection.
 
 ```typescript
 // lib/utils/browser.ts
@@ -234,7 +234,7 @@ export function getLocalStorage(): Storage | undefined {
 A common issue in web apps is the "flash of light mode" when a page is refreshed in dark mode. This happens because the browser renders the default light CSS before JavaScript (Svelte) can load and apply the `.dark` class.
 
 **The Solution:**
-We added a small, blocking inline script in the `<head>` of `app.html`. This script runs before the body is rendered, checking `localStorage` and applying the theme immediately.
+I added a small, blocking inline script in the `<head>` of `app.html`. This script runs before the body is rendered, checking `localStorage` and applying the theme immediately.
 
 ```html
 <script>
@@ -254,17 +254,15 @@ We added a small, blocking inline script in the `<head>` of `app.html`. This scr
 
 ### Decision 7: Advanced Visual Theme Engine
 
-Instead of basic CSS classes, we implemented a semantic variable-based engine. This allows us to radically change the "physicality" of the UI (e.g., Neumorphism vs. Glassmorphism) just by swapping a single data attribute.
+Instead of basic CSS classes, I implemented a semantic variable-based engine. This allows me to radically change the "physicality" of the UI (e.g., Neumorphism vs. Glassmorphism) just by swapping a single data attribute.
 
 ### Decision 8: Mobile-First Sharing
 
-We integrated the Web Share API to provide a native mobile experience, combined with a custom modal fallback for desktop social sharing.
+I integrated the Web Share API to provide a native mobile experience, combined with a custom modal fallback for desktop social sharing.
 
-## Conclusion
+## Svelte 5 Runes
 
-Locanote is now a robust, production-ready application that proves local-first software can be just as collaborative and beautiful as traditional cloud apps.
-
-Svelte 5 introduced a new reactivity model with "runes". This was one of the biggest paradigm shifts we encountered.
+Svelte 5 introduced a new reactivity model with "runes". This was one of the biggest paradigm shifts I encountered.
 
 ### Understanding Runes
 
@@ -304,7 +302,7 @@ Svelte 5 introduced a new reactivity model with "runes". This was one of the big
 <button onclick={increment}>+</button>
 ```
 
-### Key Runes We Used
+### Key Runes I Used
 
 #### `$state` - Reactive State
 
@@ -386,7 +384,7 @@ Replaces `export let`:
 
 ### Runes in Classes
 
-This pattern revolutionized our store architecture:
+This pattern revolutionized my store architecture:
 
 ```typescript
 // stores/theme.svelte.ts
@@ -426,7 +424,7 @@ export function createThemeStore() {
 const theme = createThemeStore();
 ```
 
-### Patterns We Established
+### Patterns I Established
 
 #### 1. The .svelte.ts Extension
 
@@ -474,7 +472,7 @@ const auth = createAuthStore();
 
 #### 3. Avoiding $inspect in Production
 
-Svelte 5 has `$inspect` for debugging, but remove it before production:
+Svelte 5 has `$inspect` for debugging, but I remove it before production:
 
 ```typescript
 // Development only
@@ -578,7 +576,7 @@ Y.applyUpdate(docB, updateA);
 | `Y.Map`         | Key-value data                    | Metadata, settings |
 | `Y.XmlElement`  | XML nodes                         | Custom elements    |
 
-### Our Implementation
+### My Implementation
 
 **Document Structure:**
 
@@ -766,9 +764,9 @@ pc.onconnectionstatechange = () => {
 };
 ```
 
-### Our Signaling Server
+### My Signaling Server
 
-We built a lightweight signaling server on Cloudflare Workers:
+I built a lightweight signaling server on Cloudflare Workers:
 
 ```typescript
 // packages/signaling/src/index.ts
@@ -872,7 +870,7 @@ provider.on("status", ({ connected }) => {
 
 ## Security Considerations
 
-### Our Security Architecture
+### My Security Architecture
 
 ```
 ┌────────────────────────────────────────────────────────────┐
@@ -1015,7 +1013,7 @@ User ──► Biometric/PIN ──► Secure Hardware
                           (never leaves device)
 ```
 
-**Our Implementation:**
+**My Implementation:**
 
 ```typescript
 // Registration
@@ -1049,7 +1047,7 @@ await createCredential({
 
 ### Threat Model
 
-**What We're Protected Against:**
+**What I'm Protected Against:**
 
 | Threat                | Protection                   | Confidence |
 | --------------------- | ---------------------------- | ---------- |
@@ -1060,7 +1058,7 @@ await createCredential({
 | XSS                   | CSP + input sanitization     | Medium     |
 | Device theft          | WebAuthn + device encryption | Medium     |
 
-**What We're NOT Protected Against:**
+**What I'm NOT Protected Against:**
 
 | Threat                 | Reason                     | Mitigation               |
 | ---------------------- | -------------------------- | ------------------------ |
@@ -1069,7 +1067,7 @@ await createCredential({
 | Collaborator leaks     | They have decryption keys  | Trust your collaborators |
 | Brute force (password) | Weak user passwords        | Use passkeys             |
 
-## Challenges We Faced
+## Challenges I Faced
 
 ### Challenge 1: Svelte 5 Migration
 
@@ -1169,7 +1167,7 @@ function setupReconnection(provider) {
 3. **QR codes**: In-person key exchange
 4. **URL fragments**: Key in URL hash (never sent to server)
 
-**Our Solution:**
+**My Solution:**
 
 ```typescript
 // Key embedded in URL fragment (not sent to server)
@@ -1279,16 +1277,16 @@ async function exportUserData(userId: string): Promise<Blob> {
 
 **Lesson:** Passwordless is great, but have recovery plans.
 
-## What We'd Do Differently
+## What I'd Do Differently
 
 ### 1. Testing Strategy
 
-**What we did:**
-Initially, we relied on manual testing. However, as the collaboration features grew complex, we implemented a comprehensive end-to-end testing suite using **Playwright**.
+**What I did:**
+Initially, I relied on manual testing. However, as the collaboration features grew complex, I implemented a comprehensive end-to-end testing suite using **Playwright**.
 
 **Why Playwright?**
 
-- **Multi-Context Support**: Essential for testing collaboration. We can spawn two separate browser contexts (User A and User B) and verify they see each other's changes.
+- **Multi-Context Support**: Essential for testing collaboration. I can spawn two separate browser contexts (User A and User B) and verify they see each other's changes.
 - **Auto-waiting**: Reduces flakiness when interacting with asynchronous UI elements like the TipTap editor.
 - **Video & Screenshots**: Makes debugging failures in CI much easier.
 
@@ -1308,13 +1306,13 @@ test("Two users can collaborate", async ({ browser }) => {
 
 ### 2. State Management
 
-**What we did:**
+**What I did:**
 
 - Multiple store files
 - Some global state
 - Prop drilling in places
 
-**What we'd do:**
+**What I'd do:**
 
 - Single state tree with context
 - Clear ownership of each domain
@@ -1342,13 +1340,13 @@ export function createAppStore() {
 
 ### 3. Error Handling
 
-**What we did:**
+**What I did:**
 
 - Console.error for debugging
 - Some try/catch blocks
 - Generic error messages
 
-**What we'd do:**
+**What I'd do:**
 
 - Structured error taxonomy
 - User-friendly error recovery
@@ -1378,13 +1376,13 @@ throw new LocanoteError(
 
 ### 4. Documentation
 
-**What we did:**
+**What I did:**
 
 - Inline code comments
 - This learning document (post-hoc)
 - README
 
-**What we'd do:**
+**What I'd do:**
 
 - Architecture Decision Records (ADRs)
 - API documentation
@@ -1392,12 +1390,12 @@ throw new LocanoteError(
 
 ### 5. Performance Monitoring
 
-**What we did:**
+**What I did:**
 
 - DevTools profiling
 - Some console.time calls
 
-**What we'd do:**
+**What I'd do:**
 
 - Real User Monitoring (RUM)
 - Web Vitals tracking
@@ -1485,16 +1483,16 @@ function trackOperation(name: string, operation: () => void) {
 
 ## Conclusion
 
-Building Locanote taught us that local-first, E2E encrypted collaboration is not only possible but practical for many use cases. The combination of CRDTs, WebRTC, and modern web technologies enables a new class of applications where:
+Building Locanote taught me that local-first, E2E encrypted collaboration is not only possible but practical for many use cases. The combination of CRDTs, WebRTC, and modern web technologies enables a new class of applications where:
 
 - Users truly own their data
 - Privacy is the default
 - Collaboration happens peer-to-peer
 - Offline is a feature, not a bug
 
-The challenges we faced—state management, key distribution, connection stability—are solvable with careful architecture and good abstractions.
+The challenges I faced—state management, key distribution, connection stability—are solvable with careful architecture and good abstractions.
 
-We hope this document helps you build similar applications. The future of software is local-first, and we're excited to see what you create.
+I hope this document helps you build similar applications. The future of software is local-first, and I'm excited to see what you create.
 
 ---
 
