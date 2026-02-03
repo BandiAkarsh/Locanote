@@ -8,7 +8,7 @@
 // - $state() - Creates reactive state that triggers updates when changed
 // - $effect() - Runs side effects when dependencies change
 //
-// NOTE: $state is used for the main state, but we use getters for derived values
+// NOTE: $state is used for the main state, but I use getters for derived values
 // to avoid TypeScript issues with $derived in module-level code.
 // ============================================================================
 
@@ -25,7 +25,7 @@ declare const $state: <T>(initial: T) => T;
 // ============================================================================
 // SESSION STORAGE KEY
 // ============================================================================
-// We use localStorage to persist the session across browser reloads
+// I use localStorage to persist the session across browser reloads
 const SESSION_KEY = 'locanote_session';
 
 // ============================================================================
@@ -136,7 +136,7 @@ function createAuthStore() {
   // ========================================================================
   // RETURN STORE INTERFACE
   // ========================================================================
-  // We use getters for derived values instead of $derived runes
+  // I use getters for derived values instead of $derived runes
   
   return {
     // Main state (reactive)
@@ -161,6 +161,6 @@ function createAuthStore() {
 // ============================================================================
 // CREATE SINGLETON INSTANCE
 // ============================================================================
-// We create one instance that will be shared across the entire app
+// I create one instance that will be shared across the entire app
 
 export const auth = createAuthStore();

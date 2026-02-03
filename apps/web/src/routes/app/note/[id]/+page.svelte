@@ -8,12 +8,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { onMount } from 'svelte';
   import Editor from '$lib/editor/Editor.svelte';
   import Toolbar from '$lib/editor/Toolbar.svelte';
-  import { Button, ShareModal } from '$components';
+  import { Button, ShareModal, Modal, Input } from '$components';
   import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
   import { auth } from '$stores/auth.svelte';
   import { networkStatus } from '$stores/network.svelte';
   import { isBrowser, base64ToArrayBuffer } from '$utils/browser';
-  import { storeRoomKey, hasRoomKey } from '$crypto/e2e';
+  import { storeRoomKey, hasRoomKey, deriveKeyFromPassword } from '$crypto/e2e';
   import type { Note } from '$db';
 
   const noteId = $derived(page.params.id);
@@ -23,6 +23,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   let error = $state<string | null>(null);
   let editorInstance = $state<any>(null);
   let isShareModalOpen = $state(false);
+
+  // Password Protection State
+  let showPasswordPrompt = $state(false);
+  let passwordAttempt = $state('');
+  let passwordError = $state<string | null>(null);
+  let currentSalt = $state<string | null>(null);
 
   const currentUser = $derived({
     name: auth.session?.username || 'Anonymous',
@@ -37,22 +43,27 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       return;
     }
 
-    // --------------------------------------------------------------------
-    // EXTRACT ENCRYPTION KEY FROM URL
-    // --------------------------------------------------------------------
-    // If the URL contains #key=..., we use it for E2E encryption.
-    // This allows sharing notes without sending keys to the server.
+    // 1. Check for key in URL hash
     if (isBrowser && window.location.hash.startsWith('#key=')) {
       try {
         const base64Key = window.location.hash.slice(5);
         const keyBuffer = base64ToArrayBuffer(base64Key);
         storeRoomKey(noteId, new Uint8Array(keyBuffer));
-        console.log('[E2E] Extracted encryption key from URL hash');
-        
-        // Clear hash from URL for security/cleanliness
         history.replaceState(null, '', window.location.pathname);
       } catch (err) {
         console.error('[E2E] Failed to extract key from URL:', err);
+      }
+    }
+
+    // 2. Check for protection params in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const isProtectedFromUrl = urlParams.get('p') === '1';
+    const saltFromUrl = urlParams.get('s');
+    
+    if (isProtectedFromUrl && saltFromUrl) {
+      currentSalt = saltFromUrl;
+      if (!hasRoomKey(noteId)) {
+        showPasswordPrompt = true;
       }
     }
     
@@ -62,6 +73,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
         error = 'Note not found or you do not have access';
       } else {
         note = loadedNote;
+        
+        // 3. Check metadata for protection if not already handled by URL
+        if (note.isProtected && !hasRoomKey(noteId)) {
+          currentSalt = note.passwordSalt || null;
+          showPasswordPrompt = true;
+        }
       }
     } catch (err) {
       error = err instanceof Error ? err.message : 'Failed to load note';
@@ -70,8 +87,34 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     }
   });
 
+  async function handlePasswordSubmit() {
+    if (!currentSalt) return;
+    
+    try {
+      const saltBuffer = base64ToArrayBuffer(currentSalt);
+      const { key } = deriveKeyFromPassword(passwordAttempt, new Uint8Array(saltBuffer));
+      
+      storeRoomKey(noteId, key);
+      showPasswordPrompt = false;
+      passwordAttempt = '';
+      passwordError = null;
+      
+      // Refresh to initialize editor with the new key
+      window.location.reload();
+    } catch (err) {
+      passwordError = 'Incorrect password or failed to derive key';
+    }
+  }
+
+  async function refreshNote() {
+    if (!noteId) return;
+    const loadedNote = await getNote(noteId);
+    if (loadedNote) {
+      note = loadedNote;
+    }
+  }
+
   function handleEditorUpdate(content: any) {
-    // Local changes started
     networkStatus.setSyncStatus('syncing');
   }
 
@@ -98,8 +141,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
 
 <div class="flex flex-col h-screen bg-[var(--ui-bg)] transition-colors duration-500">
   <!-- Header -->
-  <header class="flex items-center justify-between px-6 py-4 bg-[var(--ui-surface)] border-b border-[var(--ui-border)] backdrop-blur-[var(--ui-blur)] z-30">
-    <div class="flex items-center gap-6">
+  <header class="flex items-center justify-between px-4 sm:px-6 py-4 bg-[var(--ui-surface)] border-b border-[var(--ui-border)] backdrop-blur-[var(--ui-blur)] z-30">
+    <div class="flex items-center gap-3 sm:gap-6">
       <Button variant="ghost" size="sm" onclick={goBack} class="hover:bg-primary/10">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -107,11 +150,10 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       </Button>
       
       {#if note}
-        <div class="flex flex-col">
+        <div class="flex flex-col max-w-[150px] sm:max-w-xs">
           <div class="flex items-center gap-2">
-            <h1 class="text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none">{note.title}</h1>
+            <h1 class="text-lg sm:text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none truncate">{note.title}</h1>
             
-            <!-- Sync Indicator -->
             <div class="flex items-center" title={networkStatus.syncStatus === 'syncing' ? 'Syncing...' : 'Saved to device'}>
               {#if networkStatus.syncStatus === 'syncing'}
                 <div class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></div>
@@ -122,7 +164,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
               {/if}
             </div>
           </div>
-          <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--ui-text-muted)]">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--ui-text-muted)] truncate">
             {networkStatus.syncStatus === 'syncing' ? 'Updating...' : 'All changes saved'}
           </span>
         </div>
@@ -130,20 +172,19 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     </div>
 
     <!-- Connection Status -->
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2 sm:gap-4">
       <div 
-        class="group relative flex items-center gap-2 px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-xl text-xs font-bold uppercase tracking-tighter cursor-help transition-all hover:border-primary/30"
+        class="group relative flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-tighter cursor-help transition-all hover:border-primary/30"
       >
         <span 
-          class="w-2.5 h-2.5 rounded-full shadow-sm transition-colors duration-500
+          class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-sm transition-colors duration-500
                 {networkStatus.peerStatus === 'connected' ? 'bg-green-500 animate-pulse' : 
                  networkStatus.peerStatus === 'searching' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}"
         ></span>
-        <span class="text-[var(--ui-text)] min-w-[70px]">
+        <span class="text-[var(--ui-text)] hidden xs:inline min-w-[70px]">
           {networkStatus.statusMessage}
         </span>
 
-        <!-- Tooltip -->
         <div class="absolute top-full right-0 mt-2 w-48 p-3 themed-card opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
           <h5 class="text-[10px] font-black uppercase tracking-widest mb-2 border-b border-[var(--ui-border)] pb-1">Network Info</h5>
           <div class="space-y-1.5">
@@ -175,12 +216,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   </header>
 
   <!-- Toolbar Container -->
-  <div class="bg-[var(--ui-surface)] border-b border-[var(--ui-border)] px-4 py-1 z-20 backdrop-blur-[var(--ui-blur)]">
+  <div class="bg-[var(--ui-surface)] border-b border-[var(--ui-border)] px-2 sm:px-4 py-1 z-20 backdrop-blur-[var(--ui-blur)] overflow-x-auto scrollbar-hide">
     <Toolbar editor={editorInstance} />
   </div>
 
   <!-- Main Content -->
-  <main class="flex-1 overflow-hidden p-6 lg:p-10 relative">
+  <main class="flex-1 overflow-hidden p-3 sm:p-6 lg:p-10 relative">
     {#if isLoading}
       <div class="flex items-center justify-center h-full">
         <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
@@ -198,8 +239,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
           <Button fullWidth onclick={goBack}>Return to Safety</Button>
         </div>
       </div>
-    {:else if note && noteId}
-      <div class="h-full max-w-5xl mx-auto themed-card shadow-2xl p-2">
+    {:else if note && noteId && (!note.isProtected || hasRoomKey(noteId))}
+      <div class="h-full max-w-5xl mx-auto themed-card shadow-2xl p-1 sm:p-2">
         <Editor
           noteId={noteId}
           user={currentUser}
@@ -209,6 +250,18 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
           onEditorReady={handleEditorReady}
         />
       </div>
+    {:else if note && note.isProtected}
+       <!-- Handled by showPasswordPrompt modal -->
+       <div class="flex items-center justify-center h-full">
+         <div class="text-center space-y-4">
+           <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
+             <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+             </svg>
+           </div>
+           <p class="text-[var(--ui-text-muted)] font-black uppercase tracking-widest text-xs">Awaiting Decryption...</p>
+         </div>
+       </div>
     {/if}
   </main>
 
@@ -219,6 +272,51 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       baseUrl={isBrowser ? window.location.origin + window.location.pathname : ''}
       noteId={noteId}
       noteTitle={note.title}
+      isProtected={note.isProtected}
+      onUpdate={refreshNote}
     />
   {/if}
+
+  <!-- Password Prompt Modal -->
+  <Modal
+    bind:open={showPasswordPrompt}
+    title="Encrypted Note"
+    closeOnBackdrop={false}
+    closeOnEscape={false}
+  >
+    <form onsubmit={(e) => { e.preventDefault(); handlePasswordSubmit(); }} class="space-y-6">
+      <div class="text-center space-y-2">
+        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+        </div>
+        <p class="text-sm text-[var(--ui-text-muted)]">This note is end-to-end encrypted with a password. Please enter it to continue.</p>
+      </div>
+
+      <Input 
+        type="password" 
+        label="Note Password" 
+        placeholder="Enter password" 
+        bind:value={passwordAttempt}
+        error={passwordError}
+        autofocus
+      />
+
+      <div class="flex gap-3">
+        <Button variant="ghost" fullWidth onclick={goBack}>Cancel</Button>
+        <Button variant="primary" fullWidth type="submit" disabled={!passwordAttempt}>Unlock Note</Button>
+      </div>
+    </form>
+  </Modal>
 </div>
+
+<style>
+  /* Mobile horizontal scroll for toolbar */
+  header, div {
+    scrollbar-width: none;
+  }
+  header::-webkit-scrollbar, div::-webkit-scrollbar {
+    display: none;
+  }
+</style>

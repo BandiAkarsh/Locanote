@@ -63,10 +63,11 @@ async function registerUser(
   const createAccountBtn = page.locator(
     'button:has-text("Create a new account")',
   );
-  await createAccountBtn.waitFor({ state: "visible", timeout: 10000 });
+  await createAccountBtn.waitFor({ state: "visible", timeout: 15000 });
   await createAccountBtn.click();
 
   const usernameInput = page.locator("#reg-username");
+  await usernameInput.waitFor({ state: "visible", timeout: 15000 });
   await usernameInput.fill(username);
 
   // Select Password method
@@ -97,10 +98,24 @@ async function registerUser(
  * Creates a new note and returns its ID
  */
 async function createNote(page: Page): Promise<string> {
-  const createNoteBtn = page.locator('button:has-text("Create Note")').first();
+  // Click "Create Note" button
+  const createNoteBtn = page
+    .locator("button")
+    .filter({ hasText: "Create New Note" })
+    .or(page.locator('button:has-text("New Note")'))
+    .first();
+  await createNoteBtn.waitFor({ state: "visible", timeout: 15000 });
   await createNoteBtn.click();
-  await page.waitForURL("**/app/note/**", { timeout: 10000 });
-  return page.url().split("/note/")[1];
+
+  // Wait for navigation to note page
+  await page.waitForURL("**/app/note/**", { timeout: 20000 });
+
+  // Extract note ID from URL
+  const url = page.url();
+  const noteId = url.split("/note/")[1].split("#")[0]; // Handle possible hash
+
+  console.log(`[Test] Created note with ID: ${noteId}`);
+  return noteId;
 }
 
 async function getEditor(page: Page) {
@@ -206,7 +221,7 @@ test.describe("Real-Time Collaboration", () => {
       await pageB.keyboard.press("End");
 
       // Simultaneous typing
-      // We use different strings to easily see if both are present
+      // I use different strings to easily see if both are present
       await Promise.all([
         pageA.keyboard.type("AAA", { delay: 20 }),
         pageB.keyboard.type("BBB", { delay: 20 }),

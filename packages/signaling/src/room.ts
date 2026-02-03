@@ -27,7 +27,7 @@ export class SignalingRoom {
   }
 
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer) {
-    // Pure broadcaster: send exactly what we received to everyone else in the room
+    // Pure broadcaster: send exactly what I received to everyone else in the room
     this.state.getWebSockets().forEach((peer) => {
       if (peer !== ws) {
         try {

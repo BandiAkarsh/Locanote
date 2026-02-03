@@ -5,10 +5,10 @@
 //
 // THE LOGIN FLOW:
 // 1. User provides username and password
-// 2. We look up the user by username
-// 3. We get their stored credential (salt + hash)
-// 4. We hash the provided password with the same salt
-// 5. We compare the computed hash with stored hash
+// 2. I look up the user by username
+// 3. I get their stored credential (salt + hash)
+// 4. I hash the provided password with the same salt
+// 5. I compare the computed hash with stored hash
 // 6. If match, user is logged in!
 // ============================================================================
 

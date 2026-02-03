@@ -11,21 +11,21 @@
 //
 // HOW IT WORKS:
 // 1. User creates password during registration
-// 2. We hash the password using PBKDF2 (built into browser)
-// 3. We store: salt + iteration count + hash
-// 4. On login, we hash the input password with the same salt
+// 2. I hash the password using PBKDF2 (built into browser)
+// 3. I store: salt + iteration count + hash
+// 4. On login, I hash the input password with the same salt
 // 5. If hashes match, password is correct
 //
 // SECURITY NOTES:
-// - We use PBKDF2 with 100,000 iterations (computationally expensive)
+// - I use PBKDF2 with 100,000 iterations (computationally expensive)
 // - Each user gets a unique random salt
-// - We never store the actual password, only the hash
+// - I never store the actual password, only the hash
 // - Even if database is stolen, passwords can't be easily cracked
 //
 // WHY NOT ARGON2?
 // The user requested Argon2, but it's complex to run in browsers (requires
 // WebAssembly). PBKDF2 is natively supported by all browsers via Web Crypto API,
-// making it simpler and more reliable for our use case.
+// making it simpler and more reliable for my use case.
 // ============================================================================
 
 import { generateUserId, generateCredentialId } from './challenge';
@@ -37,7 +37,7 @@ import type { RegistrationResult, RegistrationError, PasswordValidationResult } 
 // BROWSER ENVIRONMENT CHECK
 // ============================================================================
 // These functions require browser-only APIs (crypto, TextEncoder, btoa/atob)
-// We check the environment to provide clear error messages during SSR
+// I check the environment to provide clear error messages during SSR
 
 const isBrowser = typeof globalThis !== 'undefined' && 
                   typeof (globalThis as any).window !== 'undefined' &&
@@ -64,7 +64,7 @@ const HASH_ALGORITHM = 'SHA-256';                                // Hash algorit
 // ============================================================================
 // VALIDATE PASSWORD
 // ============================================================================
-// Checks if a password meets our requirements
+// Checks if a password meets my requirements
 //
 // @param password - The password to validate
 // @returns Validation result with isValid flag and optional error message

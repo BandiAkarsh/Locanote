@@ -6,16 +6,32 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 	// ========================================================================
 	// IMPORTS
 	// ========================================================================
-	import type { Snippet } from 'svelte';                        // Type for renderable content
+	import { onMount, type Snippet } from 'svelte';               // Type for renderable content
 	import { theme } from '$stores/theme.svelte';                 // Theme store
 	import { isBrowser } from '$utils/browser';                   // Browser check
   import { ThemeBackground, OfflineBanner } from '$components';
+  import { dev } from '$app/environment';
 	import '../app.css';                                          // Global CSS (Tailwind + custom styles)
 
 	// ========================================================================
 	// PROPS (Data received from SvelteKit)
 	// ========================================================================
 	let { children }: { children: Snippet } = $props();           // Destructure the children prop
+
+	// ========================================================================
+	// SERVICE WORKER REGISTRATION
+	// ========================================================================
+	onMount(() => {
+		if (isBrowser && 'serviceWorker' in navigator && !dev) {
+			navigator.serviceWorker.register('/service-worker.js', {
+				type: 'module'
+			}).then(reg => {
+				console.log('[SW] Registered successfully');
+			}).catch(err => {
+				console.error('[SW] Registration failed:', err);
+			});
+		}
+	});
 
 	// ========================================================================
 	// THEME & ACCENT SYNC

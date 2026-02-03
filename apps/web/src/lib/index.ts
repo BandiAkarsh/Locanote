@@ -13,10 +13,10 @@
 // - SvelteKit convention for organizing code
 //
 // FOR NOW:
-// This file is empty. We'll add exports as we build features.
+// This file is empty. I'll add exports as I build features.
 // ============================================================================
 
-// Re-export utilities as we build them
+// Re-export utilities as I build them
 // Example: export { formatDate } from './utils/date';
 // Example: export { cn } from './utils/cn';
 

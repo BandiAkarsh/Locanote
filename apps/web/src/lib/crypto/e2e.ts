@@ -42,7 +42,7 @@ export interface EncryptedMessage {
 // ============================================================================
 // KEY STORAGE (IN-MEMORY ONLY)
 // ============================================================================
-// We store room keys in memory only for security.
+// I store room keys in memory only for security.
 // When the app closes, keys are lost (unless backed up via password).
 
 const roomKeys = new Map<string, Uint8Array>();
@@ -105,7 +105,7 @@ export function getRoomKey(roomId: string): Uint8Array | undefined {
 // ============================================================================
 // HAS ROOM KEY
 // ============================================================================
-// Checks if we have the key for a room.
+// Checks if I have the key for a room.
 
 export function hasRoomKey(roomId: string): boolean {
   return roomKeys.has(roomId);

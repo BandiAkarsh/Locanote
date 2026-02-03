@@ -1,12 +1,12 @@
 // ============================================================================
 // TIPTAP EDITOR CONFIGURATION
 // ============================================================================
-// This file configures TipTap with all the extensions we need for our
+// This file configures TipTap with all the extensions I need for my
 // collaborative note-taking app.
 //
 // WHAT IS TIPTAP?
 // TipTap is a headless editor framework - it provides the editing logic
-// but NO UI. We build our own UI (toolbar, menus) separately.
+// but NO UI. I build my own UI (toolbar, menus) separately.
 //
 // PROSEMIRROR FOUNDATION:
 // TipTap is built on ProseMirror, a powerful document editing toolkit
@@ -22,7 +22,7 @@
 // - Typography: Smart quotes, proper dashes
 //
 // YJS INTEGRATION:
-// The Collaboration extension connects TipTap to our Yjs document.
+// The Collaboration extension connects TipTap to my Yjs document.
 // This enables real-time collaborative editing.
 // ============================================================================
 
@@ -40,7 +40,7 @@ import * as Y from 'yjs';                                        // Yjs types
 // ============================================================================
 // CREATE EDITOR CONFIGURATION
 // ============================================================================
-// This function creates a TipTap editor instance with all our extensions
+// This function creates a TipTap editor instance with all my extensions
 //
 // @param element - DOM element to mount the editor
 // @param ydoc - Yjs document for collaboration
@@ -102,7 +102,7 @@ export function createEditor(
 
       // Show other users' cursors
       CollaborationCursor.configure({
-        provider: null,                                            // We'll set this separately
+        provider: null,                                            // I'll set this separately
         user: user                                                 // Current user info
       })
     ],
@@ -118,7 +118,7 @@ export function createEditor(
     // ------------------------------------------------------------------------
     editable: true,                                               // Allow editing
     autofocus: false,                                             // Don't auto-focus
-    injectCSS: false                                              // We handle our own CSS
+    injectCSS: false                                              // I handle my own CSS
   });
 }
 

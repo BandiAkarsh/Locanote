@@ -20,7 +20,8 @@
   let fragments = $state<Fragment[]>([]);
 
   onMount(() => {
-    const count = 30; // More fragments for better "broken" feel
+    const isMobile = window.innerWidth < 768;
+    const count = isMobile ? 12 : 30; // Fewer fragments on mobile for performance
     const newFragments: Fragment[] = [];
     
     for (let i = 0; i < count; i++) {

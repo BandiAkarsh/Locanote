@@ -43,7 +43,7 @@ import { IndexeddbPersistence } from "y-indexeddb"; // Local persistence
 // ============================================================================
 // ACTIVE DOCUMENTS MAP
 // ============================================================================
-// We keep track of open documents to avoid creating duplicates
+// I keep track of open documents to avoid creating duplicates
 
 const activeDocuments = new Map<string, Y.Doc>(); // Map of noteId -> Y.Doc
 const activeProviders = new Map<string, IndexeddbPersistence>(); // Map of noteId -> Provider

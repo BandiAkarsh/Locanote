@@ -26,7 +26,7 @@
 //
 // SECURITY:
 // - DTLS (Datagram TLS) encrypts all WebRTC data by default
-// - Combined with our E2E encryption (Phase 5.1), data is double-encrypted
+// - Combined with my E2E encryption (Phase 5.1), data is double-encrypted
 // - Even if signaling server is compromised, document content is safe
 // ============================================================================
 
@@ -49,7 +49,7 @@ export type { WebrtcProvider, EncryptedMessage };
 // ============================================================================
 // SIGNALING SERVER CONFIGURATION
 // ============================================================================
-// URL of our Cloudflare Worker signaling server
+// URL of my Cloudflare Worker signaling server
 // Set VITE_SIGNALING_URL environment variable for production
 // Falls back to localhost for development
 
@@ -126,7 +126,7 @@ export function createWebRTCProvider(
       // SIGNALING SERVERS
       // ----------------------------------------------------------------
       // Array of signaling server URLs
-      // We use our Cloudflare Worker, appending the room ID for discovery
+      // I use my Cloudflare Worker, appending the room ID for discovery
       signaling: [
         SIGNALING_SERVER_URL.includes("?")
           ? `${SIGNALING_SERVER_URL}&room=${roomId}`
@@ -162,7 +162,7 @@ export function createWebRTCProvider(
   // --------------------------------------------------------------------
   // Listen for connection state changes
 
-  // When we connect to the signaling server
+  // When I connect to the signaling server
   provider.on("status", (event: { connected: boolean }) => {
     if (event.connected) {
       console.log(`[WebRTC] Connected to signaling server for room: ${roomId}`);
@@ -171,7 +171,7 @@ export function createWebRTCProvider(
     }
   });
 
-  // When we discover new peers
+  // When I discover new peers
   provider.on(
     "peers",
     (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
@@ -179,7 +179,7 @@ export function createWebRTCProvider(
     },
   );
 
-  // When we sync with other peers
+  // When I sync with other peers
   provider.on("synced", (event: { synced: boolean }) => {
     if (event.synced) {
       console.log(`[WebRTC] Document synced with all peers`);
@@ -228,7 +228,7 @@ export function getWebRTCStatus(provider: WebrtcProvider): {
   const signalingConnected = provider.signalingConns?.size > 0;
 
   return {
-    connected: provider.connected, // Whether we have P2P connections
+    connected: provider.connected, // Whether I have P2P connections
     peerCount, // Number of connected peers
     signalingConnected, // Whether connected to signaling server
   };

@@ -13,7 +13,7 @@ test.describe("Theme Visuals Audit", () => {
     await expect(bodyContainer).toBeVisible();
 
     // 2. Register/Login to get to settings (using existing logic)
-    // We'll skip complex registration and just check the attribute injection
+    // I'll skip complex registration and just check the attribute injection
 
     // Test data-visual-theme injection
     await page.evaluate(() => {

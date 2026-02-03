@@ -3,41 +3,92 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
 ============================================================================ -->
 
 <script lang="ts">
-  import { Modal, Button } from '$components';
+  import { Modal, Button, Input, Toggle } from '$components';
   import { onMount } from 'svelte';
   import { getRoomKey } from '$crypto/e2e';
   import { uint8ArrayToBase64 } from '$utils/browser';
+  import { protectNote, getNote } from '$lib/services/notes.svelte';
+  import type { Note } from '$db';
+
+  interface Props {
+    open: boolean;
+    title?: string;
+    noteId: string;
+    baseUrl: string;
+    noteTitle?: string;
+    isProtected?: boolean;
+    onUpdate?: () => void;
+  }
 
   let {
     open = $bindable(false),
     title = 'Share Note',
     noteId = '',
     baseUrl = '',
-    noteTitle = 'Check out this note on Locanote'
-  }: {
-    open: boolean;
-    title?: string;
-    noteId: string;
-    baseUrl: string;
-    noteTitle?: string;
-  } = $props();
+    noteTitle = 'Check out this note on Locanote',
+    isProtected = false,
+    onUpdate
+  }: Props = $props();
 
   let hasShareApi = $state(false);
+  let isPasswordEnabled = $state(false);
+  let password = $state('');
+  let isSaving = $state(false);
+  let currentNote = $state<Note | null>(null);
   
-  // Compute final URL with encryption key
+  // Sync internal state with prop
+  $effect(() => {
+    isPasswordEnabled = isProtected;
+    if (open && noteId) {
+      getNote(noteId).then(n => currentNote = n || null);
+    }
+  });
+
+  // Compute final URL
   const shareUrl = $derived.by(() => {
     if (!noteId) return baseUrl;
+    
+    // If it is password protected, I don't include the key in the URL,
+    // but I DO include the protection flag and the salt.
+    if (isPasswordEnabled && isProtected && currentNote?.passwordSalt) {
+      const url = new URL(baseUrl);
+      url.searchParams.set('p', '1');
+      url.searchParams.set('s', currentNote.passwordSalt);
+      return url.toString();
+    }
+
     const key = getRoomKey(noteId);
     if (!key) return baseUrl;
     
     const base64Key = uint8ArrayToBase64(key);
-    // Append key to hash so it's not sent to the server
+    // Append key to hash so it is not sent to the server
     return `${baseUrl}#key=${base64Key}`;
   });
 
   onMount(() => {
     hasShareApi = !!navigator.share;
   });
+
+  async function handleTogglePassword() {
+    if (isSaving) return;
+    
+    // If I am turning it off
+    if (!isPasswordEnabled && isProtected) {
+      isSaving = true;
+      await protectNote(noteId);
+      onUpdate?.();
+      isSaving = false;
+    }
+  }
+
+  async function handleApplyPassword() {
+    if (!password) return;
+    isSaving = true;
+    await protectNote(noteId, password);
+    onUpdate?.();
+    isSaving = false;
+    password = ''; // Clear after applying
+  }
 
   const shareOptions = [
     {
@@ -90,6 +141,46 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
 
 <Modal bind:open title={title}>
   <div class="space-y-6">
+    <!-- Security Options -->
+    <div class="themed-card p-4 bg-primary/5 border-primary/20">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h4 class="font-bold text-[var(--ui-text)]">Password Protection</h4>
+          <p class="text-xs text-[var(--ui-text-muted)]">Require a password to view this note</p>
+        </div>
+        <Toggle bind:checked={isPasswordEnabled} onchange={handleTogglePassword} label="Enable" id="password-protection-toggle" />
+      </div>
+
+      {#if isPasswordEnabled}
+        <div class="space-y-3 animate-in fade-in slide-in-from-top-1 duration-300">
+          {#if !isProtected}
+            <div class="flex gap-2">
+              <Input 
+                type="password" 
+                placeholder="Set a secret password" 
+                bind:value={password}
+                class="flex-1"
+                size="sm"
+              />
+              <Button size="sm" onclick={handleApplyPassword} loading={isSaving} disabled={!password}>
+                Apply
+              </Button>
+            </div>
+          {:else}
+            <div class="flex items-center gap-2 text-green-500 text-xs font-bold bg-green-500/10 p-2 rounded-lg">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              Password Protected (Secure Link)
+            </div>
+            <p class="text-[10px] text-[var(--ui-text-muted)] italic">
+              * The encryption key is now hidden from the link. Collaborators must know the password.
+            </p>
+          {/if}
+        </div>
+      {/if}
+    </div>
+
     <!-- Native Share (if available) -->
     {#if hasShareApi}
       <Button fullWidth onclick={handleNativeShare} class="bg-primary text-white mb-4">

@@ -258,7 +258,7 @@ test.describe("Locanote App - Comprehensive Testing", () => {
 
       await takeScreenshot(page, "05_dashboard_redirect");
 
-      // Test Create Note button on landing (since we might be redirected)
+      // Test Create Note button on landing (since I might be redirected)
       const createNoteBtn = await page
         .locator('button:has-text("Create Note")')
         .isVisible()

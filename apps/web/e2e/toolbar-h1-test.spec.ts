@@ -98,7 +98,7 @@ test.describe("Toolbar H1 Button Test", () => {
       await createNoteButton.click();
       await page.waitForTimeout(3000);
 
-      // Verify we're on a note page
+      // Verify I're on a note page
       const currentUrl = page.url();
       if (!currentUrl.includes("/app/note/")) {
         throw new Error(

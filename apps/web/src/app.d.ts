@@ -2,7 +2,7 @@
 // SVELTEKIT TYPE DEFINITIONS
 // ============================================================================
 // This file tells TypeScript about SvelteKit's special types.
-// It's automatically generated but we can extend it.
+// It's automatically generated but I can extend it.
 //
 // WHAT ARE .d.ts FILES?
 // They're "declaration files" - they describe types without actual code.
@@ -34,7 +34,7 @@ declare global {
 		// LOCALS TYPE
 		// ====================================================================
 		// Data that's available in all server-side code (hooks, endpoints).
-		// Since we're building a static app, we don't use this much.
+		// Since I're building a static app, I don't use this much.
 		// interface Locals {}
 
 		// ====================================================================

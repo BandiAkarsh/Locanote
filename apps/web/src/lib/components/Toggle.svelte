@@ -1,10 +1,11 @@
 <script lang="ts">
-  let { checked = $bindable(false), label = "" } = $props();
+  let { checked = $bindable(false), label = "", id = "" } = $props();
+  const toggleId = id || `toggle-${Math.random().toString(36).slice(2, 9)}`;
 </script>
 
-<label class="inline-flex items-center cursor-pointer group">
+<label for={toggleId} class="inline-flex items-center cursor-pointer group">
   <div class="relative">
-    <input type="checkbox" bind:checked class="sr-only peer" />
+    <input id={toggleId} type="checkbox" bind:checked class="sr-only peer" />
     <div class="w-12 h-6 bg-[var(--ui-surface)] border border-[var(--ui-border)] rounded-full 
                 peer-checked:bg-primary transition-all duration-300 peer-checked:border-primary
                 glow-border"></div>

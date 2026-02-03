@@ -9,14 +9,14 @@
 // unique challenge that was just generated.
 //
 // HOW IT WORKS:
-// 1. Server (us) generates random challenge: "abc123"
+// 1. Server (me) generates random challenge: "abc123"
 // 2. User authenticates and signs this challenge
 // 3. Server verifies the signature is for "abc123"
 // 4. Server rejects any signature for an old challenge
 //
 // SINCE WE HAVE NO SERVER:
-// We generate challenges client-side. This is secure enough for our use case
-// because we're verifying against stored public keys, not a remote server.
+// I generate challenges client-side. This is secure enough for my use case
+// because I're verifying against stored public keys, not a remote server.
 // ============================================================================
 
 // Browser environment check
@@ -28,8 +28,8 @@ const isBrowser = typeof globalThis !== 'undefined' &&
  * Generate a random challenge for WebAuthn
  * 
  * WebAuthn requires a BufferSource (ArrayBuffer) as the challenge.
- * We generate 32 random bytes which provides 256 bits of entropy.
- * This is cryptographically secure for our purposes.
+ * I generate 32 random bytes which provides 256 bits of entropy.
+ * This is cryptographically secure for my purposes.
  * 
  * @returns ArrayBuffer containing 32 random bytes
  */
@@ -48,7 +48,7 @@ export function generateChallenge(): ArrayBuffer {
 /**
  * Generate a challenge and encode it as base64
  * 
- * Sometimes we need the challenge as a string (for storage, etc.)
+ * Sometimes I need the challenge as a string (for storage, etc.)
  * Base64 encoding converts binary data to ASCII string
  * 
  * @returns Base64-encoded challenge string
@@ -95,7 +95,7 @@ export function decodeChallenge(base64: string): ArrayBuffer {
 /**
  * Generate a user ID
  * 
- * Each user needs a unique ID. We use crypto.randomUUID() which generates
+ * Each user needs a unique ID. I use crypto.randomUUID() which generates
  * a standard UUID v4 (Universally Unique Identifier).
  * 
  * Example: "f47ac10b-58cc-4372-a567-0e02b2c3d479"

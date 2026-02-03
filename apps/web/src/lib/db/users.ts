@@ -105,7 +105,7 @@ export async function deleteUser(userId: string): Promise<void> {
   await db.delete('users', userId);
 
   // Also delete all related data (credentials, notes, tags)
-  // We'll implement these helper functions next
+  // I'll implement these helper functions next
   const { deleteCredentialsByUser } = await import('./credentials');
   const { deleteNotesByUser } = await import('./notes');
   const { deleteTagsByUser } = await import('./tags');

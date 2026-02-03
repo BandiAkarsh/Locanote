@@ -1,7 +1,7 @@
 // ============================================================================
 // AUTHENTICATION TYPES
 // ============================================================================
-// TypeScript type definitions for our authentication system.
+// TypeScript type definitions for my authentication system.
 // These ensure type safety when working with credentials and auth states.
 // ============================================================================
 
@@ -85,7 +85,7 @@ export interface PasswordValidationResult {
 // AUTH STATE
 // ============================================================================
 // Tracks whether user is logged in or not
-// Used by our Svelte 5 state management
+// Used by my Svelte 5 state management
 
 export type AuthState =
   | { status: 'idle' }                                          // No auth operation in progress

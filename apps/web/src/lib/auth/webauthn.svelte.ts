@@ -6,17 +6,17 @@
 //
 // THE REGISTRATION FLOW:
 // 1. User provides a username
-// 2. We generate a challenge (random bytes)
-// 3. We create WebAuthn options (telling the browser what we want)
+// 2. I generate a challenge (random bytes)
+// 3. I create WebAuthn options (telling the browser what I want)
 // 4. Browser shows system prompt (Face ID, fingerprint, PIN)
 // 5. Device creates a key pair (public + private)
-// 6. We receive the public key and credential ID
-// 7. We store these in IndexedDB
+// 6. I receive the public key and credential ID
+// 7. I store these in IndexedDB
 // 8. User can now login with this passkey
 //
 // SIMPLIFICATIONS FROM STANDARD WEBAUTHN:
-// - Normally a server verifies the registration, but we verify client-side
-// - This is secure for our use case because the credential is bound to our domain
+// - Normally a server verifies the registration, but I verify client-side
+// - This is secure for my use case because the credential is bound to my domain
 // - The private key never leaves the user's device
 // ============================================================================
 
@@ -75,7 +75,7 @@ export async function registerWithPasskey(
       // The challenge that the authenticator must sign
       challenge: challenge,
       
-      // Information about our app (the "relying party")
+      // Information about my app (the "relying party")
       rp: {
         name: 'Locanote',                                          // App name shown to user
         id: window.location.hostname                               // Domain (e.g., "localhost" or "locanote.app")
@@ -88,7 +88,7 @@ export async function registerWithPasskey(
         displayName: username                                      // Display name
       },
       
-      // What type of credentials we want
+      // What type of credentials I want
       pubKeyCredParams: [
         { type: 'public-key', alg: -7 },                            // ES256 (Elliptic Curve P-256 with SHA-256)
         { type: 'public-key', alg: -257 }                           // RS256 (RSASSA-PKCS1-v1_5 with SHA-256)
@@ -97,7 +97,7 @@ export async function registerWithPasskey(
       // Timeout: how long the user has to authenticate (5 minutes)
       timeout: 300000,
       
-      // What types of authenticators we accept
+      // What types of authenticators I accept
       authenticatorSelection: {
         // authenticatorAttachment: 'platform' means built-in (Face ID, Touch ID, Windows Hello)
         // 'cross-platform' would accept USB security keys
@@ -116,7 +116,7 @@ export async function registerWithPasskey(
         userVerification: 'preferred'
       },
       
-      // attestation: 'none' means we don't need hardware attestation
+      // attestation: 'none' means I don't need hardware attestation
       // This is simpler and works with all authenticators
       attestation: 'none'
     };
@@ -127,7 +127,7 @@ export async function registerWithPasskey(
     // This triggers the browser's native UI (Face ID prompt, fingerprint, etc.)
     
     const credential = await navigator.credentials.create({        // Browser API
-      publicKey: publicKeyCredentialCreationOptions                 // Pass our options
+      publicKey: publicKeyCredentialCreationOptions                 // Pass my options
     }) as PublicKeyCredential;                                     // Cast to expected type
 
     // If user cancels (presses Cancel or fails biometric), credential will be null
@@ -142,7 +142,7 @@ export async function registerWithPasskey(
     // --------------------------------------------------------------------
     // EXTRACT DATA FROM CREDENTIAL
     // --------------------------------------------------------------------
-    // The credential contains the public key we need to store
+    // The credential contains the public key I need to store
     
     const response = credential.response as AuthenticatorAttestationResponse;
     

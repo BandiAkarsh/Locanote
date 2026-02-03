@@ -4,12 +4,12 @@
 // This file handles logging in with a passkey (WebAuthn).
 //
 // THE LOGIN FLOW:
-// 1. User provides username (or we use Conditional UI to show available passkeys)
-// 2. We generate a challenge
+// 1. User provides username (or I use Conditional UI to show available passkeys)
+// 2. I generate a challenge
 // 3. Browser shows passkey selector (or auto-prompts with Conditional UI)
 // 4. User authenticates (Face ID, fingerprint, PIN)
 // 5. Device signs the challenge with their private key
-// 6. We verify the signature with the stored public key
+// 6. I verify the signature with the stored public key
 // 7. If valid, user is logged in!
 //
 // CONDITIONAL UI:
@@ -18,8 +18,8 @@
 // It makes login feel seamless and password-manager-like.
 //
 // SIMPLIFICATIONS FROM STANDARD WEBAUTHN:
-// - We verify client-side (no server needed)
-// - This works because credentials are bound to our domain
+// - I verify client-side (no server needed)
+// - This works because credentials are bound to my domain
 // ============================================================================
 
 import { generateChallenge } from "./challenge";
@@ -86,17 +86,17 @@ export async function loginWithPasskey(
         // Timeout: 2 minutes
         timeout: 120000,
 
-        // The relying party (our app)
+        // The relying party (my app)
         rpId: window.location.hostname,
 
-        // Allow any credential (we'll filter client-side if needed)
+        // Allow any credential (I'll filter client-side if needed)
         allowCredentials: [],
 
         // User verification: try to get biometric/PIN if available
         userVerification: "preferred",
       };
 
-    // If we have a specific user, only allow their credentials
+    // If I have a specific user, only allow their credentials
     if (userId) {
       const credentials = await getCredentialsByUser(userId);
       const passkeyCreds = credentials.filter(
@@ -139,16 +139,16 @@ export async function loginWithPasskey(
     // --------------------------------------------------------------------
     // VERIFY ASSERTION
     // --------------------------------------------------------------------
-    // In a real server-based setup, we'd verify the signature server-side.
-    // Since this is local-first, we trust the browser's WebAuthn implementation.
+    // In a real server-based setup, I'd verify the signature server-side.
+    // Since this is local-first, I trust the browser's WebAuthn implementation.
     // The browser only returns a valid assertion if the private key matches.
 
-    // Get the user from the assertion (if we didn't have it before)
+    // Get the user from the assertion (if I didn't have it before)
     if (!userId) {
-      // For discoverable credentials, we need to find the user by credential ID
+      // For discoverable credentials, I need to find the user by credential ID
       const credId = arrayBufferToBase64(assertion.rawId);
-      // In practice, we'd need to look up which user this credential belongs to
-      // For now, we'll require username for simplicity
+      // In practice, I'd need to look up which user this credential belongs to
+      // For now, I'll require username for simplicity
       return {
         success: false,
         error: "Please enter your username to login.",
@@ -259,7 +259,7 @@ export async function setupConditionalUI(
       .then((assertion) => {
         if (assertion) {
           // Handle successful authentication
-          // In real implementation, we'd look up the user by credential ID
+          // In real implementation, I'd look up the user by credential ID
           onSuccess({
             success: true,
             userId: "conditional-user", // Would be looked up
