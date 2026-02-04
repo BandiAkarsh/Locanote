@@ -54,21 +54,24 @@ TOOLBAR COMPONENT (Toolbar.svelte)
       if (!editor) return;
 
       if (isInterim) {
-        // Real-time "Streaming" feel
-        // We delete the last interim insertion and replace it with the new one
+        // REAL-TIME STREAMING FEEL:
+        // We delete the previous interim insertion and replace it with the new one
+        // This makes the text "grow" as you speak
+        const { from } = editor.state.selection;
+        
         editor.chain()
           .focus()
-          .deleteRange({ from: editor.state.selection.from - lastInterimLength, to: editor.state.selection.from })
+          .deleteRange({ from: from - lastInterimLength, to: from })
           .insertContent(text + ' ')
           .run();
         
         lastInterimLength = text.length + 1;
         interimText = text;
       } else {
-        // Final result: Just keep it and reset the tracker
+        // FINAL RESULT: Keep it and reset trackers
         lastInterimLength = 0;
         interimText = '';
-        console.log('[Voice] Final result inserted');
+        console.log('[Voice] Final transcription committed');
       }
     };
   });
@@ -93,6 +96,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     }
   }
 
+  // Reactive class helper for the glow effect
   function getGlowClass(active: boolean): string {
     return active ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent';
   }
@@ -100,7 +104,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
 
 <div class="flex items-center gap-1 p-1 sm:p-2 rounded-xl bg-transparent overflow-x-auto scrollbar-hide relative">
   
-  <!-- Neural Engine Progress -->
+  <!-- Neural Engine Progress (One-time download) -->
   {#if voice.status === 'loading'}
     <div class="absolute -top-14 left-0 w-48 p-3 premium-card z-50 animate-in fade-in slide-in-from-bottom-2">
       <div class="flex items-center justify-between mb-2">
@@ -115,9 +119,9 @@ TOOLBAR COMPONENT (Toolbar.svelte)
 
   <!-- Active Listening Indicator -->
   {#if voice.status === 'listening' || voice.status === 'processing'}
-    <div class="absolute -top-14 left-0 px-4 py-2 bg-red-500 text-white text-[10px] font-black rounded-full shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse z-50 flex items-center gap-2">
+    <div class="absolute -top-14 left-0 px-4 py-2 bg-red-500 text-white text-[10px] font-black rounded-full shadow-[0_0_20px_rgba(239,68,68,0.5)] animate-pulse z-50 flex items-center gap-2 whitespace-nowrap">
       <div class="w-2 h-2 rounded-full bg-white animate-ping"></div>
-      {voice.status === 'listening' ? 'AI LISTENING (OFFLINE)' : 'NEURAL TRANSCRIBING...'}
+      {voice.status === 'listening' ? 'AI LISTENING (OFFLINE)' : 'AI TRANSCRIBING...'}
     </div>
   {/if}
 
@@ -128,7 +132,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
       disabled={voice.status === 'loading' || voice.status === 'processing'}
       class="p-2 rounded-lg transition-all duration-300 border-2 disabled:opacity-50
              {voice.status === 'listening' ? 'bg-red-500/20 text-red-500 ring-4 ring-red-500/30 border-red-500 scale-110 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
-      title="Voice Dictation"
+      title="Offline AI Voice Dictation"
       aria-label="Voice Dictation"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
