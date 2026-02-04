@@ -101,22 +101,23 @@ MODAL COMPONENT (Modal.svelte)
 	onclick={handleBackdropClick}
 	onclose={handleClose}
 	data-type={type}
+	tabindex="-1"
 	aria-labelledby={title ? 'modal-title' : undefined}
 	aria-describedby={description ? 'modal-description' : undefined}
 	class="
 		m-0 p-4 {sizeClasses[size]} w-full max-h-[90vh] mx-auto my-auto
 		bg-transparent backdrop:bg-black/60 backdrop:backdrop-blur-[var(--ui-blur)]
 		open:animate-in open:fade-in open:zoom-in-95
-    {type === 'sheet' ? 'sm:my-auto mb-0 rounded-t-3xl sm:rounded-3xl sheet-animation' : ''}
+    {type === 'sheet' ? 'sm:my-auto mb-0 rounded-t-[2.5rem] sm:rounded-[2.5rem] sheet-animation' : ''}
 	"
 >
 	<div
 		role="document"
 		class="
-			premium-card
+			glass-2
 			p-6
 			flex flex-col gap-4
-      {type === 'sheet' ? 'rounded-t-3xl sm:rounded-3xl' : ''}
+      {type === 'sheet' ? 'rounded-t-[2.5rem] sm:rounded-[2.5rem]' : 'rounded-[2.5rem]'}
 		"
 	>
 		{#if title}
