@@ -18,10 +18,6 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   );
 
   onMount(() => {
-    if (currentStyle === 'nebula' && canvas) {
-      initNebula();
-    }
-
     return () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
@@ -29,11 +25,14 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
 
   // Re-initialize if style changes
   $effect(() => {
-    if (currentStyle === 'nebula' && canvas && !ctx) {
-      initNebula();
-    } else if (currentStyle !== 'nebula' && animationFrame) {
-      cancelAnimationFrame(animationFrame);
-      ctx = null;
+    if (currentStyle === 'nebula' && canvas) {
+      if (!ctx) initNebula();
+    } else {
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
+        animationFrame = 0;
+        ctx = null;
+      }
     }
   });
 
@@ -57,29 +56,29 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
     time += 0.005;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Draw 3 moving blobs for the Nebula effect
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
+    // Smooth moving blobs
     drawBlob(
-      centerX + Math.cos(time * 0.7) * 200,
-      centerY + Math.sin(time * 0.5) * 200,
-      400,
-      'rgba(99, 102, 241, 0.15)' // Indigo
+      centerX + Math.cos(time * 0.7) * (canvas.width * 0.2),
+      centerY + Math.sin(time * 0.5) * (canvas.height * 0.2),
+      canvas.width * 0.4,
+      'rgba(99, 102, 241, 0.15)'
     );
     
     drawBlob(
-      centerX + Math.sin(time * 0.4) * 300,
-      centerY + Math.cos(time * 0.6) * 150,
-      500,
-      'rgba(168, 85, 247, 0.12)' // Purple
+      centerX + Math.sin(time * 0.4) * (canvas.width * 0.3),
+      centerY + Math.cos(time * 0.6) * (canvas.height * 0.15),
+      canvas.width * 0.5,
+      'rgba(168, 85, 247, 0.12)'
     );
     
     drawBlob(
-      centerX + Math.cos(time * 0.3) * 250,
-      centerY + Math.sin(time * 0.8) * 300,
-      450,
-      'rgba(236, 72, 153, 0.1)' // Pink
+      centerX + Math.cos(time * 0.3) * (canvas.width * 0.25),
+      centerY + Math.sin(time * 0.8) * (canvas.height * 0.3),
+      canvas.width * 0.45,
+      'rgba(236, 72, 153, 0.1)'
     );
 
     animationFrame = requestAnimationFrame(animate);
@@ -100,20 +99,36 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
 
 <svelte:window onresize={resize} />
 
-<div class="fixed inset-0 -z-50 overflow-hidden bg-[var(--ui-bg)]">
+<div class="fixed inset-0 -z-50 overflow-hidden bg-[var(--ui-bg)] transition-colors duration-1000">
   {#if currentStyle === 'nebula'}
-    <canvas bind:this={canvas} class="absolute inset-0 opacity-60"></canvas>
+    <canvas bind:this={canvas} class="absolute inset-0 opacity-60 pointer-events-none"></canvas>
   {:else if currentStyle === 'aura'}
     <div class="aura-bg"></div>
   {:else if currentStyle === 'crystalline'}
-    <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(30deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(150deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(30deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(150deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(60deg, #a855f7 25%, transparent 25.5%, transparent 75%, #a855f7 75%, #a855f7), linear-gradient(60deg, #a855f7 25%, transparent 25.5%, transparent 75%, #a855f7 75%, #a855f7); background-size: 80px 140px;"></div>
+    <!-- Crystalline Shards Look -->
+    <div class="absolute inset-0 opacity-20 transition-all duration-1000" 
+         style="background-image: 
+           linear-gradient(135deg, var(--brand-color) 25%, transparent 25%), 
+           linear-gradient(225deg, var(--brand-color) 25%, transparent 25%), 
+           linear-gradient(45deg, var(--brand-color) 25%, transparent 25%), 
+           linear-gradient(315deg, var(--brand-color) 25%, transparent 25%);
+         background-position: 40px 0, 40px 0, 0 0, 0 0;
+         background-size: 80px 80px;
+         background-repeat: repeat;
+         filter: blur(2px);">
+    </div>
+  {:else if currentStyle === 'static'}
+    <div class="absolute inset-0 opacity-10 bg-gradient-to-br from-primary via-purple-500 to-pink-500"></div>
   {/if}
+  
+  <!-- Global Intent Overlay -->
+  <div class="liquid-mesh"></div>
   
   <div class="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style="background-image: url('https://grainy-gradients.vercel.app/noise.svg');"></div>
 </div>
 
 <style>
   canvas {
-    filter: blur(40px);
+    filter: blur(60px);
   }
 </style>

@@ -30,6 +30,13 @@ SETTINGS PAGE (+page.svelte for /app/settings)
     { id: 'inception', name: 'Modern Inception', desc: 'Minimalist depth & neumorphism' }
   ];
 
+  const engines: { id: typeof ui.backgroundStyle; name: string; desc: string; icon: string }[] = [
+    { id: 'nebula', name: 'Nebula', desc: 'Reactive fluid mesh gradients', icon: '🌌' },
+    { id: 'crystalline', name: 'Crystalline', desc: 'High-refraction geometric shards', icon: '💎' },
+    { id: 'aura', name: 'Aura', desc: 'Soft, pulsing color clouds', icon: '✨' },
+    { id: 'static', name: 'Static', desc: 'Clean, distraction-free gradients', icon: '🖼️' }
+  ];
+
   // Handle logout
   function handleLogout() {
     auth.logout();
@@ -102,6 +109,32 @@ SETTINGS PAGE (+page.svelte for /app/settings)
                   {/if}
                 </div>
                 <div class="text-sm text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text)] transition-colors">{style.desc}</div>
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <!-- Visual Engine Selection -->
+        <div class="pt-6 border-t border-[var(--ui-border)]">
+          <h3 class="text-xl font-bold text-[var(--ui-text)] mb-1">Visual Engine</h3>
+          <p class="text-sm text-[var(--ui-text-muted)] mb-4">Select the immersive background technology</p>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {#each engines as engine}
+              <button
+                onclick={() => ui.backgroundStyle = engine.id}
+                class="p-5 rounded-xl border-2 transition-all text-left group {ui.backgroundStyle === engine.id ? 'border-primary bg-primary/5 ring-4 ring-primary/10' : 'border-[var(--ui-border)] bg-[var(--ui-surface)] hover:border-primary/50'}"
+              >
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xl">{engine.icon}</span>
+                    <div class="font-bold text-lg {ui.backgroundStyle === engine.id ? 'text-primary' : 'text-[var(--ui-text)]'}">{engine.name}</div>
+                  </div>
+                  {#if ui.backgroundStyle === engine.id}
+                    <div class="w-2 h-2 rounded-full bg-primary animate-ping"></div>
+                  {/if}
+                </div>
+                <div class="text-sm text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text)] transition-colors">{engine.desc}</div>
               </button>
             {/each}
           </div>
