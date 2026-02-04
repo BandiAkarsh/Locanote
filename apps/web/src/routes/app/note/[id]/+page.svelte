@@ -14,6 +14,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { isBrowser, base64UrlToUint8Array, base64ToArrayBuffer } from '$utils/browser';
   import { storeRoomKey, hasRoomKey, deriveKeyFromPassword, protectRoomWithPassword } from '$crypto/e2e';
   import { setupKeyboardShortcuts } from '$lib/keyboard/shortcuts';
+  import { intent } from '$lib/services/intent.svelte';
+  import { fly, fade } from 'svelte/transition';
   import type { Note } from '$db';
 
   const noteId = $derived(page.params.id);
@@ -36,7 +38,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   let protectConfirmPassword = $state('');
   let protectError = $state<string | null>(null);
 
-  // Password Prompt State (Entering existing password)
+  // Password Prompt State
   let showPasswordPrompt = $state(false);
   let passwordAttempt = $state('');
   let passwordError = $state<string | null>(null);
@@ -48,61 +50,48 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     id: auth.session?.userId || 'anonymous'
   });
 
+  // Dynamic Theme Shift based on GenUI Intent
+  const intentThemes = {
+    recipe: 'emerald',
+    task: 'blue',
+    code: 'indigo',
+    journal: 'rose',
+    none: 'indigo'
+  };
+
   onMount(async () => {
     if (!noteId) {
       error = 'Invalid note ID';
       isLoading = false;
       return;
     }
-    // ... rest of the code is same until note loading
 
-    // 1. Check for key in URL hash (URL-safe base64url format)
-    console.log('[DEBUG] Checking for key in URL hash. Current hash:', window.location.hash);
-    console.log('[DEBUG] hasRoomKey before extraction:', hasRoomKey(noteId));
-    
+    // 1. E2EE Key Extraction
     if (isBrowser && window.location.hash.startsWith('#key=')) {
       try {
         const base64UrlKey = window.location.hash.slice(5);
-        console.log('[DEBUG] Extracted base64UrlKey from URL:', base64UrlKey);
         const keyBytes = base64UrlToUint8Array(base64UrlKey);
-        console.log('[DEBUG] Decoded keyBytes length:', keyBytes.length);
         storeRoomKey(noteId, keyBytes);
-        console.log('[DEBUG] Stored room key. hasRoomKey after:', hasRoomKey(noteId));
         history.replaceState(null, '', window.location.pathname);
-        console.log('[E2E] Decryption key extracted from URL hash');
       } catch (err) {
-        console.error('[E2E] Failed to extract key from URL:', err);
+        console.error('[E2E] Key extraction failed:', err);
       }
-    } else {
-      console.log('[DEBUG] No key found in URL hash');
     }
 
-    // 2. Check for protection params in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const isProtectedFromUrl = urlParams.get('p') === '1';
-    const saltFromUrl = urlParams.get('s');
-    
-    if (isProtectedFromUrl && saltFromUrl) {
-      currentSalt = saltFromUrl;
-      if (!hasRoomKey(noteId)) {
-        showPasswordPrompt = true;
-      }
-    }
-    
+    // 2. Load Note Data
     try {
       const loadedNote = await getNoteForCollaboration(noteId);
       if (!loadedNote) {
-        error = 'Note not found or you do not have access';
+        error = 'Neural link failed. Access denied or portal destroyed.';
       } else {
         note = loadedNote;
         
-        // 3. Check metadata for protection if not already handled by URL
         if (note.isProtected && !hasRoomKey(noteId)) {
           currentSalt = note.passwordSalt || null;
           showPasswordPrompt = true;
         }
         
-        // 4. Check for template content in sessionStorage
+        // Check for template content
         if (isBrowser) {
           const templateKey = `template-content-${noteId}`;
           const storedTemplate = sessionStorage.getItem(templateKey);
@@ -110,51 +99,27 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
             try {
               templateContent = JSON.parse(storedTemplate);
               sessionStorage.removeItem(templateKey);
-            } catch (err) {
-              console.error('[Template] Failed to parse template content:', err);
-            }
+            } catch (err) {}
           }
         }
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : 'Failed to load note';
+      error = 'Quantum interference detected. Could not stabilize portal.';
     } finally {
       isLoading = false;
     }
   });
-
-  async function handlePasswordSubmit() {
-    if (!currentSalt) return;
-    
-    try {
-      const saltBuffer = base64ToArrayBuffer(currentSalt);
-      const { key } = deriveKeyFromPassword(passwordAttempt, new Uint8Array(saltBuffer));
-      
-      storeRoomKey(noteId, key);
-      showPasswordPrompt = false;
-      passwordAttempt = '';
-      passwordError = null;
-      
-      // Refresh to initialize editor with the new key
-      window.location.reload();
-    } catch (err) {
-      passwordError = 'Incorrect password or failed to derive key';
-    }
-  }
 
   async function handleTitleSubmit() {
     if (!noteId || !editedTitle.trim() || editedTitle === note?.title) {
       isEditingTitle = false;
       return;
     }
-
     try {
       await updateNoteTitle(noteId, editedTitle.trim());
       if (note) note.title = editedTitle.trim();
       isEditingTitle = false;
-    } catch (err) {
-      console.error('Failed to update title:', err);
-    }
+    } catch (err) {}
   }
 
   function startEditingTitle() {
@@ -166,372 +131,172 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
 
   async function handleProtectNote() {
     if (protectPassword !== protectConfirmPassword) {
-      protectError = "Passwords do not match";
+      protectError = "Neural patterns do not match.";
       return;
     }
-
-    if (protectPassword.length < 4) {
-      protectError = "Password too short";
-      return;
-    }
-
     try {
-      const { salt } = protectRoomWithPassword(noteId, protectPassword);
-      // Refresh to update local state
+      protectRoomWithPassword(noteId, protectPassword);
       await refreshNote();
       isProtectModalOpen = false;
       protectPassword = '';
-      protectConfirmPassword = '';
-      protectError = null;
     } catch (err) {
-      protectError = "Failed to protect note";
+      protectError = "Failed to secure portal.";
+    }
+  }
+
+  async function handlePasswordSubmit() {
+    if (!currentSalt) return;
+    try {
+      const saltBuffer = base64ToArrayBuffer(currentSalt);
+      const { key } = deriveKeyFromPassword(passwordAttempt, new Uint8Array(saltBuffer));
+      storeRoomKey(noteId, key);
+      window.location.reload();
+    } catch (err) {
+      passwordError = 'Invalid decryption key.';
     }
   }
 
   async function refreshNote() {
     if (!noteId) return;
     const loadedNote = await getNote(noteId);
-    if (loadedNote) {
-      note = loadedNote;
-    }
-  }
-
-  function handleEditorUpdate(content: any) {
-    networkStatus.setSyncStatus('syncing');
-  }
-
-  function handleSyncStatus(status: 'syncing' | 'synced') {
-    networkStatus.setSyncStatus(status);
-  }
-
-  function handleConnectionStatus(status: { connected: boolean; peerCount: number; signalingConnected?: boolean }) {
-    networkStatus.updatePeerState(status.connected, status.peerCount, status.signalingConnected || status.connected);
-  }
-
-  function handleEditorReady(editor: any) {
-    editorInstance = editor;
-    
-    // Setup keyboard shortcuts
-    if (editor) {
-      setupKeyboardShortcuts(editor, {
-        onSave: () => {
-          console.log('[Shortcut] Saving note...');
-          // Yjs auto-saves, but we can show feedback
-        },
-        onClose: () => {
-          if (isShareModalOpen) isShareModalOpen = false;
-          else if (isExportModalOpen) isExportModalOpen = false;
-        },
-        onTemplate: () => {
-          // Templates not available from editor yet
-        }
-      });
-    }
+    if (loadedNote) note = loadedNote;
   }
 
   function goBack() {
     if ('startViewTransition' in document) {
       // @ts-ignore
-      document.startViewTransition(() => {
-        goto('/app');
-      });
+      document.startViewTransition(() => goto('/app'));
     } else {
       goto('/app');
     }
   }
+
+  function handleEditorReady(editor: any) {
+    editorInstance = editor;
+    if (editor) {
+      setupKeyboardShortcuts(editor, {
+        onClose: () => {
+          if (isShareModalOpen) isShareModalOpen = false;
+          else if (isExportModalOpen) isExportModalOpen = false;
+        }
+      });
+    }
+  }
 </script>
 
-<svelte:head>
-  <title>{note ? note.title : 'Note'} - Locanote</title>
-</svelte:head>
+<div class="flex flex-col h-screen overflow-hidden">
+  <!-- 1. ADAPTIVE HEADER -->
+  <header class="glass-2 border-b border-[var(--ui-border)] px-4 sm:px-8 py-6 z-50 flex items-center justify-between transition-all duration-1000">
+    <div class="flex items-center gap-6">
+      <button 
+        onclick={goBack} 
+        class="p-3 glass-2 rounded-2xl text-[var(--ui-text-muted)] hover:text-primary transition-all hover:scale-110 active:scale-95"
+        aria-label="Exit Portal"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
 
-<div class="flex flex-col h-screen bg-[var(--ui-bg)] transition-colors duration-500">
-  <!-- Header -->
-  <header class="flex items-center justify-between px-4 sm:px-6 py-4 bg-[var(--ui-surface)] border-b border-[var(--ui-border)] backdrop-blur-[var(--ui-blur)] z-30">
-    <div class="flex items-center gap-3 sm:gap-6">
-      <Button variant="ghost" size="sm" onclick={goBack} class="hover:bg-primary/10" aria-label="Back to dashboard" title="Back">
-        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-        </svg>
-      </Button>
-      
       {#if note}
-        <div class="flex flex-col max-w-[200px] sm:max-w-md">
-          <div class="flex items-center gap-2">
+        <div class="flex flex-col">
+          <div class="flex items-center gap-3">
             {#if isEditingTitle}
               <input
                 type="text"
                 bind:value={editedTitle}
                 onblur={handleTitleSubmit}
-                onkeydown={(e) => { if (e.key === 'Enter') handleTitleSubmit(); }}
-                class="bg-transparent border-b-2 border-primary outline-none text-lg sm:text-xl font-bold text-[var(--ui-text)] w-full"
+                onkeydown={(e) => e.key === 'Enter' && handleTitleSubmit()}
+                class="bg-transparent border-b-2 border-primary outline-none text-2xl font-black text-[var(--ui-text)] w-full max-w-sm tracking-tight"
+                autofocus
               />
             {:else}
               <button 
-                class="text-left"
                 onclick={startEditingTitle}
-                onkeydown={(e) => { if (e.key === 'Enter') startEditingTitle(); }}
-                title="Click to edit title"
+                class="text-left group flex items-center gap-2"
               >
                 <h1 
-                  class="text-lg sm:text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none truncate cursor-pointer hover:text-primary transition-colors"
+                  class="text-2xl sm:text-3xl font-black text-[var(--ui-text)] tracking-tight leading-none truncate group-hover:text-primary transition-all"
                   style="view-transition-name: note-title-{noteId}"
                 >
                   {note.title}
                 </h1>
-              </button>
-              <button 
-                onclick={startEditingTitle}
-                class="text-[var(--ui-text-muted)] hover:text-primary transition-colors p-1"
-                aria-label="Edit title"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-              </button>
+                <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 text-primary transition-all" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+              </h1>
             {/if}
-            
-            <div class="flex items-center gap-2">
-              <div class="flex items-center" title={networkStatus.syncStatus === 'syncing' ? 'Syncing...' : 'Saved to device'}>
-                {#if networkStatus.syncStatus === 'syncing'}
-                  <div class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></div>
-                {:else}
-                  <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                {/if}
-              </div>
 
-              {#if note.isProtected}
-                <div class="text-primary" title="End-to-End Password Protected">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div class="flex items-center gap-2">
+               {#if note.isProtected}
+                <div class="text-primary animate-pulse" title="Secured">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
               {/if}
             </div>
           </div>
-          <span class="text-[10px] font-bold uppercase tracking-widest text-[var(--ui-text-muted)] truncate">
-            {networkStatus.syncStatus === 'syncing' ? 'Updating...' : 'All changes saved'}
+          <span class="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--ui-text-muted)]">
+            Neural Link: {networkStatus.peerCount} Active
           </span>
         </div>
       {/if}
     </div>
 
-    <!-- Connection Status -->
-    <div class="flex items-center gap-2 sm:gap-4">
-      {#if !ui.cleanMode}
-        <div 
-          class="group relative flex items-center gap-2 px-3 sm:px-4 py-2 bg-[var(--ui-bg)] border border-[var(--ui-border)] rounded-xl text-[10px] sm:text-xs font-bold uppercase tracking-tighter cursor-help transition-all hover:border-primary/30"
-        >
-          <span 
-            class="w-2 sm:w-2.5 h-2 sm:h-2.5 rounded-full shadow-sm transition-colors duration-500
-                  {networkStatus.peerStatus === 'connected' ? 'bg-green-500 animate-pulse' : 
-                   networkStatus.peerStatus === 'searching' ? 'bg-amber-500 animate-pulse' : 'bg-red-500'}"
-          ></span>
-          <span class="text-[var(--ui-text)] hidden xs:inline min-w-[70px]">
-            {networkStatus.statusMessage}
-          </span>
-
-          <div class="absolute top-full right-0 mt-2 w-48 p-3 themed-card opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-            <h5 class="text-[10px] font-black uppercase tracking-widest mb-2 border-b border-[var(--ui-border)] pb-1">Network Info</h5>
-            <div class="space-y-1.5">
-              <div class="flex justify-between">
-                <span class="text-[var(--ui-text-muted)]">Status:</span>
-                <span class="text-primary">{networkStatus.isOnline ? 'Online' : 'Offline'}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-[var(--ui-text-muted)]">Peers:</span>
-                <span>{networkStatus.peerCount}</span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-[var(--ui-text-muted)]">Signaling:</span>
-                <span class={networkStatus.signalingConnected ? 'text-green-500' : 'text-red-500'}>
-                  {networkStatus.signalingConnected ? 'Connected' : 'Disconnected'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      {/if}
-      
-      <Button variant="ghost" size="sm" onclick={() => isExportModalOpen = true} class="hover:bg-primary/10">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Export</span>
+    <!-- Actions -->
+    <div class="flex items-center gap-3 sm:gap-4">
+      <Button variant="ghost" size="sm" onclick={() => isExportModalOpen = true}>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
       </Button>
-
-      <Button variant="ghost" size="sm" onclick={() => isProtectModalOpen = true} class="hover:bg-primary/10">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-        </svg>
-        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Lock</span>
+      <Button variant="ghost" size="sm" onclick={() => isProtectModalOpen = true}>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
       </Button>
-
       <Button variant="primary" size="sm" onclick={() => isShareModalOpen = true}>
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-        </svg>
-        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Share</span>
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
       </Button>
     </div>
   </header>
 
-  <!-- Intent-Driven Toolbar -->
-  <div class="bg-transparent px-2 sm:px-4 py-3 z-20 backdrop-blur-[var(--ui-blur)] overflow-x-auto scrollbar-hide flex justify-center">
-    <div class="w-full max-w-5xl">
+  <!-- 2. GenUI ADAPTIVE TOOLBAR -->
+  <div class="px-4 sm:px-12 py-8 flex justify-center">
+    <div class="w-full max-w-6xl">
       <IntentToolbar editor={editorInstance} />
     </div>
   </div>
 
-  <!-- Main Content -->
-  <main class="flex-1 overflow-hidden p-3 sm:p-6 lg:p-10 relative">
+  <!-- 3. IMMERSIVE EDITOR -->
+  <main class="flex-1 overflow-hidden p-4 sm:p-10 relative">
     {#if isLoading}
-      <div class="flex items-center justify-center h-full">
-        <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-      </div>
-    {:else if error}
-      <div class="flex items-center justify-center h-full">
-        <div class="themed-card p-10 text-center max-w-md">
-          <div class="w-20 h-20 mx-auto mb-6 rounded-3xl bg-red-500/10 flex items-center justify-center">
-            <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h2 class="text-2xl font-black text-[var(--ui-text)] mb-4 uppercase tracking-tighter">Access Denied</h2>
-          <p class="text-[var(--ui-text-muted)] mb-8 font-medium">{error}</p>
-          <Button fullWidth onclick={goBack}>Return to Safety</Button>
-        </div>
-      </div>
-    {:else if note && noteId && (!note.isProtected || hasRoomKey(noteId))}
-      <div class="h-full max-w-5xl mx-auto themed-card shadow-2xl p-1 sm:p-2">
+       <div class="h-full flex items-center justify-center"><div class="w-20 h-20 border-8 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>
+    {:else if note && (!note.isProtected || hasRoomKey(noteId))}
+      <div class="h-full max-w-6xl mx-auto glass-2 rounded-[3rem] p-2 sm:p-4 shadow-inner" in:fly={{ y: 20, duration: 1000 }}>
         <Editor
           noteId={noteId}
           user={currentUser}
           initialContent={templateContent}
-          onUpdate={handleEditorUpdate}
-          onSyncStatusChange={handleSyncStatus}
-          onConnectionStatusChange={handleConnectionStatus}
           onEditorReady={handleEditorReady}
         />
       </div>
-    {:else if note && note.isProtected}
-       <!-- Handled by showPasswordPrompt modal -->
-       <div class="flex items-center justify-center h-full">
-         <div class="text-center space-y-4">
-           <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto animate-pulse">
-             <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-             </svg>
-           </div>
-           <p class="text-[var(--ui-text-muted)] font-black uppercase tracking-widest text-xs">Awaiting Decryption...</p>
-         </div>
-       </div>
     {/if}
   </main>
 
-  <!-- Share Modal -->
+  <!-- Modals -->
   {#if note}
-    <ShareModal 
-      bind:open={isShareModalOpen} 
-      baseUrl={isBrowser ? window.location.origin + window.location.pathname : ''}
-      noteId={noteId}
-      noteTitle={note.title}
-      isProtected={note.isProtected}
-      onUpdate={refreshNote}
-    />
-
-    <ExportModal
-      bind:open={isExportModalOpen}
-      noteTitle={note.title}
-      noteContent={editorInstance?.getJSON() || {}}
-    />
-
-    <!-- Protect Note Modal -->
-    <Modal
-      bind:open={isProtectModalOpen}
-      title="Protect this Note"
-      description="Add a password to this note. Only those with the password can decrypt and read it."
-      type="sheet"
-      onEnter={handleProtectNote}
-    >
-      <div class="space-y-4">
-        <div class="p-3 bg-primary/5 rounded-xl border border-primary/20 flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <p class="text-xs text-[var(--ui-text-muted)] leading-relaxed">
-            Passwords are <span class="text-primary font-bold">never</span> sent to our servers. They are used locally to secure your data.
-          </p>
-        </div>
-
-        <Input 
-          type="password"
-          label="Set Password"
-          placeholder="Min 4 characters"
-          bind:value={protectPassword}
-        />
-        <Input 
-          type="password"
-          label="Confirm Password"
-          placeholder="Repeat password"
-          bind:value={protectConfirmPassword}
-          error={protectError}
-        />
-
-        <div class="flex gap-3 pt-2">
-          <Button variant="ghost" fullWidth onclick={() => isProtectModalOpen = false}>Cancel</Button>
-          <Button variant="primary" fullWidth onclick={handleProtectNote} disabled={!protectPassword || protectPassword !== protectConfirmPassword}>
-            Secure Note
-          </Button>
-        </div>
+    <ShareModal bind:open={isShareModalOpen} baseUrl={isBrowser ? window.location.origin + window.location.pathname : ''} noteId={noteId} noteTitle={note.title} />
+    <ExportModal bind:open={isExportModalOpen} noteTitle={note.title} noteContent={editorInstance?.getJSON() || {}} />
+    <Modal bind:open={isProtectModalOpen} title="Neural Seal" type="sheet" onEnter={handleProtectNote}>
+      <div class="space-y-6 text-center">
+         <p class="text-sm text-[var(--ui-text-muted)] font-medium">Add a password to this quantum portal. It is stored <span class="text-primary font-black">only on your device.</span></p>
+         <Input type="password" label="Portal Key" bind:value={protectPassword} />
+         <Input type="password" label="Confirm Key" bind:value={protectConfirmPassword} error={protectError} />
+         <Button variant="primary" fullWidth onclick={handleProtectNote}>Activate Seal</Button>
       </div>
     </Modal>
   {/if}
 
-  <!-- Password Prompt Modal -->
-  <Modal
-    bind:open={showPasswordPrompt}
-    title="Encrypted Note"
-    closeOnBackdrop={false}
-    closeOnEscape={false}
-  >
-    <form onsubmit={(e) => { e.preventDefault(); handlePasswordSubmit(); }} class="space-y-6">
-      <div class="text-center space-y-2">
-        <div class="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <svg class="w-8 h-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-        </div>
-        <p class="text-sm text-[var(--ui-text-muted)]">This note is end-to-end encrypted with a password. Please enter it to continue.</p>
+  <Modal bind:open={showPasswordPrompt} title="Portal Sealed" closeOnBackdrop={false} closeOnEscape={false}>
+    <form onsubmit={(e) => { e.preventDefault(); handlePasswordSubmit(); }} class="space-y-8 text-center">
+      <div class="w-24 h-24 bg-primary/10 rounded-[2.5rem] flex items-center justify-center mx-auto animate-pulse">
+        <svg class="w-12 h-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
       </div>
-
-      <Input 
-        type="password" 
-        label="Note Password" 
-        placeholder="Enter password" 
-        bind:value={passwordAttempt}
-        error={passwordError}
-        autofocus
-        onkeydown={(e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-            handlePasswordSubmit();
-          }
-        }}
-      />
-
-      <div class="flex gap-3">
-        <Button variant="ghost" fullWidth onclick={goBack}>Cancel</Button>
-        <Button variant="primary" fullWidth type="submit" disabled={!passwordAttempt}>Unlock Note</Button>
-      </div>
+      <p class="text-[var(--ui-text-muted)] font-medium">This sector is encrypted. Enter the Portal Key to stabilize.</p>
+      <Input type="password" label="Key" bind:value={passwordAttempt} error={passwordError} autofocus onkeydown={(e) => e.key === 'Enter' && handlePasswordSubmit()} />
+      <div class="flex gap-4"><Button variant="secondary" fullWidth onclick={goBack}>Abort</Button><Button variant="primary" fullWidth type="submit">Unlock</Button></div>
     </form>
   </Modal>
 </div>
-
-<style>
-  /* Mobile horizontal scroll for toolbar */
-  header, div {
-    scrollbar-width: none;
-  }
-  header::-webkit-scrollbar, div::-webkit-scrollbar {
-    display: none;
-  }
-</style>

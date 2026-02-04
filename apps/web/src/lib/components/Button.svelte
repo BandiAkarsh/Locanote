@@ -7,7 +7,7 @@ BUTTON COMPONENT (Button.svelte)
 	import type { HTMLButtonAttributes } from 'svelte/elements';  
 
 	type Props = HTMLButtonAttributes & {
-		variant?: 'primary' | 'secondary' | 'danger' | 'ghost';     
+		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'glass';     
 		size?: 'sm' | 'md' | 'lg';                                  
 		loading?: boolean;                                          
 		fullWidth?: boolean;                                        
@@ -26,47 +26,44 @@ BUTTON COMPONENT (Button.svelte)
 		...restProps                                                
 	}: Props = $props();
 
-	// Base classes
+	// Base classes with Spring Physics
 	const baseClasses = `                                          
 		inline-flex items-center justify-center gap-2               
-		font-bold rounded-[var(--ui-radius)]                        
-		transition-all duration-300                              
-		focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2
-		disabled:opacity-50 disabled:cursor-not-allowed             
+		font-black uppercase tracking-widest rounded-xl
+		transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)
+		focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50
+		disabled:opacity-40 disabled:cursor-not-allowed disabled:grayscale
+    active:scale-95
 	`;
 
-	// Variant-specific classes using theme variables
+	// Variant-specific classes
 	const variantClasses = {
 		primary: `
-			btn-primary
-			bg-primary text-white                                  
-			hover:brightness-110 shadow-lg glow-border
-			focus-visible:ring-primary                             
+			bg-primary text-white shadow-xl shadow-primary/20
+			hover:scale-105 hover:shadow-primary/40
 		`,
 		secondary: `
-			btn-secondary
-			bg-[var(--ui-surface)] text-[var(--ui-text)] border border-[var(--ui-border)]             
-			hover:bg-[var(--ui-border)] shadow-sm
-			focus-visible:ring-primary                             
+			bg-[var(--ui-surface-elevated)] text-[var(--ui-text)] border border-[var(--ui-border)]
+			hover:scale-105 hover:bg-[var(--ui-surface)]
+		`,
+		glass: `
+			glass-2 bg-white/10 text-[var(--ui-text)]
+      hover:scale-105
 		`,
 		danger: `
-			btn-danger
-			bg-red-600 text-white                                     
-			hover:bg-red-700                                          
-			focus-visible:ring-red-500                                
+			bg-red-500 text-white shadow-xl shadow-red-500/20
+			hover:scale-105 hover:bg-red-600
 		`,
 		ghost: `
-			btn-ghost
-			bg-transparent text-[var(--ui-text)]                              
-			hover:bg-[var(--ui-surface)]                                         
-			focus-visible:ring-primary                             
+			bg-transparent text-[var(--ui-text-muted)]
+			hover:text-[var(--ui-text)] hover:bg-primary/5
 		`
 	};
 
 	const sizeClasses = {
-		sm: 'px-3 py-1.5 text-sm',                                  
-		md: 'px-5 py-2.5 text-base',                                  
-		lg: 'px-8 py-4 text-lg'                                     
+		sm: 'px-4 py-2 text-[10px]',                                  
+		md: 'px-6 py-3.5 text-xs',                                  
+		lg: 'px-10 py-5 text-sm'                                     
 	};
 </script>
 

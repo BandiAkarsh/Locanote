@@ -15,57 +15,71 @@ INTENT TOOLBAR (IntentToolbar.svelte)
 
   let { editor }: { editor: Editor | null } = $props();
 
-  // Mode-specific labels and themes
+  // Mode-specific labels and themes (Linear style with physical glass colors)
   const modeInfo = {
-    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool, themeColor: 'rgba(16, 185, 129, 0.2)' },
-    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool, themeColor: 'rgba(59, 130, 246, 0.2)' },
-    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool, themeColor: 'rgba(99, 102, 241, 0.2)' },
-    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null, themeColor: 'rgba(244, 63, 94, 0.2)' },
+    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool, themeColor: 'rgba(16, 185, 129, 0.4)' },
+    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool, themeColor: 'rgba(59, 130, 246, 0.4)' },
+    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool, themeColor: 'rgba(99, 102, 241, 0.4)' },
+    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null, themeColor: 'rgba(244, 63, 94, 0.3)' },
     none: { label: '', color: '', icon: '', component: null, themeColor: 'transparent' }
   };
 
-  // Immersive Background Shift (The "Magic")
+  /**
+   * GenUI Immersive Environment Shift
+   * This $effect physically morphs the background material when user intent is detected.
+   */
   $effect(() => {
-    if (intent.currentMode !== 'none') {
-      const color = modeInfo[intent.currentMode].themeColor;
+    if (typeof document !== 'undefined') {
+      const mode = intent.currentMode;
+      const color = modeInfo[mode].themeColor;
+      
+      // Update global CSS tokens for Glassmorphism 2.0
       document.documentElement.style.setProperty('--intent-bg-shift', color);
-    } else {
-      document.documentElement.style.setProperty('--intent-bg-shift', 'transparent');
+      
+      // Also update primary accent to match mode
+      if (mode !== 'none') {
+        const brandColor = mode === 'recipe' ? '#10b981' : 
+                          mode === 'task' ? '#3b82f6' : 
+                          mode === 'code' ? '#6366f1' : '#f43f5e';
+        document.documentElement.style.setProperty('--accent-liquid', brandColor);
+      } else {
+        document.documentElement.style.setProperty('--accent-liquid', '#6366f1');
+      }
     }
   });
 </script>
 
-<div class="space-y-3 w-full animate-fade-in">
-  <!-- Intent Notification (The "Magical" Part) -->
+<div class="space-y-4 w-full animate-fade-in">
+  <!-- 1. ZERO-UI INTENT INDICATOR -->
   {#if intent.currentMode !== 'none'}
     <div 
-      in:fly={{ y: -10, duration: 400 }} 
+      in:fly={{ y: -10, duration: 600, easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t) }} 
       out:fade
-      class="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--ui-surface-elevated)] border border-primary/30 shadow-xl w-fit mx-auto sm:mx-0 transition-all duration-500"
+      class="flex items-center gap-3 px-6 py-2.5 rounded-full glass-2 border-primary/40 shadow-glow w-fit mx-auto sm:mx-0 transition-all duration-700"
     >
-      <span class="text-lg">{modeInfo[intent.currentMode].icon}</span>
-      <span class="text-[10px] font-black uppercase tracking-[0.25em] text-primary">
+      <span class="text-xl drop-shadow-lg">{modeInfo[intent.currentMode].icon}</span>
+      <span class="text-[11px] font-black uppercase tracking-[0.3em] text-primary text-shadow-glow">
         {modeInfo[intent.currentMode].label} Active
       </span>
-      <div class="w-1 h-4 bg-primary/20 mx-2"></div>
+      <div class="w-1 h-4 bg-primary/20 mx-1"></div>
       <button 
         onclick={() => intent.reset()}
-        class="text-[var(--ui-text-muted)] hover:text-red-500 transition-colors"
-        title="Exit Mode"
+        class="p-1 text-[var(--ui-text-muted)] hover:text-red-500 transition-all hover:scale-110 active:scale-90"
+        title="Reset Interface"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
       </button>
     </div>
   {/if}
 
-  <!-- The Main Toolbar with Contextual Tools -->
-  <div class="premium-card p-1.5 sm:p-2.5 flex flex-wrap items-center gap-2 overflow-hidden transition-all duration-700 shadow-2xl">
+  <!-- 2. ADAPTIVE LIQUID TOOLBAR -->
+  <div class="glass-2 p-2 sm:p-3 flex flex-wrap items-center gap-3 overflow-hidden transition-all duration-1000 rounded-[2rem] shadow-2xl">
     <Toolbar {editor} />
     
-    <!-- Context-Specific Snap-ins (GenUI) -->
+    <!-- Context-Specific Snap-ins (GenUI Atoms) -->
     {#if intent.currentMode !== 'none' && modeInfo[intent.currentMode].component}
-      {@const CustomTool = modeInfo[intent.currentMode].component}
-      <div in:fly={{ x: 20 }} class="flex items-center gap-1 pl-2 border-l border-[var(--ui-border)] ml-1">
+      <div in:fly={{ x: 30, duration: 800 }} class="flex items-center gap-2 pl-4 border-l-2 border-[var(--ui-border)] ml-2">
+        {@const CustomTool = modeInfo[intent.currentMode].component}
         <CustomTool {editor} />
       </div>
     {/if}
@@ -73,9 +87,9 @@ INTENT TOOLBAR (IntentToolbar.svelte)
 </div>
 
 <style>
-  .premium-card {
-    border-radius: 1.25rem;
-    background: var(--ui-surface-elevated);
-    border: 1px solid var(--ui-border);
+  .glass-2 {
+    /* Specialized toolbar frosting */
+    background: rgba(var(--accent-liquid-rgb), 0.05);
+    backdrop-filter: blur(30px);
   }
 </style>

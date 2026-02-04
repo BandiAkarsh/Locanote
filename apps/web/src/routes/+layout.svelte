@@ -6,29 +6,54 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 	// ========================================================================
 	// IMPORTS
 	// ========================================================================
-	import { onMount, type Snippet } from 'svelte';               // Type for renderable content
-	import { theme } from '$stores/theme.svelte';                 // Theme store
-	import { isBrowser } from '$utils/browser';                   // Browser check
+	import { onMount, type Snippet } from 'svelte';               
+	import { theme } from '$stores/theme.svelte';                 
+	import { isBrowser } from '$utils/browser';                   
   import { BackgroundProvider, OfflineBanner } from '$components';
   import { dev } from '$app/environment';
-	import '../app.css';                                          // Global CSS (Tailwind + custom styles)
+	import '../app.css';                                          
 
 	// ========================================================================
-	// PROPS (Data received from SvelteKit)
+	// PROPS
 	// ========================================================================
-	let { children }: { children: Snippet } = $props();           // Destructure the children prop
+	let { children }: { children: Snippet } = $props();           
 
 	// ========================================================================
-	// SERVICE WORKER REGISTRATION
+	// GLOBAL MOUSE TRACKER (Zero UI Spatial Bridge)
+	// ========================================================================
+	let mouseX = $state(50);
+	let mouseY = $state(50);
+
+	function handleMouseMove(e: MouseEvent) {
+		mouseX = (e.clientX / window.innerWidth) * 100;
+		mouseY = (e.clientY / window.innerHeight) * 100;
+		
+		// Set CSS variables for Aura/Crystalline reactivity
+		document.documentElement.style.setProperty('--mouse-x', `${mouseX}%`);
+		document.documentElement.style.setProperty('--mouse-y', `${mouseY}%`);
+	}
+
+	// ========================================================================
+	// SERVICE WORKER & BATTERY SCOUT
 	// ========================================================================
 	onMount(() => {
 		if (isBrowser && 'serviceWorker' in navigator && !dev) {
 			navigator.serviceWorker.register('/service-worker.js', {
 				type: 'module'
-			}).then(reg => {
-				console.log('[SW] Registered successfully');
-			}).catch(err => {
-				console.error('[SW] Registration failed:', err);
+			});
+		}
+
+		// Zero UI: Battery-Saver Auto-Switch
+		if (isBrowser && 'getBattery' in navigator) {
+			(navigator as any).getBattery().then((battery: any) => {
+				const checkBattery = () => {
+					if (battery.charging === false && battery.level < 0.2) {
+						console.log('[ZeroUI] Low battery detected. Switching to Obsidian Glass.');
+						theme.setDark();
+					}
+				};
+				battery.addEventListener('levelchange', checkBattery);
+				checkBattery();
 			});
 		}
 	});
@@ -36,13 +61,9 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 	// ========================================================================
 	// THEME & ACCENT SYNC
 	// ========================================================================
-	// Keep the DOM in sync with the theme store
 	$effect(() => {
 		if (!isBrowser) return;
-		
 		const html = document.documentElement;
-		
-		// Sync Dark/Light Mode
 		if (theme.isDark) {
 			html.classList.add('dark');
 			html.setAttribute('data-theme', 'dark');
@@ -50,19 +71,45 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 			html.classList.remove('dark');
 			html.setAttribute('data-theme', 'light');
 		}
-
-		// Sync Accent Color & Visual Theme
 		html.setAttribute('data-accent', theme.accent);
-    html.setAttribute('data-visual-theme', theme.style);
 	});
 </script>
 
-<!-- Global Background Layer -->
+<svelte:window onmousemove={handleMouseMove} />
+
+<!-- 1. PHYSICAL OPTICS ENGINE (SVG Refraction Filter) -->
+<svg class="sr-only" width="0" height="0">
+	<filter id="refraction" x="-20%" y="-20%" width="140%" height="140%">
+		<feTurbulence 
+			type="fractalNoise" 
+			baseFrequency="0.015" 
+			numOctaves="3" 
+			result="noise" 
+		/>
+		<feDisplacementMap 
+			in="SourceGraphic" 
+			in2="noise" 
+			scale="15" 
+			xChannelSelector="R" 
+			yChannelSelector="G" 
+		/>
+	</filter>
+</svg>
+
+<!-- 2. IMMERSIVE BACKGROUND LAYER -->
 <BackgroundProvider />
 
-<!-- Global Connectivity Alert -->
+<!-- 3. GLOBAL ALERTS -->
 <OfflineBanner />
 
-<div class="min-h-screen transition-colors duration-300 relative z-0">
+<div class="min-h-screen relative z-0 selection:bg-primary/30">
 	{@render children()}
 </div>
+
+<style>
+	/* Global View Transitions Polish */
+	:global(::view-transition-old(root)),
+	:global(::view-transition-new(root)) {
+		animation-duration: 0.5s;
+	}
+</style>
