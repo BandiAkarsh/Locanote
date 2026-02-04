@@ -27,11 +27,11 @@ INPUT COMPONENT (Input.svelte)
 	const inputId = $derived(id ?? `input-${Math.random().toString(36).slice(2, 9)}`);
 </script>
 
-<div class="flex flex-col gap-1.5 {className}">
+<div class="flex flex-col gap-2 {className}">
 	{#if label}
 		<label
 			for={inputId}
-			class="text-sm font-bold text-[var(--ui-text)] ml-1"
+			class="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-4"
 		>
 			{label}
 		</label>
@@ -45,24 +45,24 @@ INPUT COMPONENT (Input.svelte)
 		aria-invalid={error ? 'true' : undefined}
 		aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
 		class="
-			w-full rounded-[var(--ui-radius)] border px-4 py-3
-			text-[var(--ui-text)] placeholder-[var(--ui-text-muted)]
-			bg-[var(--ui-surface)] border-[var(--ui-border)]
-      backdrop-blur-[var(--ui-blur)]
-			transition-all duration-300
-			focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary
-			disabled:opacity-50 disabled:cursor-not-allowed
-			{error ? 'border-red-500 focus:ring-red-500/20 focus:border-red-500' : ''}
+			w-full px-6 py-4 rounded-2xl
+			text-[var(--ui-text)] placeholder-white/20
+			bg-white/5 border border-white/10
+      backdrop-blur-xl
+			transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)
+			focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
+			disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale
+			{error ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10' : ''}
 		"
 		{...restProps}
 	/>
 
 	{#if error}
-		<p id="{inputId}-error" class="text-xs font-medium text-red-500 ml-1" role="alert">
+		<p id="{inputId}-error" class="text-[10px] font-black uppercase tracking-widest text-red-500 ml-4 animate-in fade-in slide-in-from-top-1" role="alert">
 			{error}
 		</p>
 	{:else if hint}
-		<p id="{inputId}-hint" class="text-xs text-[var(--ui-text-muted)] ml-1">
+		<p id="{inputId}-hint" class="text-[10px] font-bold text-[var(--ui-text-muted)] ml-4 opacity-60">
 			{hint}
 		</p>
 	{/if}
