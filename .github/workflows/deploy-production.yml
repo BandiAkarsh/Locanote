@@ -12,6 +12,10 @@
 
 name: Production Deployment
 
+permissions:
+  contents: read
+  deployments: write
+
 on:
   push:
     branches:
