@@ -27,4 +27,6 @@ export { default as ShareModal } from "./ShareModal.svelte"; // Social sharing m
 export { default as TemplateModal } from "./TemplateModal.svelte"; // Template selection modal
 export { default as SearchBar } from "./SearchBar.svelte"; // Search input with filters
 export { default as ExportModal } from "./ExportModal.svelte"; // Export to MD/HTML/PDF
+export { default as BackgroundProvider } from "./BackgroundProvider.svelte"; // Futuristic background engine
+export { default as SpatialDock } from "./SpatialDock.svelte"; // Floating navigation dock
 export { default as ThemeBackground } from "./ThemeBackground.svelte"; // Animated background

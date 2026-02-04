@@ -9,7 +9,7 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 	import { onMount, type Snippet } from 'svelte';               // Type for renderable content
 	import { theme } from '$stores/theme.svelte';                 // Theme store
 	import { isBrowser } from '$utils/browser';                   // Browser check
-  import { ThemeBackground, OfflineBanner } from '$components';
+  import { BackgroundProvider, OfflineBanner } from '$components';
   import { dev } from '$app/environment';
 	import '../app.css';                                          // Global CSS (Tailwind + custom styles)
 
@@ -58,7 +58,7 @@ ROOT LAYOUT COMPONENT (+layout.svelte)
 </script>
 
 <!-- Global Background Layer -->
-<ThemeBackground />
+<BackgroundProvider />
 
 <!-- Global Connectivity Alert -->
 <OfflineBanner />

@@ -11,7 +11,7 @@ PLACEMENT: apps/web/src/routes/app/+layout.svelte
   import { auth } from '$stores/auth.svelte';
   import { theme } from '$stores/theme.svelte';
   import { goto } from '$app/navigation';
-  import { OfflineBanner } from '$components';
+  import { OfflineBanner, SpatialDock } from '$components';
   import type { Snippet } from 'svelte';
 
   // Props
@@ -55,7 +55,7 @@ PLACEMENT: apps/web/src/routes/app/+layout.svelte
             
             <!-- Theme Toggle -->
             <button
-              onclick={() => theme.toggle()}
+              onclick={(e) => theme.toggle(e)}
               class="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               title={theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-label={theme.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -88,6 +88,9 @@ PLACEMENT: apps/web/src/routes/app/+layout.svelte
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {@render children()}
     </main>
+
+    <!-- Futuristic Dock -->
+    <SpatialDock />
   </div>
 {:else}
   <!-- Show loading or nothing while checking auth -->
