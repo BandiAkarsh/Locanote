@@ -17,11 +17,11 @@ INTENT TOOLBAR (IntentToolbar.svelte)
 
   // Mode-specific labels and themes (Linear style with physical glass colors)
   const modeInfo = {
-    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool, themeColor: 'rgba(16, 185, 129, 0.4)' },
-    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool, themeColor: 'rgba(59, 130, 246, 0.4)' },
-    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool, themeColor: 'rgba(99, 102, 241, 0.4)' },
-    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null, themeColor: 'rgba(244, 63, 94, 0.3)' },
-    none: { label: '', color: '', icon: '', component: null, themeColor: 'transparent' }
+    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool, themeColor: 'rgba(16, 185, 129, 0.4)', hex: '#10b981', rgb: '16, 185, 129' },
+    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool, themeColor: 'rgba(59, 130, 246, 0.4)', hex: '#3b82f6', rgb: '59, 130, 246' },
+    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool, themeColor: 'rgba(99, 102, 241, 0.4)', hex: '#6366f1', rgb: '99, 102, 241' },
+    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null, themeColor: 'rgba(244, 63, 94, 0.3)', hex: '#f43f5e', rgb: '244, 63, 94' },
+    none: { label: '', color: '', icon: '', component: null, themeColor: 'transparent', hex: '#6366f1', rgb: '99, 102, 241' }
   };
 
   /**
@@ -31,20 +31,13 @@ INTENT TOOLBAR (IntentToolbar.svelte)
   $effect(() => {
     if (typeof document !== 'undefined') {
       const mode = intent.currentMode;
-      const color = modeInfo[mode].themeColor;
+      const active = modeInfo[mode];
       
       // Update global CSS tokens for Glassmorphism 2.0
-      document.documentElement.style.setProperty('--intent-bg-shift', color);
-      
-      // Also update primary accent to match mode
-      if (mode !== 'none') {
-        const brandColor = mode === 'recipe' ? '#10b981' : 
-                          mode === 'task' ? '#3b82f6' : 
-                          mode === 'code' ? '#6366f1' : '#f43f5e';
-        document.documentElement.style.setProperty('--accent-liquid', brandColor);
-      } else {
-        document.documentElement.style.setProperty('--accent-liquid', '#6366f1');
-      }
+      document.documentElement.style.setProperty('--intent-bg-shift', active.themeColor);
+      document.documentElement.style.setProperty('--accent-liquid', active.hex);
+      document.documentElement.style.setProperty('--accent-liquid-rgb', active.rgb);
+      document.documentElement.style.setProperty('--accent-glow', `rgba(${active.rgb}, 0.5)`);
     }
   });
 </script>
@@ -78,8 +71,8 @@ INTENT TOOLBAR (IntentToolbar.svelte)
     
     <!-- Context-Specific Snap-ins (GenUI Atoms) -->
     {#if intent.currentMode !== 'none' && modeInfo[intent.currentMode].component}
+      {@const CustomTool = modeInfo[intent.currentMode].component}
       <div in:fly={{ x: 30, duration: 800 }} class="flex items-center gap-2 pl-4 border-l-2 border-[var(--ui-border)] ml-2">
-        {@const CustomTool = modeInfo[intent.currentMode].component}
         <CustomTool {editor} />
       </div>
     {/if}
