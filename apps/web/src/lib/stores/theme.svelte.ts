@@ -138,10 +138,45 @@ function createThemeStore() {
     get isDark(): boolean {
       return isDark;
     },
-    toggle() {
-      currentTheme = isDark ? "light" : "dark";
-      const storage = getLocalStorage();
-      if (storage) storage.setItem(THEME_KEY, currentTheme);
+    async toggle(event?: MouseEvent) {
+      const win = getWindow();
+      
+      // Use View Transitions API if supported and event provided
+      if (event && win && 'startViewTransition' in win.document) {
+        const x = event.clientX;
+        const y = event.clientY;
+        const endRadius = Math.hypot(
+          Math.max(x, win.innerWidth - x),
+          Math.max(y, win.innerHeight - y)
+        );
+
+        // @ts-ignore
+        const transition = win.document.startViewTransition(() => {
+          currentTheme = isDark ? "light" : "dark";
+          const storage = getLocalStorage();
+          if (storage) storage.setItem(THEME_KEY, currentTheme);
+        });
+
+        await transition.ready;
+
+        win.document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`
+            ]
+          },
+          {
+            duration: 500,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            pseudoElement: '::view-transition-new(root)'
+          }
+        );
+      } else {
+        currentTheme = isDark ? "light" : "dark";
+        const storage = getLocalStorage();
+        if (storage) storage.setItem(THEME_KEY, currentTheme);
+      }
     },
     setLight() {
       this.current = "light";
