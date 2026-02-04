@@ -7,7 +7,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import Editor from '$lib/editor/Editor.svelte';
-  import Toolbar from '$lib/editor/Toolbar.svelte';
+  import IntentToolbar from '$lib/editor/IntentToolbar.svelte';
   import { Button, ShareModal, Modal, Input, ExportModal } from '$components';
   import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
   import { auth, ui, networkStatus } from '$stores';
@@ -173,7 +173,14 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   }
 
   function goBack() {
-    goto('/app');
+    if ('startViewTransition' in document) {
+      // @ts-ignore
+      document.startViewTransition(() => {
+        goto('/app');
+      });
+    } else {
+      goto('/app');
+    }
   }
 </script>
 
@@ -194,7 +201,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       {#if note}
         <div class="flex flex-col max-w-[150px] sm:max-w-xs">
           <div class="flex items-center gap-2">
-            <h1 class="text-lg sm:text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none truncate">{note.title}</h1>
+            <h1 
+              class="text-lg sm:text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none truncate"
+              style="view-transition-name: note-title-{noteId}"
+            >
+              {note.title}
+            </h1>
             
             <div class="flex items-center" title={networkStatus.syncStatus === 'syncing' ? 'Syncing...' : 'Saved to device'}>
               {#if networkStatus.syncStatus === 'syncing'}
@@ -266,9 +278,11 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     </div>
   </header>
 
-  <!-- Toolbar Container -->
-  <div class="bg-[var(--ui-surface)] border-b border-[var(--ui-border)] px-2 sm:px-4 py-1 z-20 backdrop-blur-[var(--ui-blur)] overflow-x-auto scrollbar-hide">
-    <Toolbar editor={editorInstance} />
+  <!-- Intent-Driven Toolbar -->
+  <div class="bg-transparent px-2 sm:px-4 py-3 z-20 backdrop-blur-[var(--ui-blur)] overflow-x-auto scrollbar-hide flex justify-center">
+    <div class="w-full max-w-5xl">
+      <IntentToolbar editor={editorInstance} />
+    </div>
   </div>
 
   <!-- Main Content -->

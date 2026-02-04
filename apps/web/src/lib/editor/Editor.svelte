@@ -12,10 +12,11 @@ EDITOR COMPONENT (Editor.svelte)
   import Highlight from '@tiptap/extension-highlight';
   import TaskList from '@tiptap/extension-task-list';
   import TaskItem from '@tiptap/extension-task-item';
-  import Typography from '@tiptap/extension-typography';
+  import { Typography } from '@tiptap/extension-typography';
   import { openDocument } from '$crdt/doc.svelte';
   import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
   import { isBrowser } from '$utils/browser';
+  import { intent } from '$lib/services/intent.svelte';
   import Toolbar from './Toolbar.svelte';
 
   // Props
@@ -169,6 +170,10 @@ EDITOR COMPONENT (Editor.svelte)
         injectCSS: false,
         onUpdate: ({ editor }) => {
           if (onUpdate) onUpdate(editor.getJSON());
+          
+          // Trigger intent detection
+          const text = editor.getText();
+          intent.analyze(text);
         },
         onCreate: ({ editor }) => {
           // Check if document already has content from IndexedDB
@@ -244,12 +249,13 @@ EDITOR COMPONENT (Editor.svelte)
       isReady = true;
     }
 
-    return () => {
-      isDestroyed = true;
-      if (editor) {
-        editor.destroy();
-        editor = null;
-      }
+      return () => {
+        isDestroyed = true;
+        intent.reset();
+        if (editor) {
+          editor.destroy();
+          editor = null;
+        }
       if (provider) {
         destroyWebRTCProvider(provider);
         provider = null;

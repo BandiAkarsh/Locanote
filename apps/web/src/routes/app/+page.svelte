@@ -215,7 +215,14 @@ APP DASHBOARD (+page.svelte for /app)
   }
 
   function openNote(noteId: string) {
-    goto(`/app/note/${noteId}`);
+    if ('startViewTransition' in document) {
+      // @ts-ignore
+      document.startViewTransition(() => {
+        goto(`/app/note/${noteId}`);
+      });
+    } else {
+      goto(`/app/note/${noteId}`);
+    }
   }
 
   function confirmDelete(note: Note, event: Event) {
@@ -412,6 +419,7 @@ APP DASHBOARD (+page.svelte for /app)
           role="button"
           tabindex="0"
           onkeydown={(e) => e.key === 'Enter' && openNote(note.id)}
+          style="view-transition-name: note-card-{note.id}"
         >
           <!-- Delete Icon - Persistent on mobile, hover on desktop -->
           <button 
@@ -434,7 +442,10 @@ APP DASHBOARD (+page.svelte for /app)
             </div>
           {/if}
 
-          <h3 class="text-lg font-black text-[var(--ui-text)] mb-2 pr-8 truncate group-hover:text-primary transition-colors">
+          <h3 
+            class="text-lg font-black text-[var(--ui-text)] mb-2 pr-8 truncate group-hover:text-primary transition-colors"
+            style="view-transition-name: note-title-{note.id}"
+          >
             {note.title}
           </h3>
           
@@ -486,6 +497,7 @@ APP DASHBOARD (+page.svelte for /app)
   bind:open={isDeleteModalOpen}
   title="Delete Note?"
   onEnter={handleDelete}
+  type="sheet"
 >
   {#if noteToDelete}
     <div class="space-y-6">

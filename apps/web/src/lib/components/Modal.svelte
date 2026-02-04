@@ -15,6 +15,7 @@ MODAL COMPONENT (Modal.svelte)
 		closeOnEscape?: boolean;                                    
 		size?: Size;
 		onEnter?: () => void;
+		type?: 'modal' | 'sheet'; // 'modal' centers, 'sheet' slides up on mobile
 		children: Snippet;                                          
 	};
 
@@ -26,6 +27,7 @@ MODAL COMPONENT (Modal.svelte)
 		closeOnEscape = true,                                       
 		size = 'default',
 		onEnter,
+		type = 'modal',
 		children                                                   
 	}: Props = $props();
 
@@ -62,13 +64,6 @@ MODAL COMPONENT (Modal.svelte)
 		}
 	}
 
-	function handleKeydown(event: KeyboardEvent) {
-		if (event.key === 'Escape' && closeOnEscape) {
-			event.preventDefault();                                  
-			open = false;                                            
-		}
-	}
-
 	// Focus management: when modal opens, focus the first interactive element
 	$effect(() => {
 		if (open && dialogRef) {
@@ -78,6 +73,7 @@ MODAL COMPONENT (Modal.svelte)
 			}
 		}
 	});
+
 	function handleClose() {
 		open = false;                                              
 	}
@@ -109,6 +105,7 @@ MODAL COMPONENT (Modal.svelte)
 		m-0 p-4 {sizeClasses[size]} w-full max-h-[90vh] mx-auto my-auto
 		bg-transparent backdrop:bg-black/60 backdrop:backdrop-blur-[var(--ui-blur)]
 		open:animate-in open:fade-in open:zoom-in-95
+    {type === 'sheet' ? 'sm:my-auto mb-0 rounded-t-3xl sm:rounded-3xl' : ''}
 	"
 >
 	<div
@@ -121,9 +118,10 @@ MODAL COMPONENT (Modal.svelte)
 		role="dialog"
 		aria-modal="true"
 		class="
-			themed-card
+			premium-card
 			p-6
 			flex flex-col gap-4
+      {type === 'sheet' ? 'rounded-t-3xl sm:rounded-3xl' : ''}
 		"
 	>
 		{#if title}
@@ -176,11 +174,22 @@ MODAL COMPONENT (Modal.svelte)
 		to { transform: scale(1); }
 	}
 
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
 	dialog[open] {
 		animation:
 			fade-in 200ms ease-out,
 			zoom-in 200ms ease-out;
 	}
+
+  @media (max-width: 640px) {
+    dialog[data-type="sheet"][open] {
+      animation: slide-up 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
 
 	dialog[open]::backdrop {
 		animation: fade-in 200ms ease-out;
