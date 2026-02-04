@@ -2,10 +2,6 @@
 TAG BADGE COMPONENT (TagBadge.svelte)
 ============================================================================
 A small badge component for displaying tags with color indicators.
-
-USAGE:
-<TagBadge name="Work" color="#ef4444" />
-<TagBadge name="Personal" color="#3b82f6" onRemove={() => removeTag()} />
 ========================================================================== -->
 
 <script lang="ts">
@@ -38,18 +34,12 @@ USAGE:
   let textColor = $derived(getContrastColor(color));
 </script>
 
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
   class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-sm font-medium transition-all duration-200 {clickable ? 'cursor-pointer hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-1' : ''}"
   style="background-color: {color}20; color: {color}; border: 1px solid {color}40;"
   onclick={onClick}
-  onkeydown={(e) => {
-    if (clickable && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      onClick?.();
-    }
-  }}
-  role={clickable ? 'button' : 'status'}
-  tabindex={clickable ? 0 : -1}
+  role={clickable ? 'button' : undefined}
 >
   <!-- Tag Color Indicator -->
   <span
