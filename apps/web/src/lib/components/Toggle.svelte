@@ -23,7 +23,7 @@
     ></span>
   </button>
   {#if label}
-    <label for={toggleId} class="text-sm font-bold text-[var(--ui-text)] cursor-pointer" onclick={() => checked = !checked}>
+    <label for={toggleId} class="text-sm font-bold text-[var(--ui-text)] cursor-pointer">
       {label}
     </label>
   {/if}
