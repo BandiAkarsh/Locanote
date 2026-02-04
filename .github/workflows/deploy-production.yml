@@ -12,10 +12,6 @@
 
 name: Production Deployment
 
-permissions:
-  contents: read
-  deployments: write
-
 on:
   push:
     branches:
@@ -103,5 +99,4 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.ACCOUNT_ID }}
           projectName: locanote
           directory: apps/web/build
-          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: main
