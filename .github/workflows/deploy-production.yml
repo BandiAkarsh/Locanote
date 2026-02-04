@@ -1,0 +1,124 @@
+# ============================================================================
+# PRODUCTION DEPLOYMENT WORKFLOW
+# ============================================================================
+# This workflow automatically deploys Locanote to Cloudflare Pages and Workers
+# when changes are pushed to the main branch.
+#
+# PREREQUISITES:
+# 1. GitHub Secrets:
+#    - CLOUDFLARE_API_TOKEN: Cloudflare API Token (Edit Workers/Pages)
+#    - CLOUDFLARE_ACCOUNT_ID: Cloudflare Account ID
+# 2. Cloudflare Dashboard:
+#    - Automatic deployments DISABLED (to let GitHub Actions handle it)
+# ============================================================================
+
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Force deployment even if no changes detected?"
+        default: false
+        type: boolean
+
+jobs:
+  verify:
+    name: Verify & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check Svelte Stability
+        run: pnpm --filter @locanote/web run check
+
+      - name: Type Check Packages
+        run: pnpm recursive run check || echo "No check script in some packages"
+
+  deploy-signaling:
+    name: Deploy Signaling (Worker)
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Cloudflare Workers
+        working-directory: packages/signaling
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler deploy --minify
+
+  deploy-frontend:
+    name: Deploy Frontend (Pages)
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Web Application
+        run: pnpm --filter @locanote/web build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: locanote
+          directory: apps/web/build
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: main

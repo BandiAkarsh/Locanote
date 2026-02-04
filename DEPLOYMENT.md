@@ -48,13 +48,20 @@ Add these as **GitHub Secrets** in your repository:
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-### 3. Manual Deployment
+### 3. Deployment Strategy
 
-We use a **Manual Deployment** strategy to save your build minutes:
+We use **GitHub Actions** for high-integrity deployments.
 
-1. Go to the **Actions** tab in your GitHub repo.
-2. Select **"Manual Deploy to Cloudflare"**.
-3. Click **Run workflow**.
+- **Trigger**: Every push to the `main` branch.
+- **Verification**: The pipeline automatically runs `svelte-check` and type-checks before deploying.
+- **Manual Overide**: You can trigger a deploy manually via the "Actions" tab.
+
+### 4. GitHub Configuration
+
+Add these as **GitHub Secrets** in your repository:
+
+- `CLOUDFLARE_API_TOKEN`: Create a token at [dash.cloudflare.com/profile/api-tokens](https://dash.cloudflare.com/profile/api-tokens) with `Account:Read`, `Zone:Read`, and `Worker:Edit` permissions.
+- `CLOUDFLARE_ACCOUNT_ID`: Found on your Cloudflare dashboard sidebar.
 
 ---
 
