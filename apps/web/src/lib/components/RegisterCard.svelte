@@ -24,7 +24,7 @@ REGISTRATION CARD (RegisterCard.svelte)
   let username = $state('');
   let password = $state('');
   let confirmPassword = $state('');
-  let selectedMethod: 'passkey' | 'password' | null = $state(null);
+  let selectedMethod = $state<'passkey' | 'password' | null>(null);
   let isLoading = $state(false);
 
   // Password validation
