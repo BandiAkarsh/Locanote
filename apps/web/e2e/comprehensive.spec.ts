@@ -27,27 +27,27 @@ test.describe("Comprehensive App Test", () => {
 
   test("User lifecycle: Register -> Create -> GenUI -> Search -> Export", async ({ page }) => {
     // 1. REGISTRATION
-    const switchToRegisterBtn = page.locator('button:has-text("Create one")');
+    const switchToRegisterBtn = page.locator('button:has-text("Materialize an Identity")');
     await switchToRegisterBtn.waitFor({ state: "visible", timeout: 15000 });
     await switchToRegisterBtn.click();
     
     await page.locator("#reg-username").fill("full_user_" + Date.now());
     
     // Select Password method
-    const passwordMethodBtn = page.locator('button:has-text("Password")').filter({ hasText: "Traditional credentials" });
+    const passwordMethodBtn = page.locator('button:has-text("Password")').first();
     await passwordMethodBtn.click();
     
     await page.locator("#reg-password").fill("TestPass123!");
-    await page.locator("#reg-confirm-password").fill("TestPass123!");
+    await page.locator("#reg-confirm").fill("TestPass123!");
     
-    const submitBtn = page.locator('button:has-text("Create Account")').filter({ hasText: /^Create Account$/ });
+    const submitBtn = page.locator('button:has-text("Initialize Link")');
     await expect(submitBtn).toBeEnabled();
     await submitBtn.click();
     
     // Wait for Dashboard
     await page.waitForURL("**/app**", { timeout: 25000 });
     // Use the specific header on the app page
-    await expect(page.locator('h1:has-text("Welcome back")')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('h1:has-text("Welcome,")')).toBeVisible({ timeout: 15000 });
 
     // 2. CREATE FROM TEMPLATE
     await page.locator('button:has-text("Template")').first().click();
