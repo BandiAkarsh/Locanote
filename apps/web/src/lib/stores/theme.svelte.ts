@@ -151,10 +151,12 @@ function createThemeStore() {
         );
 
         // @ts-ignore
-        const transition = win.document.startViewTransition(() => {
+        const transition = win.document.startViewTransition(async () => {
           currentTheme = isDark ? "light" : "dark";
           const storage = getLocalStorage();
           if (storage) storage.setItem(THEME_KEY, currentTheme);
+          // Wait for Svelte to apply the class to the document
+          await new Promise(resolve => setTimeout(resolve, 0));
         });
 
         await transition.ready;
@@ -168,7 +170,7 @@ function createThemeStore() {
           },
           {
             duration: 500,
-            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+            easing: 'ease-in-out',
             pseudoElement: '::view-transition-new(root)'
           }
         );
