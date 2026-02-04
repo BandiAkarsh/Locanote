@@ -12,23 +12,47 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   let animationFrame: number = 0;
   let time = 0;
 
-  // Global Mouse Parallax State
-  let mouseX = $state(0.5);
-  let mouseY = $state(0.5);
+  // Global Interaction State (Mouse & Touch)
+  let interactX = $state(0.5);
+  let interactY = $state(0.5);
 
-  function handleMouseMove(e: MouseEvent) {
+  function handleInteraction(x: number, y: number) {
     if (typeof window === 'undefined') return;
-    mouseX = e.clientX / window.innerWidth;
-    mouseY = e.clientY / window.innerHeight;
+    interactX = x / window.innerWidth;
+    interactY = y / window.innerHeight;
     
-    document.documentElement.style.setProperty('--mouse-x-raw', mouseX.toString());
-    document.documentElement.style.setProperty('--mouse-y-raw', mouseY.toString());
+    // Set raw variables for CSS 3D parallax
+    document.documentElement.style.setProperty('--mouse-x-raw', interactX.toString());
+    document.documentElement.style.setProperty('--mouse-y-raw', interactY.toString());
+  }
+
+  function onMouseMove(e: MouseEvent) {
+    handleInteraction(e.clientX, e.clientY);
+  }
+
+  function onTouchMove(e: TouchEvent) {
+    if (e.touches.length > 0) {
+      handleInteraction(e.touches[0].clientX, e.touches[0].clientY);
+    }
   }
 
   // Reactive background selection based on UI state and performance
   let currentStyle = $derived(
     performanceScout.tier === 'low' ? 'aura' : ui.backgroundStyle
   );
+
+  // Dynamic Accent Colors (Material-Aware)
+  const accentColors: Record<string, string> = {
+    indigo: '99, 102, 241',
+    violet: '139, 92, 246',
+    rose: '244, 63, 94',
+    emerald: '16, 185, 129',
+    amber: '245, 158, 11',
+    blue: '59, 130, 246',
+    fuchsia: '217, 70, 239'
+  };
+
+  let activeAccentRGB = $derived(accentColors[theme.accent] || '99, 102, 241');
 
   onMount(() => {
     return () => {
@@ -70,42 +94,35 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
     time += 0.002;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Dynamic Accent Colors (Material-Aware)
     const isDark = theme.isDark;
     
-    // Fill background with subtle base color to avoid "white flashes"
-    ctx.fillStyle = isDark ? 'rgba(5, 5, 10, 1)' : 'rgba(255, 255, 255, 1)';
+    // Fill background with deep neutral to make glass pop
+    ctx.fillStyle = isDark ? '#020205' : '#eef2f6';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    // Read the current liquid accent from computed style to ensure it matches Intent Engine
-    let accentRGB = '99, 102, 241';
-    if (typeof document !== 'undefined') {
-      const style = getComputedStyle(document.documentElement);
-      accentRGB = style.getPropertyValue('--accent-liquid-rgb').trim() || '99, 102, 241';
-    }
-    
-    const accent = `rgba(${accentRGB}, ${isDark ? 0.25 : 0.2})`;
-    const secondary = isDark ? 'rgba(168, 85, 247, 0.20)' : 'rgba(168, 85, 247, 0.15)';
-    const tertiary = isDark ? 'rgba(236, 72, 153, 0.18)' : 'rgba(236, 72, 153, 0.12)';
+    // Use the reactive accent color with higher opacity
+    const accent = `rgba(${activeAccentRGB}, ${isDark ? 0.4 : 0.35})`;
+    const secondary = isDark ? 'rgba(168, 85, 247, 0.3)' : 'rgba(168, 85, 247, 0.2)';
+    const tertiary = isDark ? 'rgba(236, 72, 153, 0.25)' : 'rgba(236, 72, 153, 0.15)';
 
     // React to mouse parallax
-    const offsetX = (mouseX - 0.5) * 150;
-    const offsetY = (mouseY - 0.5) * 150;
+    const offsetX = (interactX - 0.5) * 200;
+    const offsetY = (interactY - 0.5) * 200;
 
     drawBlob(
-      centerX + Math.cos(time * 0.7) * (canvas.width * 0.2) + offsetX,
+      centerX + Math.cos(time * 0.7) * (canvas.width * 0.25) + offsetX,
       centerY + Math.sin(time * 0.5) * (canvas.height * 0.2) + offsetY,
-      canvas.width * 0.5,
+      canvas.width * 0.6,
       accent
     );
     
     drawBlob(
       centerX + Math.sin(time * 0.4) * (canvas.width * 0.35) - offsetX,
-      centerY + Math.cos(time * 0.6) * (canvas.height * 0.15) - offsetY,
-      canvas.width * 0.6,
+      centerY + Math.cos(time * 0.6) * (canvas.height * 0.2) - offsetY,
+      canvas.width * 0.7,
       secondary
     );
     
@@ -132,7 +149,11 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   }
 </script>
 
-<svelte:window onresize={resize} onmousemove={handleMouseMove} />
+<svelte:window 
+  onresize={resize} 
+  onmousemove={onMouseMove} 
+  ontouchmove={onTouchMove}
+/>
 
 <div class="fixed inset-0 -z-100 overflow-hidden bg-[var(--ui-bg)] transition-colors duration-1000">
   <!-- 1. NEBULA (Liquid Mesh) -->
@@ -152,18 +173,18 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   <!-- 3. CRYSTALLINE (3D Shards) -->
   {:else if currentStyle === 'crystalline'}
     <div class="crystalline-container absolute inset-0" style="perspective: 2000px;">
-      {#each Array(18) as _, i}
+      {#each Array(20) as _, i}
         <div 
           class="shard"
           style="
             left: {Math.random() * 100}%; 
             top: {Math.random() * 100}%; 
             width: {150 + Math.random() * 250}px;
-            height: {250 + Math.random() * 400}px;
+            height: {250 + Math.random() * 450}px;
             --delay: {i * 0.3}s;
             --rotateZ: {Math.random() * 360}deg;
-            --speed: {12 + Math.random() * 18}s;
-            --opacity: {0.1 + Math.random() * 0.25};
+            --speed: {10 + Math.random() * 20}s;
+            --opacity: {0.15 + Math.random() * 0.25};
           "
         ></div>
       {/each}
@@ -178,7 +199,7 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   <div class="liquid-mesh"></div>
   
   <!-- Native CSS Grain (100% Offline) -->
-  <div class="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay bg-noise"></div>
+  <div class="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-overlay bg-noise"></div>
 </div>
 
 <style>
@@ -208,30 +229,30 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
 
   /* CRYSTALLINE SHARDS (PHYSICAL 3D) */
   .crystalline-container {
-    background: linear-gradient(to bottom, var(--ui-bg), rgba(var(--accent-liquid-rgb), 0.08));
+    background: linear-gradient(to bottom, var(--ui-bg), rgba(var(--accent-liquid-rgb), 0.12));
   }
   
   .shard {
     position: absolute;
-    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 70%);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 70%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.3);
     clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
     animation: shard-float var(--speed) infinite linear;
     animation-delay: var(--delay);
-    box-shadow: 0 0 40px rgba(var(--accent-liquid-rgb), 0.15);
-    /* 3D Parallax Transform */
+    box-shadow: 0 0 50px rgba(var(--accent-liquid-rgb), 0.2);
+    /* High-Fidelity 3D Transforms */
     transform: 
         rotateZ(var(--rotateZ)) 
-        rotateX(calc(var(--mouse-y-raw, 0.5) * 20deg)) 
-        rotateY(calc(var(--mouse-x-raw, 0.5) * 20deg));
-    transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
+        rotateX(calc(var(--mouse-y-raw, 0.5) * 40deg - 20deg)) 
+        rotateY(calc(var(--mouse-x-raw, 0.5) * 40deg - 20deg));
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
   }
 
   @keyframes shard-float {
     0% { transform: translateY(110vh) rotateZ(0deg) rotateX(20deg) scale(0.7); opacity: 0; }
     10% { opacity: var(--opacity); }
     90% { opacity: var(--opacity); }
-    100% { transform: translateY(-20vh) rotateZ(360deg) rotateX(-20deg) scale(1.3); opacity: 0; }
+    100% { transform: translateY(-20vh) rotateZ(360deg) rotateX(-20deg) scale(1.4); opacity: 0; }
   }
 </style>
