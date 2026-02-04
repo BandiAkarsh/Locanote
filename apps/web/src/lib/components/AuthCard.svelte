@@ -54,7 +54,14 @@ AUTHENTICATION CARD (AuthCard.svelte)
       <p class="text-[var(--ui-text-muted)] font-medium text-lg text-balance">Synchronize your thoughts across the liquid web.</p>
     </header>
 
-    <div class="space-y-8">
+    <form 
+      class="space-y-8" 
+      onsubmit={(e) => { 
+        e.preventDefault(); 
+        if (showPasswordForm) handlePasswordLogin(); 
+        else handlePasskeyLogin();
+      }}
+    >
       <div class="space-y-3">
         <label for="auth-username" class="text-[11px] font-black uppercase tracking-[0.3em] text-primary ml-6">Neural Identity</label>
         <input
@@ -80,8 +87,8 @@ AUTHENTICATION CARD (AuthCard.svelte)
             type="password"
             bind:value={password}
             placeholder="••••••••"
+            autocomplete="current-password"
             class="w-full px-8 py-5 rounded-3xl bg-white/5 border border-white/10 text-[var(--ui-text)] placeholder-white/20 focus:outline-none focus:border-primary focus:ring-8 focus:ring-primary/5 transition-all text-xl"
-            onkeydown={(e) => e.key === 'Enter' && handlePasswordLogin()}
           />
         </div>
       {/if}
@@ -96,6 +103,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
       <div class="space-y-5 pt-4">
         {#if !showPasswordForm}
           <button
+            type="button"
             onclick={handlePasskeyLogin}
             disabled={isLoading}
             class="w-full py-6 rounded-[2rem] bg-primary text-white font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
@@ -103,6 +111,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
             Connect Passkey
           </button>
           <button
+            type="button"
             onclick={() => showPasswordForm = true}
             class="w-full py-5 rounded-[2rem] glass-2 text-[var(--ui-text)] font-black uppercase tracking-widest text-xs hover:bg-white/5 transition-all"
           >
@@ -110,7 +119,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
           </button>
         {:else}
           <button
-            onclick={handlePasswordLogin}
+            type="submit"
             disabled={isLoading || !username || !password}
             class="w-full py-6 rounded-[2rem] bg-primary text-white font-black uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
           >
@@ -121,6 +130,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
             {/if}
           </button>
           <button
+            type="button"
             onclick={() => { showPasswordForm = false; password = ''; }}
             class="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-[var(--ui-text-muted)] hover:text-primary transition-colors"
           >
@@ -128,7 +138,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
           </button>
         {/if}
       </div>
-    </div>
+    </form>
 
     <footer class="text-center pt-10 border-t border-white/5">
       <button 

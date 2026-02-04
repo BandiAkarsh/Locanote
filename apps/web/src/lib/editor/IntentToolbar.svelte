@@ -3,47 +3,34 @@ INTENT TOOLBAR (IntentToolbar.svelte)
 ============================================================================ -->
 
 <script lang="ts">
-  import type { Editor } from '@tiptap/core';
   import { intent } from '$lib/services/intent.svelte';
-  import Toolbar from './Toolbar.svelte';
+  import { ui } from '$stores';
   import { fly, fade } from 'svelte/transition';
-  
-  // Custom tools for GenUI
+  import type { Editor } from '@tiptap/core';
   import ChefTool from './tools/ChefTool.svelte';
   import ProjectTool from './tools/ProjectTool.svelte';
   import DevTool from './tools/DevTool.svelte';
-
+  import Toolbar from './Toolbar.svelte';
+  
   let { editor }: { editor: Editor | null } = $props();
 
-  // Mode-specific labels and themes (Linear style with physical glass colors)
-  const modeInfo = {
-    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool, themeColor: 'rgba(16, 185, 129, 0.4)', hex: '#10b981', rgb: '16, 185, 129' },
-    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool, themeColor: 'rgba(59, 130, 246, 0.4)', hex: '#3b82f6', rgb: '59, 130, 246' },
-    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool, themeColor: 'rgba(99, 102, 241, 0.4)', hex: '#6366f1', rgb: '99, 102, 241' },
-    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null, themeColor: 'rgba(244, 63, 94, 0.3)', hex: '#f43f5e', rgb: '244, 63, 94' },
-    none: { label: '', color: '', icon: '', component: null, themeColor: 'transparent', hex: '#6366f1', rgb: '99, 102, 241' }
+  const modeInfo: Record<string, any> = {
+    recipe: { label: 'Chef Mode', icon: '👨‍🍳', component: ChefTool },
+    task: { label: 'Project Mode', icon: '🚀', component: ProjectTool },
+    code: { label: 'Developer Mode', icon: '💻', component: DevTool },
+    journal: { label: 'Journal Mode', icon: '✍️', component: null },
+    none: { label: '', icon: '', component: null }
   };
 
-  /**
-   * GenUI Immersive Environment Shift
-   * This $effect physically morphs the background material when user intent is detected.
-   */
-  $effect(() => {
-    if (typeof document !== 'undefined') {
-      const mode = intent.currentMode;
-      const active = modeInfo[mode];
-      
-      // Update global CSS tokens for Glassmorphism 2.0
-      document.documentElement.style.setProperty('--intent-bg-shift', active.themeColor);
-      document.documentElement.style.setProperty('--accent-liquid', active.hex);
-      document.documentElement.style.setProperty('--accent-liquid-rgb', active.rgb);
-      document.documentElement.style.setProperty('--accent-glow', `rgba(${active.rgb}, 0.5)`);
-    }
-  });
+  // Debugging intent detection in UI during development/tests
+  let debugIntent = $derived((window as any).__PW_TEST__ ? intent.currentMode : null);
 </script>
 
-<div class="space-y-4 w-full animate-fade-in">
-  <!-- 1. ZERO-UI INTENT INDICATOR -->
+<div class="space-y-4 w-full animate-fade-in" data-intent={intent.currentMode}>
+  {#if debugIntent}
+    <div class="hidden" id="pw-intent-status">{debugIntent}</div>
+  {/if}
+  
   {#if intent.currentMode !== 'none'}
     <div 
       in:fly={{ y: -10, duration: 600, easing: (t) => t === 1 ? 1 : 1 - Math.pow(2, -10 * t) }} 

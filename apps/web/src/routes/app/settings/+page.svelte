@@ -4,7 +4,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
 
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { auth, theme, ui, type AccentColor, type VisualStyle } from '$stores';
+  import { auth, theme, ui } from '$stores';
   import { performanceScout } from '$lib/utils/performance.svelte';
   import { Button, Modal, Toggle } from '$components';
   import { fly, fade } from 'svelte/transition';

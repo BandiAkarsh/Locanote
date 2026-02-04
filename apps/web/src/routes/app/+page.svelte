@@ -5,7 +5,7 @@ APP DASHBOARD (+page.svelte for /app)
 <script lang="ts">
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
-  import { auth, ui, networkStatus } from '$stores';
+  import { auth, ui } from '$stores';
   import { createNewNote, getUserNotes, deleteUserNote } from '$lib/services/notes.svelte';
   import { Button, Modal, TemplateModal, SearchBar, TagBadge } from '$components';
   import { searchNotes, getAllTags, semanticSearch } from '$lib/services/search.svelte';
@@ -26,9 +26,25 @@ APP DASHBOARD (+page.svelte for /app)
   let searchQuery = $state('');
   let selectedTag = $state<string | null>(null);
   let availableTags = $state<{ name: string; color: string }[]>([]);
-  let filteredNotes = $state<Note[]>([]);
+  let semanticResults = $state<Note[] | null>(null);
   let isSearching = $state(false);
-  let hasActiveFilters = $derived(searchQuery.length > 0 || selectedTag !== null);
+
+  // Instant Search via Svelte 5 Derived Rune
+  let filteredNotes = $derived.by(() => {
+    // If we have manual semantic results, prioritize them
+    if (semanticResults !== null) return semanticResults;
+    
+    if (!searchQuery && !selectedTag) return notes;
+    
+    const queryLower = searchQuery.toLowerCase().trim();
+    return notes.filter(note => {
+      const titleMatch = !queryLower || note.title.toLowerCase().includes(queryLower);
+      const tagMatch = !selectedTag || note.tags.includes(selectedTag);
+      return titleMatch && tagMatch;
+    });
+  });
+
+  let hasActiveFilters = $derived(searchQuery.length > 0 || selectedTag !== null || semanticResults !== null);
 
   // Keyboard shortcut handler
   function handleKeyDown(event: KeyboardEvent) {
@@ -76,67 +92,55 @@ APP DASHBOARD (+page.svelte for /app)
     setParam('tag', selectedTag || null);
   }
 
-  async function executeSearch() {
-    if (!hasActiveFilters) {
-      filteredNotes = notes;
-      return;
-    }
-    
-    isSearching = true;
-    try {
-      const results = await searchNotes({
-        query: searchQuery,
-        tags: selectedTag ? [selectedTag] : undefined
-      });
-      filteredNotes = results.map(r => r.note);
-    } catch (error) {
-      filteredNotes = notes;
-    } finally {
-      isSearching = false;
-    }
-  }
-
+  // Handle search input change (now instant via $derived)
   function handleSearch(query: string) {
     searchQuery = query;
+    semanticResults = null; // Clear semantic results when typing a new search
     updateUrlParams();
-    executeSearch();
   }
 
   async function handleSemanticSearch(query: string) {
     if (!query.trim()) return;
-    isSearching = true;
+    
     try {
+      isSearching = true;
       const results = await semanticSearch(query);
-      filteredNotes = results.map(r => r.note);
+      semanticResults = results.map(r => r.note);
+      console.log(`[SemanticSearch] Found ${semanticResults.length} results`);
+    } catch (err) {
+      console.error('Semantic search failed:', err);
     } finally {
       isSearching = false;
     }
   }
 
+  // Handle tag selection
   function handleTagSelect(tag: string | null) {
     selectedTag = tag;
+    semanticResults = null; // Clear semantic results when filtering by tag
     updateUrlParams();
-    executeSearch();
   }
 
   function handleClearFilters() {
     searchQuery = '';
     selectedTag = null;
+    semanticResults = null;
     updateUrlParams();
-    filteredNotes = notes;
   }
 
-  onMount(async () => {
-    await loadNotes();
-    const tags = await getAllTags();
-    availableTags = tags.map((tag, index) => ({
-      name: tag,
-      color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'][index % 6]
-    }));
+  onMount(() => {
+    async function init() {
+      await loadNotes();
+      const tags = await getAllTags();
+      availableTags = tags.map((tag, index) => ({
+        name: tag,
+        color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'][index % 6]
+      }));
+      
+      initSearchFromUrl();
+    }
     
-    initSearchFromUrl();
-    if (hasActiveFilters) await executeSearch();
-    else filteredNotes = notes;
+    init();
     
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
@@ -180,14 +184,17 @@ APP DASHBOARD (+page.svelte for /app)
     isDeleteModalOpen = true;
   }
 
+  function closeDeleteModal() {
+    isDeleteModalOpen = false;
+    noteToDelete = null;
+  }
+
   async function handleDelete() {
     if (!noteToDelete) return;
     try {
       const success = await deleteUserNote(noteToDelete.id);
       if (success) {
         notes = notes.filter(n => n.id !== noteToDelete!.id);
-        if (hasActiveFilters) executeSearch();
-        else filteredNotes = notes;
       }
     } finally {
       noteToDelete = null;

@@ -86,6 +86,7 @@ MODAL COMPONENT (Modal.svelte)
 		}
 		if (e.key === 'Enter' && onEnter && !e.shiftKey) {
 			const target = e.target as HTMLElement;
+			// Don't trigger if in textarea or contenteditable (unless it's an input)
 			if (target && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
 				e.preventDefault();
 				onEnter();

@@ -11,7 +11,7 @@ EXPORT MODAL COMPONENT
 		getMimeType,
 		getFileExtension,
 		type ExportFormat
-	} from '$lib/services/export.svelte.ts';
+	} from '$lib/services/export.svelte';
 	import type { JSONContent } from '@tiptap/core';
 
 	// ==========================================================================

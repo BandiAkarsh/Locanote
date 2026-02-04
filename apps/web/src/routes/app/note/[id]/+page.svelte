@@ -11,19 +11,21 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { Button, ShareModal, Modal, Input, ExportModal } from '$components';
   import { getNote, getNoteForCollaboration, updateNoteTitle } from '$lib/services/notes.svelte';
   import { auth, ui, networkStatus } from '$stores';
-  import { isBrowser, base64UrlToUint8Array, base64ToArrayBuffer } from '$utils/browser';
+  import { isBrowser, base64UrlToUint8Array } from '$utils/browser';
   import { storeRoomKey, hasRoomKey, deriveKeyFromPassword, protectRoomWithPassword } from '$crypto/e2e';
   import { setupKeyboardShortcuts } from '$lib/keyboard/shortcuts';
   import { intent } from '$lib/services/intent.svelte';
-  import { fly, fade } from 'svelte/transition';
+  import { fly } from 'svelte/transition';
   import type { Note } from '$db';
+  import type { Editor as TiptapEditor } from '@tiptap/core';
 
-  const noteId = $derived(page.params.id);
+  // Svelte 5 reactive route param
+  const noteId = $derived(page.params.id || '');
 
   let note = $state<Note | null>(null);
   let isLoading = $state(true);
   let error = $state<string | null>(null);
-  let editorInstance = $state.raw(null);
+  let editorInstance = $state.raw<TiptapEditor | null>(null);
   let isShareModalOpen = $state(false);
   let isExportModalOpen = $state(false);
   let isProtectModalOpen = $state(false);
@@ -55,23 +57,28 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     if (isBrowser && window.location.hash.startsWith('#key=')) {
       try {
         const base64UrlKey = window.location.hash.slice(5);
-        const keyBytes = base64UrlToUint8Array(base64UrlKey);
-        storeRoomKey(noteId, keyBytes);
-        replaceState(window.location.pathname, {});
+        const currentId = page.params.id; // Local narrowing for TS
+        if (base64UrlKey && currentId) {
+          const keyBytes = base64UrlToUint8Array(base64UrlKey);
+          storeRoomKey(currentId, keyBytes);
+          replaceState(window.location.pathname, {});
+        }
       } catch (err) {
         console.error('[E2E] Key extraction failed:', err);
       }
     }
   });
 
-  // Reactive Note Loader (Svelte 5)
+  // Reactive Note Loader
   $effect(() => {
-    if (noteId) {
-      loadNoteData(noteId);
+    const currentId = page.params.id;
+    if (currentId) {
+      loadNoteData(currentId);
     }
   });
 
   async function loadNoteData(id: string) {
+    if (!id) return;
     try {
       isLoading = true;
       const loadedNote = await getNoteForCollaboration(id);
@@ -106,12 +113,13 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   }
 
   async function handleTitleSubmit() {
-    if (!noteId || !editedTitle.trim() || editedTitle === note?.title) {
+    const currentId = page.params.id;
+    if (!currentId || !editedTitle.trim() || editedTitle === note?.title) {
       isEditingTitle = false;
       return;
     }
     try {
-      await updateNoteTitle(noteId, editedTitle.trim());
+      await updateNoteTitle(currentId, editedTitle.trim());
       if (note) note.title = editedTitle.trim();
       isEditingTitle = false;
     } catch (err) {}
@@ -125,12 +133,14 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   }
 
   async function handleProtectNote() {
+    const currentId = page.params.id;
+    if (!currentId) return;
     if (protectPassword !== protectConfirmPassword) {
       protectError = "Neural patterns do not match.";
       return;
     }
     try {
-      protectRoomWithPassword(noteId, protectPassword);
+      protectRoomWithPassword(currentId, protectPassword);
       await refreshNote();
       isProtectModalOpen = false;
       protectPassword = '';
@@ -140,12 +150,12 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   }
 
   async function handlePasswordSubmit() {
-    if (!currentSalt) return;
+    const currentId = page.params.id;
+    if (!currentSalt || !currentId) return;
     try {
-      // FIX: salt must be Uint8Array
-      const saltBuffer = base64ToArrayBuffer(currentSalt);
-      const { key } = deriveKeyFromPassword(passwordAttempt, new Uint8Array(saltBuffer));
-      storeRoomKey(noteId, key);
+      const saltBuffer = base64UrlToUint8Array(currentSalt);
+      const { key } = deriveKeyFromPassword(passwordAttempt, saltBuffer);
+      storeRoomKey(currentId, key);
       window.location.reload();
     } catch (err) {
       passwordError = 'Invalid decryption key.';
@@ -153,8 +163,9 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   }
 
   async function refreshNote() {
-    if (!noteId) return;
-    const loadedNote = await getNote(noteId);
+    const currentId = page.params.id;
+    if (!currentId) return;
+    const loadedNote = await getNote(currentId);
     if (loadedNote) note = loadedNote;
   }
 
@@ -167,8 +178,9 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     }
   }
 
-  function handleEditorReady(editor: any) {
+  function handleEditorReady(editor: TiptapEditor) {
     editorInstance = editor;
+    if (isBrowser) (window as any).editorInstance = editor;
     if (editor) {
       setupKeyboardShortcuts(editor, {
         onClose: () => {
@@ -196,6 +208,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
         <div class="flex flex-col max-w-[200px] sm:max-w-md">
           <div class="flex items-center gap-3">
             {#if isEditingTitle}
+              <!-- svelte-ignore a11y_autofocus -->
               <input
                 type="text"
                 bind:value={editedTitle}
@@ -266,7 +279,24 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   <main class="flex-1 overflow-hidden p-4 sm:p-10 relative">
     {#if isLoading}
        <div class="h-full flex items-center justify-center"><div class="w-20 h-20 border-8 border-primary/20 border-t-primary rounded-full animate-spin"></div></div>
-    {:else if note && (!note.isProtected || hasRoomKey(noteId))}
+    {:else if error}
+       <div class="h-full flex items-center justify-center" in:fly={{ y: 20 }}>
+         <div class="glass-2 p-12 rounded-[3rem] text-center space-y-6 max-w-md">
+           <div class="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto border border-red-500/20 shadow-glow">
+              <svg class="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+           </div>
+           <h2 class="text-2xl font-black text-[var(--ui-text)]">Portal Error</h2>
+           <p class="text-[var(--ui-text-muted)] font-medium">{error}</p>
+           <div class="flex gap-4">
+             <Button variant="secondary" fullWidth onclick={goBack}>Abort</Button>
+             <Button variant="primary" fullWidth onclick={() => {
+               const id = page.params.id;
+               if (id) loadNoteData(id);
+             }}>Retry</Button>
+           </div>
+         </div>
+       </div>
+    {:else if note && noteId && (!note.isProtected || hasRoomKey(noteId))}
       <div class="h-full max-w-6xl mx-auto glass-2 rounded-[3rem] p-2 sm:p-4 shadow-inner" in:fly={{ y: 20, duration: 1000 }}>
         <Editor
           noteId={noteId}
@@ -279,16 +309,16 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   </main>
 
   <!-- Modals -->
-  {#if note}
+  {#if note && noteId}
     <ShareModal bind:open={isShareModalOpen} baseUrl={isBrowser ? window.location.origin + window.location.pathname : ''} noteId={noteId} noteTitle={note.title} />
-    <ExportModal bind:open={isExportModalOpen} noteTitle={note.title} noteContent={editorInstance?.getJSON() || {}} />
+    <ExportModal bind:open={isExportModalOpen} noteTitle={note.title} noteContent={editorInstance?.getJSON?.() || {}} />
     <Modal bind:open={isProtectModalOpen} title="Neural Seal" type="sheet" onEnter={handleProtectNote}>
-      <div class="space-y-6 text-center">
+      <form class="space-y-6 text-center" onsubmit={(e) => { e.preventDefault(); handleProtectNote(); }}>
          <p class="text-sm text-[var(--ui-text-muted)] font-medium">Add a password to this quantum portal. It is stored <span class="text-primary font-black">only on your device.</span></p>
-         <Input type="password" label="Portal Key" bind:value={protectPassword} />
-         <Input type="password" label="Confirm Key" bind:value={protectConfirmPassword} error={protectError} />
-         <Button variant="primary" fullWidth onclick={handleProtectNote}>Activate Seal</Button>
-      </div>
+         <Input type="password" label="Portal Key" bind:value={protectPassword} autocomplete="new-password" />
+         <Input type="password" label="Confirm Key" bind:value={protectConfirmPassword} error={protectError || undefined} autocomplete="new-password" />
+         <Button variant="primary" fullWidth type="submit">Activate Seal</Button>
+      </form>
     </Modal>
   {/if}
 
@@ -298,7 +328,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
         <svg class="w-12 h-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
       </div>
       <p class="text-[var(--ui-text-muted)] font-medium">This sector is encrypted. Enter the Portal Key to stabilize.</p>
-      <Input type="password" label="Key" bind:value={passwordAttempt} error={passwordError} autofocus onkeydown={(e) => { if (e.key === 'Enter') handlePasswordSubmit(); }} />
+      <!-- svelte-ignore a11y_autofocus -->
+      <Input type="password" label="Key" bind:value={passwordAttempt} error={passwordError || undefined} autofocus onkeydown={(e) => { if (e.key === 'Enter') handlePasswordSubmit(); }} />
       <div class="flex gap-4"><Button variant="secondary" fullWidth onclick={goBack}>Abort</Button><Button variant="primary" fullWidth type="submit">Unlock</Button></div>
     </form>
   </Modal>

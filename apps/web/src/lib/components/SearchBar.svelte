@@ -2,34 +2,11 @@
 SEARCH BAR COMPONENT (SearchBar.svelte)
 ============================================================================
 A full-width search input with debounced search, clear button, and tag filters.
-
-USAGE:
-<SearchBar
-  bind:value={searchQuery}
-  availableTags={tags}
-  activeTag={selectedTag}
-  onSearch={(query) => handleSearch(query)}
-  onTagSelect={(tag) => handleTagSelect(tag)}
-  onClear={() => handleClear()}
-/>
-
-PROPS:
-- value: string (bindable) - Current search query
-- availableTags: Array<{name: string, color: string}> - Tags for filter chips
-- activeTag: string | null - Currently selected tag
-- placeholder: string - Placeholder text (default: "Search notes...")
-- debounceMs: number - Debounce delay in ms (default: 300)
-
-EVENTS:
-- onSearch: (query: string) => void - Emitted on debounced search
-- onTagSelect: (tag: string | null) => void - Emitted when tag chip clicked
-- onClear: () => void - Emitted when clear button clicked
 ========================================================================== -->
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import Button from './Button.svelte';
-  import TagBadge from './TagBadge.svelte';
+  import { Button, TagBadge, Input } from '$components';
 
   interface Tag {
     name: string;
@@ -61,7 +38,7 @@ EVENTS:
   }: Props = $props();
 
   // Internal state
-  let inputRef: HTMLInputElement | null = $state(null);
+  let inputRef: any = $state(null);
   let debounceTimer: ReturnType<typeof setTimeout> | null = $state(null);
   let isFocused = $state(false);
 
@@ -108,15 +85,6 @@ EVENTS:
     onTagSelect?.(null);
   }
 
-  // Focus management
-  function handleFocus() {
-    isFocused = true;
-  }
-
-  function handleBlur() {
-    isFocused = false;
-  }
-
   // Keyboard shortcut: Cmd/Ctrl + K to focus
   function handleKeydown(e: KeyboardEvent) {
     if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -139,45 +107,27 @@ EVENTS:
 
 <div class="w-full">
   <!-- Search Input Container -->
-  <div
-    class="
-      relative flex items-center w-full
-      rounded-[var(--ui-radius)] border
-      bg-[var(--ui-surface)] border-[var(--ui-border)]
-      backdrop-blur-[var(--ui-blur)]
-      transition-all duration-300
-      {isFocused ? 'ring-2 ring-primary/20 border-primary' : ''}
-    "
-  >
-    <!-- Search Icon -->
-    <div class="absolute left-4 text-[var(--ui-text-muted)] pointer-events-none">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-    </div>
-
-    <!-- Input Field -->
-    <input
+  <div class="relative w-full">
+    <Input
       bind:this={inputRef}
       type="text"
-      {value}
+      bind:value
       oninput={handleInput}
-      onfocus={handleFocus}
-      onblur={handleBlur}
+      onfocus={() => isFocused = true}
+      onblur={() => isFocused = false}
       {placeholder}
-      class="
-        w-full pl-12 pr-24
-        bg-transparent border-none
-        text-[var(--ui-text)] placeholder-[var(--ui-text-muted)]
-        focus:outline-none
-        text-base sm:text-lg py-3.5
-      "
       aria-label="Search notes"
       autocomplete="off"
-    />
+    >
+      {#snippet icon()}
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+      {/snippet}
+    </Input>
 
     <!-- Action Group (Scout + Clear) -->
-    <div class="absolute right-3 flex items-center gap-1">
+    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
       <!-- Semantic Scout Symbol -->
       <button
         type="button"

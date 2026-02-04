@@ -34,6 +34,18 @@ FEATURES:
   // Current view mode
   let viewMode = $state<'login' | 'register'>('login');
 
+  function switchMode(mode: 'login' | 'register') {
+    // @ts-ignore
+    if (typeof document !== 'undefined' && 'startViewTransition' in document && !window.__PW_TEST__) {
+      // @ts-ignore
+      document.startViewTransition(() => {
+        viewMode = mode;
+      });
+    } else {
+      viewMode = mode;
+    }
+  }
+
   // Handle passkey login
   async function handlePasskeyLogin() {
     auth.setLoading('Authenticating with passkey...');
@@ -107,15 +119,13 @@ FEATURES:
     bind:authState={auth.state}
     onPasskeyLogin={handlePasskeyLogin}
     onPasswordLogin={handlePasswordLogin}
-    onSwitchToRegister={() => {
-      viewMode = 'register';
-    }}
+    onSwitchToRegister={() => switchMode('register')}
   />
 {:else}
   <RegisterCard
     bind:authState={auth.state}
     onRegisterPasskey={handleRegisterPasskey}
     onRegisterPassword={handleRegisterPassword}
-    onSwitchToLogin={() => viewMode = 'login'}
+    onSwitchToLogin={() => switchMode('login')}
   />
 {/if}

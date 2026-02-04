@@ -14,7 +14,7 @@
 
 /* Symmetrical ripple handling */
 ::view-transition-new(root) {
-  z-index: 9999;
+  z-index: 2147483647;
 }
 ::view-transition-old(root) {
   z-index: 1;
@@ -162,6 +162,22 @@ button:active,
   border-radius: 9999px;
   box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
   z-index: 1000;
+}
+
+/* Mobile Bottom Sheet */
+@media (max-width: 640px) {
+  .mobile-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 2.5rem 2.5rem 0 0 !important;
+    transform: translateY(100%);
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .mobile-sheet-open {
+    transform: translateY(0);
+  }
 }
 
 @layer base {

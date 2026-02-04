@@ -54,8 +54,11 @@ class VoiceService {
           }
           console.error('[VoiceService] AI Error:', error);
         } else if (status === 'result') {
-          this.handleResult(text, isInterim);
-          if (!isInterim && this._isManualStop && this.status === 'processing') {
+          if (text) {
+            this.handleResult(text, isInterim);
+          }
+          
+          if (!isInterim && this._isManualStop) {
             this.status = 'ready';
           }
         }

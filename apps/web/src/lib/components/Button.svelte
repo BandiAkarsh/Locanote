@@ -7,7 +7,7 @@ BUTTON COMPONENT (Button.svelte)
 	import type { HTMLButtonAttributes } from 'svelte/elements';  
 
 	type Props = HTMLButtonAttributes & {
-		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'glass';     
+		variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'glass' | 'success';     
 		size?: 'sm' | 'md' | 'lg';                                  
 		loading?: boolean;                                          
 		fullWidth?: boolean;                                        
@@ -57,6 +57,10 @@ BUTTON COMPONENT (Button.svelte)
 		ghost: `
 			bg-transparent text-[var(--ui-text-muted)]
 			hover:text-[var(--ui-text)] hover:bg-primary/5
+		`,
+		success: `
+			bg-green-500 text-white shadow-xl shadow-green-500/20
+			hover:scale-105 hover:bg-green-600
 		`
 	};
 

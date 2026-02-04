@@ -16,6 +16,7 @@
 // params.view = 'grid';
 // ============================================================================
 
+import { pushState, replaceState } from '$app/navigation';
 import { isBrowser } from './browser';
 
 /**
@@ -56,9 +57,9 @@ function updateUrl(params: URLSearchParams, replace: boolean = false): void {
   const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
 
   if (replace) {
-    window.history.replaceState({}, '', newUrl);
+    replaceState(newUrl, {});
   } else {
-    window.history.pushState({}, '', newUrl);
+    pushState(newUrl, {});
   }
 }
 

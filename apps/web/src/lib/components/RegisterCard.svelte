@@ -72,7 +72,7 @@ REGISTRATION CARD (RegisterCard.svelte)
       <p class="text-[var(--ui-text-muted)] font-medium">Create your unique neural link to the Locanote network.</p>
     </header>
 
-    <div class="space-y-8">
+    <form class="space-y-8" onsubmit={(e) => { e.preventDefault(); handleRegister(); }}>
       <div class="space-y-2">
         <label for="reg-username" class="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-4">Portal Handle</label>
         <input
@@ -80,6 +80,7 @@ REGISTRATION CARD (RegisterCard.svelte)
           type="text"
           bind:value={username}
           placeholder="chose_a_handle"
+          autocomplete="username"
           class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--ui-text)] placeholder-white/20 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-lg"
         />
       </div>
@@ -88,6 +89,7 @@ REGISTRATION CARD (RegisterCard.svelte)
         <div class="space-y-4" in:fade>
            <span class="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--ui-text-muted)] ml-4">Select Security Layer</span>
            <button
+            type="button"
             onclick={() => selectedMethod = 'passkey'}
             class="w-full p-6 rounded-2xl glass-2 flex items-center gap-5 hover:bg-white/5 group transition-all"
           >
@@ -101,6 +103,7 @@ REGISTRATION CARD (RegisterCard.svelte)
           </button>
 
           <button
+            type="button"
             onclick={() => selectedMethod = 'password'}
             class="w-full p-6 rounded-2xl glass-2 flex items-center gap-5 hover:bg-white/5 group transition-all"
           >
@@ -117,15 +120,15 @@ REGISTRATION CARD (RegisterCard.svelte)
         <div class="space-y-4" in:fly={{ x: 20 }}>
           <div class="space-y-2">
             <label for="reg-password" class="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-4">Access Key</label>
-            <input id="reg-password" type="password" bind:value={password} class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--ui-text)] focus:outline-none focus:border-primary transition-all" />
+            <input id="reg-password" type="password" bind:value={password} autocomplete="new-password" class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--ui-text)] focus:outline-none focus:border-primary transition-all" />
           </div>
           <div class="space-y-2">
             <label for="reg-confirm" class="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-4">Verify Key</label>
-            <input id="reg-confirm" type="password" bind:value={confirmPassword} class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--ui-text)] focus:outline-none focus:border-primary transition-all" />
+            <input id="reg-confirm" type="password" bind:value={confirmPassword} autocomplete="new-password" class="w-full px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-[var(--ui-text)] focus:outline-none focus:border-primary transition-all" />
           </div>
           
           <button
-            onclick={handleRegister}
+            type="submit"
             disabled={isLoading || !username || !password || password !== confirmPassword || passwordErrors.length > 0}
             class="w-full py-5 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
           >
@@ -136,22 +139,22 @@ REGISTRATION CARD (RegisterCard.svelte)
             {/if}
           </button>
           
-          <button onclick={() => selectedMethod = null} class="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--ui-text-muted)] hover:text-primary transition-colors">← Back</button>
+          <button type="button" onclick={() => selectedMethod = null} class="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--ui-text-muted)] hover:text-primary transition-colors">← Back</button>
         </div>
       {:else}
         <div in:fade class="space-y-6">
           <p class="text-sm text-[var(--ui-text-muted)] text-center">Ready to link your device biometrics to <b>{username}</b>.</p>
           <button
-            onclick={handleRegister}
+            type="submit"
             disabled={isLoading || !username}
             class="w-full py-5 rounded-2xl bg-primary text-white font-black uppercase tracking-widest shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
           >
             Finalize Portal Link
           </button>
-          <button onclick={() => selectedMethod = null} class="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--ui-text-muted)] hover:text-primary transition-colors">← Back</button>
+          <button type="button" onclick={() => selectedMethod = null} class="w-full text-center text-xs font-black uppercase tracking-widest text-[var(--ui-text-muted)] hover:text-primary transition-colors">← Back</button>
         </div>
       {/if}
-    </div>
+    </form>
 
     {#if authState.status === 'error'}
       <div class="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-3 animate-in fade-in zoom-in-95">

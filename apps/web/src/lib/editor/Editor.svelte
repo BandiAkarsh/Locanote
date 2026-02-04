@@ -39,7 +39,7 @@ EDITOR COMPONENT (Editor.svelte)
   } = $props();
 
   // Local state
-  let editor: Editor | null = $state(null);
+  let editor: Editor | null = $state.raw(null);
   let element: HTMLElement;
   let docInfo = $state<ReturnType<typeof openDocument> | null>(null);
   let isReady = $state(false);
@@ -112,11 +112,6 @@ EDITOR COMPONENT (Editor.svelte)
         provider.on('synced', (event: { synced: boolean }) => {
           console.log('[DEBUG] WebRTC synced event:', event, 'for noteId:', noteId);
           handleSync(event.synced);
-        });
-        
-        // Additional logging for connection errors
-        provider.on('connection-error', (event: any) => {
-          console.error('[DEBUG] WebRTC connection error:', event, 'for noteId:', noteId);
         });
       }
 

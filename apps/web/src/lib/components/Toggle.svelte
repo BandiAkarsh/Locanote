@@ -1,6 +1,16 @@
 <script lang="ts">
-  let { checked = $bindable(false), label = "", id = "" } = $props();
+  let { checked = $bindable(false), label = "", id = "", onchange }: { 
+    checked?: boolean, 
+    label?: string, 
+    id?: string, 
+    onchange?: () => void 
+  } = $props();
   let toggleId = $derived(id || `toggle-${Math.random().toString(36).slice(2, 9)}`);
+
+  function handleClick() {
+    checked = !checked;
+    onchange?.();
+  }
 </script>
 
 <div class="inline-flex items-center gap-3">
@@ -9,7 +19,7 @@
     type="button"
     role="switch"
     aria-checked={checked}
-    onclick={() => checked = !checked}
+    onclick={handleClick}
     class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent 
            transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1
            {checked ? 'bg-primary' : 'bg-[var(--ui-surface-elevated)] border-[var(--ui-border)]'}"
@@ -23,8 +33,8 @@
     ></span>
   </button>
   {#if label}
-    <label for={toggleId} class="text-sm font-bold text-[var(--ui-text)] cursor-pointer">
+    <span class="text-sm font-bold text-[var(--ui-text)]">
       {label}
-    </label>
+    </span>
   {/if}
 </div>

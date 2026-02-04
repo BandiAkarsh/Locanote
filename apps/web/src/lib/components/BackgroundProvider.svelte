@@ -8,7 +8,7 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   import { performanceScout } from '$lib/utils/performance.svelte';
 
   let canvas = $state<HTMLCanvasElement | null>(null);
-  let ctx: CanvasRenderingContext2D | null = null;
+  let ctx = $state<CanvasRenderingContext2D | null>(null);
   let animationFrame: number = 0;
   let time = 0;
 
@@ -60,7 +60,7 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
     };
   });
 
-  // Re-initialize if style changes or canvas is bound
+  // Re-initialize if style changes
   $effect(() => {
     if (currentStyle === 'nebula' && canvas) {
       if (!ctx) initNebula();
@@ -96,15 +96,25 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
 
     const isDark = theme.isDark;
     
+    // Use the reactive accent color with higher opacity
+    const accent = `rgba(${activeAccentRGB}, ${isDark ? 0.4 : 0.35})`;
+    
+    // Get intent colors
+    const intentStyle = getComputedStyle(document.documentElement);
+    const intentShift = intentStyle.getPropertyValue('--intent-bg-shift').trim();
+
     // Fill background with deep neutral to make glass pop
     ctx.fillStyle = isDark ? '#020205' : '#eef2f6';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    if (intentShift && intentShift !== 'transparent') {
+      ctx.fillStyle = intentShift;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     
-    // Use the reactive accent color with higher opacity
-    const accent = `rgba(${activeAccentRGB}, ${isDark ? 0.4 : 0.35})`;
     const secondary = isDark ? 'rgba(168, 85, 247, 0.3)' : 'rgba(168, 85, 247, 0.2)';
     const tertiary = isDark ? 'rgba(236, 72, 153, 0.25)' : 'rgba(236, 72, 153, 0.15)';
 

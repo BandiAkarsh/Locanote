@@ -4,6 +4,9 @@ PROJECT MODE TOOL (ProjectTool.svelte)
 
 <script lang="ts">
   import { scale } from 'svelte/transition';
+  import type { Editor } from '@tiptap/core';
+
+  let { editor }: { editor: Editor | null } = $props();
 </script>
 
 <div class="flex items-center gap-1 p-1 bg-blue-500/10 rounded-lg border border-blue-500/20" in:scale={{ duration: 400, start: 0.8 }}>

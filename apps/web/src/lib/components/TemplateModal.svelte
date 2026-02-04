@@ -15,7 +15,7 @@ TEMPLATE MODAL COMPONENT (TemplateModal.svelte)
 		onCancel
 	}: {
 		open?: boolean;
-		onSelect?: (template: NoteTemplate) => void;
+		onSelect?: (template: NoteTemplate, noteId: string) => void;
 		onCancel?: () => void;
 	} = $props();
 
@@ -188,9 +188,11 @@ TEMPLATE MODAL COMPONENT (TemplateModal.svelte)
 				value={searchQuery}
 				class="w-full"
 			>
-				<svg slot="icon" class="w-5 h-5 text-[var(--ui-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-				</svg>
+				{#snippet icon()}
+					<svg class="w-5 h-5 text-[var(--ui-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+					</svg>
+				{/snippet}
 			</Input>
 
 			<!-- Categories - Scrollable on mobile -->
@@ -292,6 +294,7 @@ TEMPLATE MODAL COMPONENT (TemplateModal.svelte)
 	.line-clamp-2 {
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
+		line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
 	}
