@@ -96,19 +96,33 @@ SETTINGS PAGE (+page.svelte for /app/settings)
           <div class="glass-2 p-8 rounded-[2.5rem] space-y-8">
             <div class="flex items-center justify-between">
               <div>
-                 <h3 class="font-bold text-[var(--ui-text)]">Liquid Theme</h3>
+                 <h3 class="font-bold text-[var(--ui-text)]">Active Material</h3>
                  <p class="text-xs text-[var(--ui-text-muted)]">Switch between Frosted Opal and Obsidian Glass</p>
               </div>
               <div class="flex gap-2">
-                <button onclick={() => theme.setLight()} class="p-3 rounded-xl border-2 {theme.current === 'light' ? 'border-primary bg-primary/10 text-primary' : 'border-white/5 text-[var(--ui-text-muted)]'}"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg></button>
-                <button onclick={() => theme.setDark()} class="p-3 rounded-xl border-2 {theme.current === 'dark' ? 'border-primary bg-primary/10 text-primary' : 'border-white/5 text-[var(--ui-text-muted)]'}"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg></button>
+                <button 
+                  onclick={() => theme.setLight()} 
+                  class="p-3 rounded-xl border-2 transition-all hover:scale-110 active:scale-95 {theme.current === 'light' ? 'border-primary bg-primary/10 text-primary shadow-glow' : 'border-white/5 text-[var(--ui-text-muted)]'}"
+                  title="Frosted Opal"
+                >
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                  <span class="sr-only">Frosted Opal</span>
+                </button>
+                <button 
+                  onclick={() => theme.setDark()} 
+                  class="p-3 rounded-xl border-2 transition-all hover:scale-110 active:scale-95 {theme.current === 'dark' ? 'border-primary bg-primary/10 text-primary shadow-glow' : 'border-white/5 text-[var(--ui-text-muted)]'}"
+                  title="Obsidian Glass"
+                >
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                  <span class="sr-only">Obsidian Glass</span>
+                </button>
               </div>
             </div>
 
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="font-bold text-[var(--ui-text)]">Zero UI (Clean Mode)</h3>
-                <p class="text-xs text-[var(--ui-text-muted)]">Hide all technical telemetry for maximum focus</p>
+                <h3 class="font-bold text-[var(--ui-text)]">Zero UI (Contextual)</h3>
+                <p class="text-xs text-[var(--ui-text-muted)]">Hide telemetry and enable intent-driven interface morphing</p>
               </div>
               <Toggle bind:checked={ui.cleanMode} />
             </div>
