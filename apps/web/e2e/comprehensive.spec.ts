@@ -8,6 +8,8 @@ import { test, expect } from "@playwright/test";
 const BASE_URL = "http://localhost:5173";
 
 test.describe("Comprehensive App Test", () => {
+  test.setTimeout(60000); // Increase timeout for GenUI and Transitions
+
   test.beforeEach(async ({ page }) => {
     // Forward logs
     page.on('console', msg => console.log('BROWSER:', msg.text()));
@@ -89,6 +91,7 @@ test.describe("Comprehensive App Test", () => {
     // Escape to clear search
     await page.keyboard.press("Escape");
     await expect(searchInput).toHaveValue("");
+    await searchInput.blur(); // Crucial: remove focus so shortcuts work
     
     // Ctrl+N for new note
     await page.keyboard.press("Control+n");
@@ -98,8 +101,20 @@ test.describe("Comprehensive App Test", () => {
     await page.locator('button:has-text("Export")').click();
     await expect(page.locator('h2:has-text("Export Note")')).toBeVisible();
     
-    // Close modal with Escape
-    await page.keyboard.press("Escape");
-    await expect(page.locator('h2:has-text("Export Note")')).not.toBeVisible();
+    // 7. TOOLBAR GLOW TEST
+    await page.keyboard.press("Escape"); // Close export
+    await expect(page.locator('h2:has-text("Export Note")')).not.toBeVisible({ timeout: 10000 });
+    
+    const editorEl = page.locator(".ProseMirror");
+    await editorEl.click(); // Click to focus
+    await page.waitForTimeout(500);
+    
+    const boldBtn = page.locator('button[aria-label="Bold"]').first();
+    await boldBtn.waitFor({ state: "visible", timeout: 15000 });
+    await boldBtn.click();
+    await page.waitForTimeout(1000); // Wait for reactivity
+    
+    // Check for the active class
+    await expect(boldBtn).toHaveClass(/toolbar-btn-active/, { timeout: 15000 });
   });
 });
