@@ -50,15 +50,6 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     id: auth.session?.userId || 'anonymous'
   });
 
-  // Dynamic Theme Shift based on GenUI Intent
-  const intentThemes = {
-    recipe: 'emerald',
-    task: 'blue',
-    code: 'indigo',
-    journal: 'rose',
-    none: 'indigo'
-  };
-
   onMount(async () => {
     if (!noteId) {
       error = 'Invalid note ID';
@@ -204,9 +195,8 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
                 type="text"
                 bind:value={editedTitle}
                 onblur={handleTitleSubmit}
-                onkeydown={(e) => e.key === 'Enter' && handleTitleSubmit()}
+                onkeydown={(e) => { if (e.key === 'Enter') handleTitleSubmit(); }}
                 class="bg-transparent border-b-2 border-primary outline-none text-2xl font-black text-[var(--ui-text)] w-full max-w-sm tracking-tight"
-                autofocus
               />
             {:else}
               <button 
@@ -220,7 +210,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
                   {note.title}
                 </h1>
                 <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 text-primary transition-all" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
-              </h1>
+              </button>
             {/if}
 
             <div class="flex items-center gap-2">
@@ -295,7 +285,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
         <svg class="w-12 h-12 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
       </div>
       <p class="text-[var(--ui-text-muted)] font-medium">This sector is encrypted. Enter the Portal Key to stabilize.</p>
-      <Input type="password" label="Key" bind:value={passwordAttempt} error={passwordError} autofocus onkeydown={(e) => e.key === 'Enter' && handlePasswordSubmit()} />
+      <Input type="password" label="Key" bind:value={passwordAttempt} error={passwordError} autofocus onkeydown={(e) => { if (e.key === 'Enter') handlePasswordSubmit(); }} />
       <div class="flex gap-4"><Button variant="secondary" fullWidth onclick={goBack}>Abort</Button><Button variant="primary" fullWidth type="submit">Unlock</Button></div>
     </form>
   </Modal>
