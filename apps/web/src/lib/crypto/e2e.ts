@@ -84,6 +84,16 @@ export function deriveKeyFromPassword(password: string, salt?: Uint8Array): { ke
   return { key, salt: usedSalt };
 }
 
+/**
+ * Derives a key from a password and stores it for a room
+ * Returns the salt used so it can be saved in note metadata
+ */
+export function protectRoomWithPassword(roomId: string, password: string): { key: Uint8Array; salt: Uint8Array } {
+  const { key, salt } = deriveKeyFromPassword(password);
+  storeRoomKey(roomId, key);
+  return { key, salt };
+}
+
 // ============================================================================
 // STORE ROOM KEY
 // ============================================================================

@@ -9,10 +9,10 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import Editor from '$lib/editor/Editor.svelte';
   import IntentToolbar from '$lib/editor/IntentToolbar.svelte';
   import { Button, ShareModal, Modal, Input, ExportModal } from '$components';
-  import { getNote, getNoteForCollaboration } from '$lib/services/notes.svelte';
+  import { getNote, getNoteForCollaboration, updateNoteTitle } from '$lib/services/notes.svelte';
   import { auth, ui, networkStatus } from '$stores';
   import { isBrowser, base64UrlToUint8Array, base64ToArrayBuffer } from '$utils/browser';
-  import { storeRoomKey, hasRoomKey, deriveKeyFromPassword } from '$crypto/e2e';
+  import { storeRoomKey, hasRoomKey, deriveKeyFromPassword, protectRoomWithPassword } from '$crypto/e2e';
   import { setupKeyboardShortcuts } from '$lib/keyboard/shortcuts';
   import type { Note } from '$db';
 
@@ -24,9 +24,19 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   let editorInstance = $state<any>(null);
   let isShareModalOpen = $state(false);
   let isExportModalOpen = $state(false);
+  let isProtectModalOpen = $state(false);
   let templateContent = $state<any>(null);
 
-  // Password Protection State
+  // Editing Title State
+  let isEditingTitle = $state(false);
+  let editedTitle = $state('');
+
+  // Protection State
+  let protectPassword = $state('');
+  let protectConfirmPassword = $state('');
+  let protectError = $state<string | null>(null);
+
+  // Password Prompt State (Entering existing password)
   let showPasswordPrompt = $state(false);
   let passwordAttempt = $state('');
   let passwordError = $state<string | null>(null);
@@ -44,6 +54,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       isLoading = false;
       return;
     }
+    // ... rest of the code is same until note loading
 
     // 1. Check for key in URL hash (URL-safe base64url format)
     console.log('[DEBUG] Checking for key in URL hash. Current hash:', window.location.hash);
@@ -131,6 +142,52 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     }
   }
 
+  async function handleTitleSubmit() {
+    if (!noteId || !editedTitle.trim() || editedTitle === note?.title) {
+      isEditingTitle = false;
+      return;
+    }
+
+    try {
+      await updateNoteTitle(noteId, editedTitle.trim());
+      if (note) note.title = editedTitle.trim();
+      isEditingTitle = false;
+    } catch (err) {
+      console.error('Failed to update title:', err);
+    }
+  }
+
+  function startEditingTitle() {
+    if (note) {
+      editedTitle = note.title;
+      isEditingTitle = true;
+    }
+  }
+
+  async function handleProtectNote() {
+    if (protectPassword !== protectConfirmPassword) {
+      protectError = "Passwords do not match";
+      return;
+    }
+
+    if (protectPassword.length < 4) {
+      protectError = "Password too short";
+      return;
+    }
+
+    try {
+      const { salt } = protectRoomWithPassword(noteId, protectPassword);
+      // Refresh to update local state
+      await refreshNote();
+      isProtectModalOpen = false;
+      protectPassword = '';
+      protectConfirmPassword = '';
+      protectError = null;
+    } catch (err) {
+      protectError = "Failed to protect note";
+    }
+  }
+
   async function refreshNote() {
     if (!noteId) return;
     const loadedNote = await getNote(noteId);
@@ -199,22 +256,54 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       </Button>
       
       {#if note}
-        <div class="flex flex-col max-w-[150px] sm:max-w-xs">
+        <div class="flex flex-col max-w-[200px] sm:max-w-md">
           <div class="flex items-center gap-2">
-            <h1 
-              class="text-lg sm:text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none truncate"
-              style="view-transition-name: note-title-{noteId}"
-            >
-              {note.title}
-            </h1>
+            {#if isEditingTitle}
+              <input
+                type="text"
+                bind:value={editedTitle}
+                onblur={handleTitleSubmit}
+                onkeydown={(e) => { if (e.key === 'Enter') handleTitleSubmit(); }}
+                class="bg-transparent border-b-2 border-primary outline-none text-lg sm:text-xl font-bold text-[var(--ui-text)] w-full"
+              />
+            {:else}
+              <button 
+                class="text-left"
+                onclick={startEditingTitle}
+                onkeydown={(e) => { if (e.key === 'Enter') startEditingTitle(); }}
+                title="Click to edit title"
+              >
+                <h1 
+                  class="text-lg sm:text-xl font-bold text-[var(--ui-text)] tracking-tight leading-none truncate cursor-pointer hover:text-primary transition-colors"
+                  style="view-transition-name: note-title-{noteId}"
+                >
+                  {note.title}
+                </h1>
+              </button>
+              <button 
+                onclick={startEditingTitle}
+                class="text-[var(--ui-text-muted)] hover:text-primary transition-colors p-1"
+                aria-label="Edit title"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+              </button>
+            {/if}
             
-            <div class="flex items-center" title={networkStatus.syncStatus === 'syncing' ? 'Syncing...' : 'Saved to device'}>
-              {#if networkStatus.syncStatus === 'syncing'}
-                <div class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></div>
-              {:else}
-                <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
+            <div class="flex items-center gap-2">
+              <div class="flex items-center" title={networkStatus.syncStatus === 'syncing' ? 'Syncing...' : 'Saved to device'}>
+                {#if networkStatus.syncStatus === 'syncing'}
+                  <div class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></div>
+                {:else}
+                  <svg class="w-3.5 h-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                {/if}
+              </div>
+
+              {#if note.isProtected}
+                <div class="text-primary" title="End-to-End Password Protected">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
               {/if}
             </div>
           </div>
@@ -267,6 +356,13 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
           <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
         </svg>
         <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Export</span>
+      </Button>
+
+      <Button variant="ghost" size="sm" onclick={() => isProtectModalOpen = true} class="hover:bg-primary/10">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+        </svg>
+        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-xs font-black">Lock</span>
       </Button>
 
       <Button variant="primary" size="sm" onclick={() => isShareModalOpen = true}>
@@ -347,6 +443,47 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       noteTitle={note.title}
       noteContent={editorInstance?.getJSON() || {}}
     />
+
+    <!-- Protect Note Modal -->
+    <Modal
+      bind:open={isProtectModalOpen}
+      title="Protect this Note"
+      description="Add a password to this note. Only those with the password can decrypt and read it."
+      type="sheet"
+      onEnter={handleProtectNote}
+    >
+      <div class="space-y-4">
+        <div class="p-3 bg-primary/5 rounded-xl border border-primary/20 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <p class="text-xs text-[var(--ui-text-muted)] leading-relaxed">
+            Passwords are <span class="text-primary font-bold">never</span> sent to our servers. They are used locally to secure your data.
+          </p>
+        </div>
+
+        <Input 
+          type="password"
+          label="Set Password"
+          placeholder="Min 4 characters"
+          bind:value={protectPassword}
+        />
+        <Input 
+          type="password"
+          label="Confirm Password"
+          placeholder="Repeat password"
+          bind:value={protectConfirmPassword}
+          error={protectError}
+        />
+
+        <div class="flex gap-3 pt-2">
+          <Button variant="ghost" fullWidth onclick={() => isProtectModalOpen = false}>Cancel</Button>
+          <Button variant="primary" fullWidth onclick={handleProtectNote} disabled={!protectPassword || protectPassword !== protectConfirmPassword}>
+            Secure Note
+          </Button>
+        </div>
+      </div>
+    </Modal>
   {/if}
 
   <!-- Password Prompt Modal -->
