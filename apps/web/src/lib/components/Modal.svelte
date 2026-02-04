@@ -86,7 +86,6 @@ MODAL COMPONENT (Modal.svelte)
 		}
 		if (e.key === 'Enter' && onEnter && !e.shiftKey) {
 			const target = e.target as HTMLElement;
-			// Don't trigger if in textarea or contenteditable (unless it's an input)
 			if (target && target.tagName !== 'TEXTAREA' && !target.isContentEditable) {
 				e.preventDefault();
 				onEnter();
@@ -95,28 +94,24 @@ MODAL COMPONENT (Modal.svelte)
 	}
 }} />
 
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <dialog
 	bind:this={dialogRef}
 	onclick={handleBackdropClick}
 	onclose={handleClose}
+	data-type={type}
 	aria-labelledby={title ? 'modal-title' : undefined}
 	aria-describedby={description ? 'modal-description' : undefined}
 	class="
 		m-0 p-4 {sizeClasses[size]} w-full max-h-[90vh] mx-auto my-auto
 		bg-transparent backdrop:bg-black/60 backdrop:backdrop-blur-[var(--ui-blur)]
 		open:animate-in open:fade-in open:zoom-in-95
-    {type === 'sheet' ? 'sm:my-auto mb-0 rounded-t-3xl sm:rounded-3xl' : ''}
+    {type === 'sheet' ? 'sm:my-auto mb-0 rounded-t-3xl sm:rounded-3xl sheet-animation' : ''}
 	"
 >
 	<div
-		onclick={(e) => e.stopPropagation()}
-		onkeydown={(e) => {
-			if (e.key === 'Enter' || e.key === ' ') {
-				e.stopPropagation();
-			}
-		}}
-		role="dialog"
-		aria-modal="true"
+		role="document"
 		class="
 			premium-card
 			p-6
