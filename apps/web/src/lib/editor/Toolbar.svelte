@@ -11,52 +11,48 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   // Props
   let { editor }: { editor: Editor | null } = $props();
 
-  // State for button highlights - updated via editor events
-  let activeFormats = $state({
-    bold: false,
-    italic: false,
-    highlight: false,
-    heading1: false,
-    heading2: false,
-    bulletList: false,
-    taskList: false,
-    codeBlock: false,
-    blockquote: false
-  });
+  // Individual states for reliable reactivity
+  let isBold = $state(false);
+  let isItalic = $state(false);
+  let isHighlight = $state(false);
+  let isH1 = $state(false);
+  let isH2 = $state(false);
+  let isBulletList = $state(false);
+  let isTaskList = $state(false);
+  let isCodeBlock = $state(false);
+  let isBlockquote = $state(false);
 
   /**
    * Update all active states at once
-   * Triggered by editor transactions (typing, selection, etc)
    */
   function updateActiveStates() {
     if (!editor) return;
-    activeFormats = {
-      bold: editor.isActive('bold'),
-      italic: editor.isActive('italic'),
-      highlight: editor.isActive('highlight'),
-      heading1: editor.isActive('heading', { level: 1 }),
-      heading2: editor.isActive('heading', { level: 2 }),
-      bulletList: editor.isActive('bulletList'),
-      taskList: editor.isActive('taskList'),
-      codeBlock: editor.isActive('codeBlock'),
-      blockquote: editor.isActive('blockquote')
-    };
+    
+    // Using $state.snapshot or just direct assignment in Svelte 5
+    isBold = editor.isActive('bold');
+    isItalic = editor.isActive('italic');
+    isHighlight = editor.isActive('highlight');
+    isH1 = editor.isActive('heading', { level: 1 });
+    isH2 = editor.isActive('heading', { level: 2 });
+    isBulletList = editor.isActive('bulletList');
+    isTaskList = editor.isActive('taskList');
+    isCodeBlock = editor.isActive('codeBlock');
+    isBlockquote = editor.isActive('blockquote');
+    
+    console.log('[Toolbar] Updated active states. Bold:', isBold);
   }
 
   onMount(() => {
-    // 1. Setup Editor Listeners for Glow persistence
     if (editor) {
-      // Svelte 5 needs these explicit listeners because external objects aren't reactive
       editor.on('transaction', updateActiveStates);
       editor.on('selectionUpdate', updateActiveStates);
       editor.on('update', updateActiveStates);
+      editor.on('focus', updateActiveStates);
       updateActiveStates();
     }
 
-    // 2. Setup Voice Result Callback
     voice.onResult = (text) => {
       if (editor) {
-        // Insert at cursor and focus
         editor.chain().focus().insertContent(text + ' ').run();
       }
     };
@@ -67,12 +63,10 @@ TOOLBAR COMPONENT (Toolbar.svelte)
       editor.off('transaction', updateActiveStates);
       editor.off('selectionUpdate', updateActiveStates);
       editor.off('update', updateActiveStates);
+      editor.off('focus', updateActiveStates);
     }
   });
 
-  /**
-   * AI Voice Toggle Logic
-   */
   function handleVoiceClick() {
     if (voice.status === 'idle' || voice.status === 'error') {
       voice.loadModel();
@@ -86,7 +80,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
 
 <div class="flex items-center gap-1 p-1 sm:p-2 rounded-xl bg-transparent overflow-x-auto scrollbar-hide relative">
   
-  <!-- Neural Engine Progress (First time use) -->
+  <!-- Neural Engine Progress -->
   {#if voice.status === 'loading'}
     <div class="absolute -top-14 left-0 w-48 p-3 premium-card z-50 animate-in fade-in slide-in-from-bottom-2">
       <div class="flex items-center justify-between mb-2">
@@ -114,7 +108,8 @@ TOOLBAR COMPONENT (Toolbar.svelte)
       disabled={voice.status === 'loading' || voice.status === 'processing'}
       class="p-2 rounded-lg transition-all duration-300 border-2 disabled:opacity-50
              {voice.status === 'listening' ? 'bg-red-500/20 text-red-500 ring-4 ring-red-500/30 border-red-500 scale-110 shadow-[0_0_20px_rgba(239,68,68,0.4)]' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
-      title="Offline AI Voice (One-time download)"
+      title="Voice Dictation"
+      aria-label="Voice Dictation"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         {#if voice.status === 'listening'}
@@ -131,9 +126,10 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <!-- Formatting -->
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     <button
-      onclick={() => editor?.chain().focus().toggleBold().run()}
-      class="p-2 rounded-lg transition-all duration-200 border-2 {activeFormats.bold ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleBold().run(); updateActiveStates(); }}
+      class="p-2 rounded-lg transition-all duration-200 border-2 {isBold ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
       title="Bold (Ctrl+B)"
+      aria-label="Bold"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6V4zm0 8h9a4 4 0 014 4 4 4 0 01-4 4H6v-8z" />
@@ -141,9 +137,10 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     </button>
     
     <button
-      onclick={() => editor?.chain().focus().toggleItalic().run()}
-      class="p-2 rounded-lg transition-all duration-200 border-2 {activeFormats.italic ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleItalic().run(); updateActiveStates(); }}
+      class="p-2 rounded-lg transition-all duration-200 border-2 {isItalic ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
       title="Italic (Ctrl+I)"
+      aria-label="Italic"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -151,9 +148,10 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     </button>
 
     <button
-      onclick={() => editor?.chain().focus().toggleHighlight().run()}
-      class="p-2 rounded-lg transition-all duration-200 border-2 {activeFormats.highlight ? 'bg-amber-500/30 text-amber-500 ring-4 ring-amber-500/20 border-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleHighlight().run(); updateActiveStates(); }}
+      class="p-2 rounded-lg transition-all duration-200 border-2 {isHighlight ? 'bg-amber-500/30 text-amber-500 ring-4 ring-amber-500/20 border-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
       title="Highlight"
+      aria-label="Highlight"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
@@ -164,28 +162,32 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <!-- Headings -->
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     <button
-      onclick={() => editor?.chain().focus().toggleHeading({ level: 1 }).run()}
-      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {activeFormats.heading1 ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleHeading({ level: 1 }).run(); updateActiveStates(); }}
+      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {isH1 ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      aria-label="Heading 1"
     >H1</button>
     <button
-      onclick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {activeFormats.heading2 ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleHeading({ level: 2 }).run(); updateActiveStates(); }}
+      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {isH2 ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      aria-label="Heading 2"
     >H2</button>
   </div>
 
   <!-- Lists -->
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     <button
-      onclick={() => editor?.chain().focus().toggleBulletList().run()}
-      class="p-2 rounded-lg transition-all border-2 {activeFormats.bulletList ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleBulletList().run(); updateActiveStates(); }}
+      class="p-2 rounded-lg transition-all border-2 {isBulletList ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      aria-label="Bullet List"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
       </svg>
     </button>
     <button
-      onclick={() => editor?.chain().focus().toggleTaskList().run()}
-      class="p-2 rounded-lg transition-all border-2 {activeFormats.taskList ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleTaskList().run(); updateActiveStates(); }}
+      class="p-2 rounded-lg transition-all border-2 {isTaskList ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      aria-label="Task List"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
@@ -197,8 +199,9 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     {#if !ui.cleanMode}
       <button
-        onclick={() => editor?.chain().focus().toggleCodeBlock().run()}
-        class="p-2 rounded-lg transition-all border-2 {activeFormats.codeBlock ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+        onclick={() => { editor?.chain().focus().toggleCodeBlock().run(); updateActiveStates(); }}
+        class="p-2 rounded-lg transition-all border-2 {isCodeBlock ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+        aria-label="Code Block"
       >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
@@ -206,8 +209,9 @@ TOOLBAR COMPONENT (Toolbar.svelte)
       </button>
     {/if}
     <button
-      onclick={() => editor?.chain().focus().toggleBlockquote().run()}
-      class="p-2 rounded-lg transition-all border-2 {activeFormats.blockquote ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      onclick={() => { editor?.chain().focus().toggleBlockquote().run(); updateActiveStates(); }}
+      class="p-2 rounded-lg transition-all border-2 {isBlockquote ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      aria-label="Quote"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
@@ -218,8 +222,9 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <!-- History -->
   <div class="flex items-center gap-0.5 pl-2 ml-auto">
     <button
-      onclick={() => editor?.chain().focus().undo().run()}
+      onclick={() => { editor?.chain().focus().undo().run(); updateActiveStates(); }}
       class="p-2 rounded-lg text-[var(--ui-text-muted)] hover:bg-primary/10 transition-all border-2 border-transparent"
+      aria-label="Undo"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
