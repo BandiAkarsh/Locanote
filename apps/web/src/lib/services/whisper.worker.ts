@@ -1,16 +1,14 @@
 import { pipeline, env } from '@xenova/transformers';
 
 /**
- * WHISPER AI WORKER
+ * WHISPER AI WORKER (v2 - Streaming Support)
  * Handles heavy lifting of speech-to-text on a background thread.
- * Ensures the main UI thread stays at 60fps.
  */
 
 // Configure Transformers.js
 env.allowLocalModels = false;
-env.useBrowserCache = true; // Use Cache API for persistent offline model storage
+env.useBrowserCache = true;
 
-// Progress callback for UI feedback
 const progress_callback = (data: any) => {
     self.postMessage({
         status: 'progress',
@@ -20,16 +18,12 @@ const progress_callback = (data: any) => {
 
 let transcriber: any = null;
 
-/**
- * Load the model from Xenova (OpenAI Whisper Tiny)
- * Approx 30MB in q4 format
- */
 async function loadModel() {
     self.postMessage({ status: 'loading', message: 'Initializing Neural Engine...' });
     
     try {
         transcriber = await pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {
-            quantized: true, // Use 4-bit/8-bit quantization for speed and size
+            quantized: true,
             progress_callback,
         });
         
@@ -41,11 +35,8 @@ async function loadModel() {
     }
 }
 
-/**
- * Handle incoming messages from the main thread
- */
 self.onmessage = async (event) => {
-    const { type, audio } = event.data;
+    const { type, audio, isInterim } = event.data;
 
     if (type === 'load') {
         await loadModel();
@@ -56,8 +47,6 @@ self.onmessage = async (event) => {
         }
 
         try {
-            console.log('[Worker] Transcribing audio buffer...');
-            
             const output = await transcriber(audio, {
                 chunk_length_s: 30,
                 stride_length_s: 5,
@@ -66,15 +55,17 @@ self.onmessage = async (event) => {
                 return_timestamps: false
             });
 
-            console.log('[Worker] Result:', output.text);
-
             self.postMessage({
                 status: 'result',
-                text: output.text
+                text: output.text,
+                isInterim: isInterim || false
             });
         } catch (error: any) {
             console.error('[Worker] Transcription failed:', error);
-            self.postMessage({ status: 'error', error: error.message });
+            // Don't kill the worker for interim errors
+            if (!isInterim) {
+              self.postMessage({ status: 'error', error: error.message });
+            }
         }
     }
 };
