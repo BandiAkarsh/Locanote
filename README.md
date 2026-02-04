@@ -1,8 +1,8 @@
 # 🌌 Locanote
 
-> **The Private, P2P, and Edge-AI Workspace of 2026.**
+> **The Private, P2P, and AI-Enhanced Workspace of 2026.**
 
-Locanote is a next-generation collaborative workspace built for absolute privacy and seamless teamwork. By combining **Local-First architecture**, **Peer-to-Peer (P2P) synchronization**, and **Zero-Knowledge Security**, we've created a platform where you own your data, and no one else can see it—not even us.
+Locanote is a next-generation collaborative workspace built for absolute privacy and seamless teamwork. By combining **Local-First architecture**, **Peer-to-Peer (P2P) synchronization**, and **Generative UI**, we've created a platform where you own your data, and the interface adapts to you.
 
 👉 **Experience the Future**: [https://locanote.pages.dev](https://locanote.pages.dev)
 
@@ -12,7 +12,7 @@ Locanote is a next-generation collaborative workspace built for absolute privacy
 
 ### 🎙️ AI-Enhanced Accessibility (100% Offline)
 - **Edge AI Voice-to-Text**: Dictate your thoughts hands-free. Powered by **OpenAI Whisper**, the AI runs entirely in your browser. No voice data ever leaves your device.
-- **Generative UI (GenUI)**: The interface morphs based on your intent. If you're writing a recipe, Chef Mode activates; if you're coding, the environment cools into a developer portal.
+- **Generative UI (GenUI)**: The interface morphs based on your intent. Writing a recipe? **Chef Mode** activates with specialized tools. Coding? The environment cools into a **Developer Portal**.
 - **"Clean Mode"**: A distraction-free toggle that hides technical metadata, giving you a minimal canvas for pure focus.
 
 ### 📡 Teamwork Without Boundaries
@@ -27,13 +27,12 @@ Locanote is a next-generation collaborative workspace built for absolute privacy
 
 ---
 
-## 🎨 Choose Your Aesthetic
+## 🎨 Immersive Aesthetics
 
-Locanote features a high-performance visual engine with four professionally crafted themes:
-- **Nebula**: Reactive, fluid mesh gradients that follow your interaction.
-- **Crystalline**: High-refraction, geometric shards for a sharp, modern look.
-- **Aura**: Soft, slowly moving color clouds (optimized for low-power devices).
-- **Glass**: Elegant transparency and depth inspired by modern OS designs.
+Locanote features a high-performance visual engine with reactive, fluid themes:
+- **Nebula**: Dynamic mesh gradients that react to your touch and movement.
+- **Crystalline**: High-refraction geometric shards for a sharp, futuristic look.
+- **Aura**: Soft, low-power color clouds for maximum battery efficiency.
 
 ---
 
