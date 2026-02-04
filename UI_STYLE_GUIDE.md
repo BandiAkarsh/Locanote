@@ -10,21 +10,21 @@ A comprehensive design system based on patterns from Notion, Linear, Vercel, Fig
 
 ```css
 /* Modern Dark Mode Palette */
---bg-primary: #0a0a0a;        /* Deepest background */
---bg-secondary: #111111;    /* Card/surface background */
---bg-tertiary: #1a1a1a;     /* Elevated surfaces */
---bg-quaternary: #222222;   /* Hover states */
+--bg-primary: #0a0a0a; /* Deepest background */
+--bg-secondary: #111111; /* Card/surface background */
+--bg-tertiary: #1a1a1a; /* Elevated surfaces */
+--bg-quaternary: #222222; /* Hover states */
 
 /* Text Colors - High Contrast */
---text-primary: #ffffff;           /* Primary text - 100% white */
---text-secondary: #a1a1aa;         /* Muted text - zinc-400 */
---text-tertiary: #71717a;        /* Subtle text - zinc-500 */
---text-disabled: #52525b;        /* Disabled text - zinc-600 */
+--text-primary: #ffffff; /* Primary text - 100% white */
+--text-secondary: #a1a1aa; /* Muted text - zinc-400 */
+--text-tertiary: #71717a; /* Subtle text - zinc-500 */
+--text-disabled: #52525b; /* Disabled text - zinc-600 */
 
 /* Semantic Colors */
---color-border: rgba(255, 255, 255, 0.08);      /* Subtle borders */
+--color-border: rgba(255, 255, 255, 0.08); /* Subtle borders */
 --color-border-hover: rgba(255, 255, 255, 0.15); /* Hover borders */
---color-divider: rgba(255, 255, 255, 0.06);     /* Dividers */
+--color-divider: rgba(255, 255, 255, 0.06); /* Dividers */
 
 /* Accent Colors (Keep existing vibrant accents) */
 --brand-primary: var(--brand-color);
@@ -56,31 +56,37 @@ A comprehensive design system based on patterns from Notion, Linear, Vercel, Fig
 ### Font Stack (Apple-inspired)
 
 ```css
---font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, 
-             "Helvetica Neue", Arial, sans-serif;
---font-mono: "SF Mono", SFMono-Regular, ui-monospace, 
-             "Cascadia Code", "Source Code Pro", Menlo, monospace;
+--font-sans:
+  -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+  Arial, sans-serif;
+--font-mono:
+  "SF Mono", SFMono-Regular, ui-monospace, "Cascadia Code", "Source Code Pro",
+  Menlo, monospace;
 ```
 
 ### Type Scale
 
-| Style | Size | Weight | Line Height | Letter Spacing | Usage |
-|-------|------|--------|-------------|----------------|-------|
-| Display | 2.5rem (40px) | 800 | 1.1 | -0.02em | Page titles |
-| H1 | 2rem (32px) | 700 | 1.2 | -0.02em | Section headers |
-| H2 | 1.5rem (24px) | 600 | 1.3 | -0.01em | Card titles |
-| H3 | 1.25rem (20px) | 600 | 1.4 | 0 | Subsection |
-| Body | 0.9375rem (15px) | 400 | 1.6 | 0 | Paragraphs |
-| Small | 0.875rem (14px) | 400 | 1.5 | 0 | Secondary text |
-| Caption | 0.75rem (12px) | 500 | 1.4 | 0.05em | Labels, uppercase |
-| Tiny | 0.6875rem (11px) | 500 | 1.4 | 0.05em | Timestamps |
+| Style   | Size             | Weight | Line Height | Letter Spacing | Usage             |
+| ------- | ---------------- | ------ | ----------- | -------------- | ----------------- |
+| Display | 2.5rem (40px)    | 800    | 1.1         | -0.02em        | Page titles       |
+| H1      | 2rem (32px)      | 700    | 1.2         | -0.02em        | Section headers   |
+| H2      | 1.5rem (24px)    | 600    | 1.3         | -0.01em        | Card titles       |
+| H3      | 1.25rem (20px)   | 600    | 1.4         | 0              | Subsection        |
+| Body    | 0.9375rem (15px) | 400    | 1.6         | 0              | Paragraphs        |
+| Small   | 0.875rem (14px)  | 400    | 1.5         | 0              | Secondary text    |
+| Caption | 0.75rem (12px)   | 500    | 1.4         | 0.05em         | Labels, uppercase |
+| Tiny    | 0.6875rem (11px) | 500    | 1.4         | 0.05em         | Timestamps        |
 
 ### Typography Patterns
 
 ```css
 /* Current Locanote has good patterns - refine them: */
-.tracking-tight { letter-spacing: -0.02em; }
-.tracking-wide { letter-spacing: 0.05em; }
+.tracking-tight {
+  letter-spacing: -0.02em;
+}
+.tracking-wide {
+  letter-spacing: 0.05em;
+}
 
 /* Labels - All caps, wide tracking */
 .label {
@@ -98,17 +104,17 @@ A comprehensive design system based on patterns from Notion, Linear, Vercel, Fig
 
 ### Base Scale
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| space-1 | 4px | Tight gaps |
-| space-2 | 8px | Icon gaps |
-| space-3 | 12px | Small padding |
-| space-4 | 16px | Standard padding |
-| space-5 | 20px | Card padding |
-| space-6 | 24px | Section gaps |
-| space-8 | 32px | Large gaps |
-| space-10 | 40px | Page padding |
-| space-12 | 48px | Section breaks |
+| Token    | Value | Usage            |
+| -------- | ----- | ---------------- |
+| space-1  | 4px   | Tight gaps       |
+| space-2  | 8px   | Icon gaps        |
+| space-3  | 12px  | Small padding    |
+| space-4  | 16px  | Standard padding |
+| space-5  | 20px  | Card padding     |
+| space-6  | 24px  | Section gaps     |
+| space-8  | 32px  | Large gaps       |
+| space-10 | 40px  | Page padding     |
+| space-12 | 48px  | Section breaks   |
 
 ### Layout Spacing
 
@@ -163,9 +169,10 @@ A comprehensive design system based on patterns from Notion, Linear, Vercel, Fig
 --glow-subtle: 0 0 15px -3px rgba(255, 255, 255, 0.1);
 ```
 
-### Glassmorphism (Vercel-inspired)
+### Glassmorphism 2.0 (Vercel + Linear-inspired)
 
 ```css
+/* Standard Glass */
 .glass {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(12px);
@@ -173,10 +180,15 @@ A comprehensive design system based on patterns from Notion, Linear, Vercel, Fig
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.glass-strong {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+/* High-Fidelity Glass (2026 standard) */
+.glass-2 {
+  background: rgba(var(--accent-liquid-rgb), 0.05);
+  backdrop-filter: blur(40px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
 }
 ```
 
@@ -185,467 +197,118 @@ A comprehensive design system based on patterns from Notion, Linear, Vercel, Fig
 ## 5. Border Radius System
 
 ```css
-/* Refined radius scale */
---radius-sm: 6px;     /* Small elements: tags, badges */
---radius-md: 8px;     /* Buttons, inputs */
---radius-lg: 12px;    /* Cards, modals */
---radius-xl: 16px;    /* Large cards, containers */
---radius-2xl: 24px;   /* Hero sections */
---radius-full: 9999px;/* Pills, avatars */
+/* Refined radius scale for ultra-modern "round" aesthetics */
+--radius-sm: 8px; /* Small elements: tags, badges */
+--radius-md: 12px; /* Buttons, inputs */
+--radius-lg: 16px; /* Cards */
+--radius-xl: 24px; /* Modals, search bars */
+--radius-2xl: 3.5rem; /* Hero sections, large portals */
+--radius-full: 9999px; /* Pills, avatars */
 ```
 
 ---
 
-## 6. Interactive Elements
+## 6. Generative UI (GenUI) Components
 
-### Buttons (Supabase-inspired)
+GenUI components (Atoms) are designed to be "snapped" into the interface based on user intent.
+
+### GenUI Principles:
+
+1. **Contextual Presence**: Only appear when matched intent (e.g., Recipe, Code) is detected.
+2. **Atmospheric Coherence**: Must match the current performance tier (avoiding blurs on Low tier).
+3. **Immersive Feedback**: Use micro-animations (`ease-spring`) when morphing into existence.
+
+### Example: Intent Snap-in
+
+```svelte
+<div in:fly={{ x: 30, duration: 800 }} class="intent-atom">
+  <CustomTool {editor} />
+</div>
+```
+
+---
+
+## 7. Interactive Elements
+
+### Buttons (Supabase + Apple-inspired)
 
 ```css
-/* Base button */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Primary Button */
-.btn-primary {
-  background: var(--brand-color);
+/* Success Variant (New) */
+.btn-success {
+  background: #10b981;
   color: white;
-  padding: 10px 16px;
-  font-size: 0.9375rem;
+  box-shadow: 0 0 20px -5px rgba(16, 185, 129, 0.4);
 }
 
-.btn-primary:hover {
-  background: var(--brand-color-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--glow-primary);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-/* Secondary Button */
-.btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--color-border);
-}
-
-.btn-secondary:hover {
-  background: var(--bg-quaternary);
-  border-color: var(--color-border-hover);
-}
-
-/* Ghost Button */
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-}
-
-.btn-ghost:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-/* Danger Button */
-.btn-danger {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-
-.btn-danger:hover {
-  background: rgba(239, 68, 68, 0.2);
+.btn-success:hover {
+  background: #059669;
+  transform: scale(1.05);
 }
 ```
 
-### Form Inputs (Notion-inspired)
+### Form Inputs (Security-Hardened)
 
-```css
-.input {
-  width: 100%;
-  padding: 10px 12px;
-  font-size: 0.9375rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  transition: all 0.2s ease;
-}
+All inputs must be wrapped in a `<form>` element to ensure browser autocomplete and password manager compatibility.
 
-.input:hover {
-  border-color: var(--color-border-hover);
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--brand-color);
-  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.1);
-}
-
-.input::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* Labels */
-.input-label {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-}
-
-/* Error state */
-.input-error {
-  border-color: #ef4444;
-  background: rgba(239, 68, 68, 0.05);
-}
-
-.input-error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
-}
+```html
+<form onsubmit="{(e)" ="">
+  e.preventDefault()}>
+  <input type="password" autocomplete="current-password" />
+</form>
 ```
 
 ---
 
-## 7. Card Design (Notion + Figma)
+## 8. Atmospheric Engines (Visual Tiering)
 
-```css
-/* Standard Card */
-.card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  transition: all 0.2s ease;
-}
+Visual fidelity is dynamic, powered by **PerformanceScout**.
 
-.card:hover {
-  border-color: var(--color-border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-/* Elevated Card (for featured items) */
-.card-elevated {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
-}
-
-.card-elevated:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-/* Note Card (Locanote-specific) */
-.note-card {
-  position: relative;
-  cursor: pointer;
-  min-height: 140px;
-  display: flex;
-  flex-direction: column;
-}
-
-.note-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-  pointer-events: none;
-}
-
-/* Current themed-card enhancement suggestions */
-.themed-card-v2 {
-  background-color: var(--ui-surface);
-  border: 1px solid var(--ui-border);
-  backdrop-filter: blur(var(--ui-blur));
-  border-radius: var(--ui-radius);
-  box-shadow: var(--ui-shadow);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.themed-card-v2:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-}
-```
-
----
-
-## 8. Navigation Patterns
-
-### App Header (Vercel-inspired)
-
-```css
-.app-header {
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(17, 17, 17, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Logo styling */
-.logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.logo-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--brand-color), var(--brand-color-hover));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-```
-
-### Sidebar Navigation
-
-```css
-.sidebar {
-  width: 240px;
-  padding: 16px 12px;
-  border-right: 1px solid var(--color-border);
-}
-
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 0.9375rem;
-  transition: all 0.15s ease;
-}
-
-.nav-item:hover {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-}
-
-.nav-item.active {
-  background: var(--bg-quaternary);
-  color: var(--text-primary);
-}
-```
+| Tier       | Effects Enabled                         | Description                               |
+| ---------- | --------------------------------------- | ----------------------------------------- |
+| **High**   | Nebula Canvas, Blur (40px), Transitions | Full-fidelity liquid experience.          |
+| **Medium** | Aura SVG, Blur (20px), Transitions      | Balanced experience for standard laptops. |
+| **Low**    | Static Colors, No Blur, No Transitions  | Maximum speed for budget/mobile hardware. |
 
 ---
 
 ## 9. Animation & Transitions
 
-### Standard Durations
+### Shared Element Transitions
+
+We use `view-transition-name` to physically link elements across routes.
 
 ```css
---duration-instant: 100ms;   /* Hover states */
---duration-fast: 150ms;       /* Micro-interactions */
---duration-normal: 200ms;     /* Standard transitions */
---duration-slow: 300ms;       /* Page transitions */
---duration-slower: 500ms;     /* Complex animations */
-```
-
-### Easing Functions
-
-```css
---ease-out: cubic-bezier(0, 0, 0.2, 1);
---ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
---ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-```
-
-### Key Animations
-
-```css
-/* Card hover lift */
-@keyframes card-lift {
-  from {
-    transform: translateY(0);
-    box-shadow: var(--shadow-sm);
-  }
-  to {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-  }
-}
-
-/* Fade in up (for lists) */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Pulse (for loading) */
-@keyframes pulse-subtle {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
-
-/* Spin (for loading spinner) */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+/* Card to Editor Title Transition */
+h1 {
+  view-transition-name: note-title-abc-123;
 }
 ```
 
 ---
 
-## 10. Modal & Overlay Design
-
-```css
-/* Backdrop */
-.modal-backdrop {
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-}
-
-/* Modal container */
-.modal {
-  background: var(--bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-xl);
-  max-height: 90vh;
-  overflow: hidden;
-}
-
-/* Modal animations */
-.modal-enter {
-  animation: modal-in 0.2s ease-out;
-}
-
-@keyframes modal-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-```
-
----
-
-## 11. Specific Recommendations for Locanote
+## 10. Specific Recommendations for Locanote
 
 ### Current Strengths to Keep:
-1. CSS variable theming system
-2. Multiple visual themes (glass, cyberpunk, inception)
-3. Accent color customization
-4. Responsive grid layouts
-5. Mobile floating action buttons
+
+1. Svelte 5 Runes for ultra-low overhead reactivity.
+2. 100% strict TypeScript coverage for note IDs and user sessions.
+3. Accessible `autofocus` patterns using `svelte-ignore` with clear UX justification.
 
 ### Areas for Enhancement:
 
-#### A. Refine Color System
-- Update dark mode backgrounds to use the 4-layer system
-- Make borders more subtle (8% opacity vs current ~20%)
-- Add text hierarchy with proper contrast ratios
-
-#### B. Improve Card Design
-```css
-/* Replace current themed-card with: */
-.card-modern {
-  background: var(--bg-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition: all 0.2s var(--ease-out);
-}
-
-.card-modern:hover {
-  border-color: var(--color-border-hover);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-```
-
-#### C. Button Polish
-- Add subtle scale transforms on hover
-- Use consistent padding (10px 16px for standard)
-- Add glow effect to primary buttons
-
-#### D. Input Focus States
-```css
-.input-enhanced:focus {
-  outline: none;
-  border-color: var(--brand-color);
-  box-shadow: 0 0 0 3px rgba(var(--brand-rgb), 0.15);
-}
-```
-
-#### E. Typography Refinement
-- Use tighter letter-spacing on headings (-0.02em)
-- Add proper font-weight hierarchy (400, 500, 600, 700)
-- Ensure sufficient contrast for all text levels
-
-#### F. Loading States
-- Use consistent spinner component
-- Add skeleton screens for better perceived performance
-- Implement staggered animations for list items
-
-#### G. Empty States
-- Use centered, calming illustrations
-- Clear call-to-action buttons
-- Reassuring microcopy about encryption
+- **Skeleton States**: Add SVG-based shimmering skeletons for initial IndexedDB load.
+- **Micro-haptics**: Add device vibration feedback on successful "Portal Lock" (Mobile).
 
 ---
 
-## 12. Implementation Priority
+## 11. Quality Verification Policy
 
-### High Priority (Immediate Impact):
-1. Update dark mode color palette for better depth
-2. Refine card hover effects with subtle lift
-3. Add focus ring styles to all interactive elements
-4. Standardize button sizes and padding
+Every UI change must pass:
 
-### Medium Priority (Polish):
-1. Implement staggered list animations
-2. Add skeleton loading states
-3. Refine typography scale
-4. Improve modal transitions
-
-### Low Priority (Nice to Have):
-1. Custom scrollbars matching theme
-2. Advanced micro-interactions
-3. Sound feedback (optional)
-4. Advanced glassmorphism effects
+1. **`svelte-check`**: 0 errors/warnings.
+2. **Deep Scan**: Full Playwright interaction suite.
+3. **Accessibility Audit**: ARIA labels on all custom buttons.
 
 ---
 
-## 13. Accessibility Guidelines
-
-- Minimum contrast ratio: 4.5:1 for normal text, 3:1 for large text
-- Focus visible on all interactive elements
-- Reduced motion support: `@media (prefers-reduced-motion: reduce)`
-- Keyboard navigation support
-- Screen reader friendly labels and ARIA attributes
-
----
-
-*This style guide synthesizes best practices from industry-leading applications while maintaining Locanote's unique visual identity and existing theming system.*
+_This style guide reflects the Locanote 2026 Production Standard._
