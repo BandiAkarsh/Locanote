@@ -6,27 +6,21 @@
 //
 // USAGE:
 // import { Button, Input, Modal } from '$components';
-//
-// INSTEAD OF:
-// import Button from '$lib/components/Button.svelte';
-// import Input from '$lib/components/Input.svelte';
-// import Modal from '$lib/components/Modal.svelte';
 // ============================================================================
 
-export { default as Button } from "./Button.svelte"; // Reusable button component
-export { default as Input } from "./Input.svelte"; // Text input with label/error
-export { default as Modal } from "./Modal.svelte"; // Popup dialog component
-export { default as Spinner } from "./Spinner.svelte"; // Loading spinner animation
-export { default as Toast } from "./Toast.svelte"; // Notification toast messages
-export { default as AuthCard } from "./AuthCard.svelte"; // Beautiful authentication card
-export { default as RegisterCard } from "./RegisterCard.svelte"; // Beautiful registration card
-export { default as OfflineBanner } from "./OfflineBanner.svelte"; // Offline status indicator
-export { default as TagBadge } from "./TagBadge.svelte"; // Tag display component
-export { default as Toggle } from "./Toggle.svelte"; // Reusable toggle switch component
-export { default as ShareModal } from "./ShareModal.svelte"; // Social sharing modal
-export { default as TemplateModal } from "./TemplateModal.svelte"; // Template selection modal
-export { default as SearchBar } from "./SearchBar.svelte"; // Search input with filters
-export { default as ExportModal } from "./ExportModal.svelte"; // Export to MD/HTML/PDF
-export { default as BackgroundProvider } from "./BackgroundProvider.svelte"; // Futuristic background engine
-export { default as SpatialDock } from "./SpatialDock.svelte"; // Floating navigation dock
-export { default as ThemeBackground } from "./ThemeBackground.svelte"; // Animated background
+export { default as Button } from "./Button.svelte";
+export { default as Input } from "./Input.svelte";
+export { default as Modal } from "./Modal.svelte";
+export { default as Spinner } from "./Spinner.svelte";
+export { default as Toast } from "./Toast.svelte";
+export { default as AuthCard } from "./AuthCard.svelte";
+export { default as RegisterCard } from "./RegisterCard.svelte";
+export { default as OfflineBanner } from "./OfflineBanner.svelte";
+export { default as TagBadge } from "./TagBadge.svelte";
+export { default as Toggle } from "./Toggle.svelte";
+export { default as ShareModal } from "./ShareModal.svelte";
+export { default as TemplateModal } from "./TemplateModal.svelte";
+export { default as SearchBar } from "./SearchBar.svelte";
+export { default as ExportModal } from "./ExportModal.svelte";
+export { default as BackgroundProvider } from "./BackgroundProvider.svelte";
+export { default as SpatialDock } from "./SpatialDock.svelte";
