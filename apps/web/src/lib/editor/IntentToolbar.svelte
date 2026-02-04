@@ -54,8 +54,8 @@ INTENT TOOLBAR (IntentToolbar.svelte)
     
     <!-- Context-Specific Snap-ins (GenUI) -->
     {#if intent.currentMode !== 'none' && modeInfo[intent.currentMode].component}
+      {@const CustomTool = modeInfo[intent.currentMode].component}
       <div in:fly={{ x: 20 }} class="flex items-center gap-1 pl-2 border-l border-[var(--ui-border)] ml-1">
-        {@const CustomTool = modeInfo[intent.currentMode].component}
         <CustomTool {editor} />
       </div>
     {/if}
