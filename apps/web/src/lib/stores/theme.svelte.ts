@@ -90,7 +90,7 @@ function createThemeStore() {
   // Reactive state
   let currentTheme = $state<Theme>(getStoredTheme());
   let currentAccent = $state<AccentColor>(getStoredAccent());
-  let currentStyle = $state<VisualStyle>(getStoredStyle());
+  let currentStyle = $derived(currentTheme); // We follow the user preference
   let systemDark = $state<boolean>(systemPrefersDark());
 
   // Listen for system theme changes
@@ -127,41 +127,50 @@ function createThemeStore() {
       const storage = getLocalStorage();
       if (storage) storage.setItem(ACCENT_KEY, value);
     },
-    get style(): VisualStyle {
-      return currentStyle;
-    },
-    set style(value: VisualStyle) {
-      currentStyle = value;
-      const storage = getLocalStorage();
-      if (storage) storage.setItem(STYLE_KEY, value);
-    },
     get isDark(): boolean {
       return isDark;
     },
+    /**
+     * TOGGLE THEME WITH CIRCULAR REVEAL
+     * Using modern View Transitions API for 2026 aesthetics
+     */
     async toggle(event?: MouseEvent) {
       const win = getWindow();
+      const doc = win?.document;
       
-      // Use View Transitions API if supported and event provided
-      if (event && win && 'startViewTransition' in win.document) {
-        const x = event.clientX;
-        const y = event.clientY;
-        const endRadius = Math.hypot(
-          Math.max(x, win.innerWidth - x),
-          Math.max(y, win.innerHeight - y)
-        );
+      // If View Transitions are NOT supported, just swap instantly
+      if (!doc || !('startViewTransition' in doc)) {
+        currentTheme = isDark ? "light" : "dark";
+        const storage = getLocalStorage();
+        if (storage) storage.setItem(THEME_KEY, currentTheme);
+        return;
+      }
 
-        // @ts-ignore
-        const transition = win.document.startViewTransition(async () => {
-          currentTheme = isDark ? "light" : "dark";
-          const storage = getLocalStorage();
-          if (storage) storage.setItem(THEME_KEY, currentTheme);
-          // Wait for Svelte to apply the class to the document
-          await new Promise(resolve => setTimeout(resolve, 0));
-        });
+      // COORDINATES FOR REVEAL
+      const x = event?.clientX ?? win.innerWidth / 2;
+      const y = event?.clientY ?? win.innerHeight / 2;
+      
+      const endRadius = Math.hypot(
+        Math.max(x, win.innerWidth - x),
+        Math.max(y, win.innerHeight - y)
+      );
 
+      // TRIGGER TRANSITION
+      // @ts-ignore
+      const transition = doc.startViewTransition(async () => {
+        currentTheme = isDark ? "light" : "dark";
+        const storage = getLocalStorage();
+        if (storage) storage.setItem(THEME_KEY, currentTheme);
+        
+        // Ensure Svelte has time to update the class on <html>
+        await new Promise(resolve => setTimeout(resolve, 0));
+      });
+
+      try {
         await transition.ready;
 
-        win.document.documentElement.animate(
+        // PHYSICAL ANIMATION: Expanding Circle
+        doc.documentElement.animate(
           {
             clipPath: [
               `circle(0px at ${x}px ${y}px)`,
@@ -169,15 +178,13 @@ function createThemeStore() {
             ]
           },
           {
-            duration: 500,
-            easing: 'ease-in-out',
+            duration: 650,
+            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
             pseudoElement: '::view-transition-new(root)'
           }
         );
-      } else {
-        currentTheme = isDark ? "light" : "dark";
-        const storage = getLocalStorage();
-        if (storage) storage.setItem(THEME_KEY, currentTheme);
+      } catch (e) {
+        console.warn('[Theme] Transition failed, but theme swapped.', e);
       }
     },
     setLight() {
