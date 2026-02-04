@@ -21,6 +21,7 @@ class VoiceService {
   private _chunks: Float32Array[] = [];
   private _intervalId: any = null;
   private _isManualStop = false;
+  private _errorCount = 0;
 
   constructor() {
     if (isBrowser) {
@@ -42,13 +43,18 @@ class VoiceService {
         } else if (status === 'loading') {
           this.status = 'loading';
         } else if (status === 'ready') {
+          this._errorCount = 0;
           if (this.status === 'loading') this.status = 'ready';
         } else if (status === 'error') {
-          this.status = 'error';
-          this.error = error;
+          this._errorCount++;
+          if (this._errorCount > 3) {
+            this.status = 'error';
+            this.error = "Neural Engine Failure. Check connection or hardware.";
+            this.stopListening();
+          }
+          console.error('[VoiceService] AI Error:', error);
         } else if (status === 'result') {
           this.handleResult(text, isInterim);
-          // Only go back to ready if it was the final result and we manually stopped
           if (!isInterim && this._isManualStop && this.status === 'processing') {
             this.status = 'ready';
           }
@@ -105,7 +111,7 @@ class VoiceService {
 
     } catch (err: any) {
       this.status = 'error';
-      this.error = err.message;
+      this.error = "Mic connection failed. Check permissions.";
     }
   }
 
