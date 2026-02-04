@@ -4,7 +4,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
 
 <script lang="ts">
   import { page } from '$app/state';
-  import { goto } from '$app/navigation';
+  import { goto, replaceState } from '$app/navigation';
   import { onMount } from 'svelte';
   import Editor from '$lib/editor/Editor.svelte';
   import IntentToolbar from '$lib/editor/IntentToolbar.svelte';
@@ -23,7 +23,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   let note = $state<Note | null>(null);
   let isLoading = $state(true);
   let error = $state<string | null>(null);
-  let editorInstance = $state<any>(null);
+  let editorInstance = $state.raw(null);
   let isShareModalOpen = $state(false);
   let isExportModalOpen = $state(false);
   let isProtectModalOpen = $state(false);
@@ -50,41 +50,45 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     id: auth.session?.userId || 'anonymous'
   });
 
-  onMount(async () => {
-    if (!noteId) {
-      error = 'Invalid note ID';
-      isLoading = false;
-      return;
-    }
-
-    // 1. E2EE Key Extraction
+  onMount(() => {
+    // 1. E2EE Key Extraction from URL
     if (isBrowser && window.location.hash.startsWith('#key=')) {
       try {
         const base64UrlKey = window.location.hash.slice(5);
         const keyBytes = base64UrlToUint8Array(base64UrlKey);
         storeRoomKey(noteId, keyBytes);
-        history.replaceState(null, '', window.location.pathname);
+        replaceState(window.location.pathname, {});
       } catch (err) {
         console.error('[E2E] Key extraction failed:', err);
       }
     }
+  });
 
-    // 2. Load Note Data
+  // Reactive Note Loader (Svelte 5)
+  $effect(() => {
+    if (noteId) {
+      loadNoteData(noteId);
+    }
+  });
+
+  async function loadNoteData(id: string) {
     try {
-      const loadedNote = await getNoteForCollaboration(noteId);
+      isLoading = true;
+      const loadedNote = await getNoteForCollaboration(id);
+      
       if (!loadedNote) {
         error = 'Neural link failed. Access denied or portal destroyed.';
       } else {
         note = loadedNote;
         
-        if (note.isProtected && !hasRoomKey(noteId)) {
+        if (note.isProtected && !hasRoomKey(id)) {
           currentSalt = note.passwordSalt || null;
           showPasswordPrompt = true;
         }
         
         // Check for template content
         if (isBrowser) {
-          const templateKey = `template-content-${noteId}`;
+          const templateKey = `template-content-${id}`;
           const storedTemplate = sessionStorage.getItem(templateKey);
           if (storedTemplate) {
             try {
@@ -99,7 +103,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     } finally {
       isLoading = false;
     }
-  });
+  }
 
   async function handleTitleSubmit() {
     if (!noteId || !editedTitle.trim() || editedTitle === note?.title) {
@@ -138,6 +142,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   async function handlePasswordSubmit() {
     if (!currentSalt) return;
     try {
+      // FIX: salt must be Uint8Array
       const saltBuffer = base64ToArrayBuffer(currentSalt);
       const { key } = deriveKeyFromPassword(passwordAttempt, new Uint8Array(saltBuffer));
       storeRoomKey(noteId, key);
@@ -188,7 +193,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       </button>
 
       {#if note}
-        <div class="flex flex-col">
+        <div class="flex flex-col max-w-[200px] sm:max-w-md">
           <div class="flex items-center gap-3">
             {#if isEditingTitle}
               <input
@@ -197,19 +202,22 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
                 onblur={handleTitleSubmit}
                 onkeydown={(e) => { if (e.key === 'Enter') handleTitleSubmit(); }}
                 class="bg-transparent border-b-2 border-primary outline-none text-2xl font-black text-[var(--ui-text)] w-full max-w-sm tracking-tight"
+                autofocus
               />
             {:else}
               <button 
                 onclick={startEditingTitle}
-                class="text-left group flex items-center gap-2"
+                class="text-left group flex items-center gap-3 hover:scale-[1.02] transition-transform"
               >
                 <h1 
-                  class="text-2xl sm:text-3xl font-black text-[var(--ui-text)] tracking-tight leading-none truncate group-hover:text-primary transition-all"
+                  class="text-2xl sm:text-4xl font-black text-[var(--ui-text)] tracking-tighter leading-none truncate transition-all"
                   style="view-transition-name: note-title-{noteId}"
                 >
                   {note.title}
                 </h1>
-                <svg class="w-5 h-5 opacity-0 group-hover:opacity-100 text-primary transition-all" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                <div class="p-2 rounded-xl bg-primary/5 border border-primary/10 opacity-40 group-hover:opacity-100 transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                </div>
               </button>
             {/if}
 
@@ -233,8 +241,13 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       <Button variant="ghost" size="sm" onclick={() => isExportModalOpen = true}>
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
       </Button>
-      <Button variant="ghost" size="sm" onclick={() => isProtectModalOpen = true}>
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+      <Button variant="ghost" size="sm" onclick={() => isProtectModalOpen = true} class="group/shield relative overflow-visible">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform group-hover/shield:scale-110"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+        <span class="ml-2 hidden sm:inline uppercase tracking-widest text-[10px] font-black">Secure</span>
+        
+        {#if note && note.isProtected}
+          <div class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-[var(--ui-surface)] animate-pulse"></div>
+        {/if}
       </Button>
       <Button variant="primary" size="sm" onclick={() => isShareModalOpen = true}>
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg>
