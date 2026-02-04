@@ -5,11 +5,9 @@
 # when changes are pushed to the main branch.
 #
 # PREREQUISITES:
-# 1. GitHub Secrets:
-#    - CLOUDFLARE_API_TOKEN: Cloudflare API Token (Edit Workers/Pages)
-#    - CLOUDFLARE_ACCOUNT_ID: Cloudflare Account ID
-# 2. Cloudflare Dashboard:
-#    - Automatic deployments DISABLED (to let GitHub Actions handle it)
+# 1. GitHub Secrets (Ensure these match EXACTLY):
+#    - CLOUDFLARE_API_TOKEN
+#    - CLOUDFLARE_ACCOUNT_ID
 # ============================================================================
 
 name: Production Deployment
@@ -19,11 +17,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      force_deploy:
-        description: "Force deployment even if no changes detected?"
-        default: false
-        type: boolean
 
 jobs:
   verify:
@@ -40,27 +33,11 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Check Svelte Stability
         run: pnpm --filter @locanote/web run check
-
-      - name: Type Check Packages
-        run: pnpm recursive run check || echo "No check script in some packages"
 
   deploy-signaling:
     name: Deploy Signaling (Worker)
@@ -83,8 +60,15 @@ jobs:
       - name: Deploy to Cloudflare Workers
         working-directory: packages/signaling
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: npx wrangler deploy --minify
+          # Resilient mapping in case secrets were named differently
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "Error: CLOUDFLARE_API_TOKEN is missing. Please check your GitHub Secrets."
+            exit 1
+          fi
+          npx wrangler deploy --minify
 
   deploy-frontend:
     name: Deploy Frontend (Pages)
@@ -110,8 +94,9 @@ jobs:
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
         with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Resilient mapping for common naming variations
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || secrets.ACCOUNT_ID }}
           projectName: locanote
           directory: apps/web/build
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
