@@ -10,6 +10,7 @@ APP DASHBOARD (+page.svelte for /app)
   import { Button, Modal, TemplateModal, SearchBar, TagBadge } from '$components';
   import { searchNotes, getAllTags, semanticSearch } from '$lib/services/search.svelte';
   import { getParam, setParam } from '$lib/utils/url-params.svelte';
+  import { spatial } from '$lib/utils/spatial';
   import { fly, fade } from 'svelte/transition';
   import type { Note } from '$db';
 
@@ -201,7 +202,11 @@ APP DASHBOARD (+page.svelte for /app)
 
 <div class="max-w-6xl mx-auto space-y-12 pb-32">
   <!-- 1. NEBULA GREETING (Zero UI Design) -->
-  <header class="relative overflow-hidden p-8 sm:p-12 rounded-[2.5rem] glass-2 border-primary/20" in:fly={{ y: 20, duration: 800 }}>
+  <header 
+    class="relative overflow-hidden p-8 sm:p-12 rounded-[2.5rem] glass-2 border-primary/20" 
+    in:fly={{ y: 20, duration: 800 }}
+    use:spatial={{ intensity: 3, scale: 1.01 }}
+  >
     <div class="relative z-10 space-y-4">
       <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20">
         <div class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
@@ -276,6 +281,7 @@ APP DASHBOARD (+page.svelte for /app)
             onkeydown={(e) => e.key === 'Enter' && openNote(note.id)}
             style="view-transition-name: note-card-{note.id}"
             in:fade
+            use:spatial={{ intensity: 8, scale: 1.03 }}
           >
             <!-- Specular Top Edge Handled by .glass-2 -->
             

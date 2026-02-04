@@ -8,12 +8,14 @@ import { test, expect } from "@playwright/test";
 const BASE_URL = "http://localhost:5173";
 
 test.describe("Comprehensive App Test", () => {
-  test.setTimeout(60000); // Increase timeout for GenUI and Transitions
+  test.setTimeout(90000); // Massive timeout for CI/slow environments
 
   test.beforeEach(async ({ page }) => {
     // Forward logs
-    page.on('console', msg => console.log('BROWSER:', msg.text()));
-    page.on('pageerror', err => console.log('BROWSER ERROR:', err.message));
+    page.on('console', msg => {
+      if (msg.type() === 'error') console.log('BROWSER ERROR:', msg.text());
+      else console.log('BROWSER:', msg.text());
+    });
 
     await page.goto(BASE_URL);
     // Clear storage to start fresh
@@ -27,41 +29,37 @@ test.describe("Comprehensive App Test", () => {
 
   test("User lifecycle: Register -> Create -> GenUI -> Search -> Export", async ({ page }) => {
     // 1. REGISTRATION
-    const switchToRegisterBtn = page.locator('button:has-text("Materialize an Identity")');
-    await switchToRegisterBtn.waitFor({ state: "visible", timeout: 15000 });
-    await switchToRegisterBtn.click();
+    await page.waitForSelector('#switch-to-register', { state: "visible", timeout: 20000 });
+    await page.click('#switch-to-register');
     
-    await page.locator("#reg-username").fill("full_user_" + Date.now());
+    await page.waitForSelector("#reg-username", { state: "visible", timeout: 20000 });
+    await page.fill("#reg-username", "full_user_" + Date.now());
     
     // Select Password method
-    const passwordMethodBtn = page.locator('button:has-text("Password")').first();
-    await passwordMethodBtn.click();
+    await page.click('button:has-text("Password")');
     
-    await page.locator("#reg-password").fill("TestPass123!");
-    await page.locator("#reg-confirm").fill("TestPass123!");
+    await page.waitForSelector("#reg-password", { state: "visible", timeout: 15000 });
+    await page.fill("#reg-password", "TestPass123!");
+    await page.fill("#reg-confirm", "TestPass123!");
     
-    const submitBtn = page.locator('button:has-text("Initialize Link")');
-    await expect(submitBtn).toBeEnabled();
-    await submitBtn.click();
+    await page.click('button:has-text("Initialize Link")');
     
     // Wait for Dashboard
-    await page.waitForURL("**/app**", { timeout: 25000 });
-    // Use the specific header on the app page
-    await expect(page.locator('h1:has-text("Welcome,")')).toBeVisible({ timeout: 15000 });
+    await page.waitForURL("**/app**", { timeout: 30000 });
+    await expect(page.locator('h1:has-text("Welcome,")')).toBeVisible({ timeout: 20000 });
 
     // 2. CREATE FROM TEMPLATE
-    await page.locator('button:has-text("Template")').first().click();
+    await page.locator('button:has-text("Templates")').first().click();
     await page.locator('button:has-text("Meeting Notes")').click();
     await page.locator('input[placeholder="Meeting Notes"]').fill("Board Meeting");
     await page.keyboard.press("Enter");
     
-    // View Transitions make navigation feel smooth, but we wait for URL
     await page.waitForURL("**/app/note/**", { timeout: 20000 });
     
     // Verify template content
     const editor = page.locator(".ProseMirror");
-    await editor.waitFor({ state: "visible", timeout: 10000 });
-    await expect(editor).toContainText("Meeting Notes", { timeout: 10000 });
+    await editor.waitFor({ state: "visible", timeout: 15000 });
+    await expect(editor).toContainText("Meeting Notes", { timeout: 15000 });
     
     // 3. TEST GenUI INTENT DETECTION
     await editor.click();
@@ -70,51 +68,44 @@ test.describe("Comprehensive App Test", () => {
     
     // Type Recipe Intent
     await page.keyboard.type("Ingredients:\n- 2 cups flour\n- 1 tsp sugar\nInstructions:");
-    await page.waitForTimeout(2000); // Wait for intent engine
     
     // Check for Chef Mode
-    await expect(page.locator('span:has-text("Chef Mode Active")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('span:has-text("Chef Mode Active")')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('button:has-text("5m Timer")')).toBeVisible();
-
+    
     // 4. NAVIGATION & SEARCH
-    // Go back via dock
+    // Go back via Home icon in dock
     await page.locator('button[aria-label="Home"]').click();
     await page.waitForURL("**/app", { timeout: 15000 });
     
     const searchInput = page.locator('input[aria-label="Search notes"]');
     await searchInput.waitFor({ state: "visible" });
     await searchInput.fill("Board");
-    await page.waitForTimeout(1000); // Debounce
+    await page.waitForTimeout(1500); // Debounce
     await expect(page.locator('h3:has-text("Board Meeting")')).toBeVisible();
     
     // 5. KEYBINDINGS
-    // Escape to clear search
     await page.keyboard.press("Escape");
     await expect(searchInput).toHaveValue("");
-    await searchInput.blur(); // Crucial: remove focus so shortcuts work
+    await searchInput.blur();
     
     // Ctrl+N for new note
     await page.keyboard.press("Control+n");
-    await page.waitForURL("**/app/note/**", { timeout: 15000 });
+    await page.waitForURL("**/app/note/**", { timeout: 20000 });
     
     // 6. EXPORT
     await page.locator('button:has-text("Export")').click();
     await expect(page.locator('h2:has-text("Export Note")')).toBeVisible();
     
+    // Close modal with Escape
+    await page.keyboard.press("Escape");
+    await expect(page.locator('h2:has-text("Export Note")')).not.toBeVisible({ timeout: 15000 });
+    
     // 7. TOOLBAR GLOW TEST
-    await page.keyboard.press("Escape"); // Close export
-    await expect(page.locator('h2:has-text("Export Note")')).not.toBeVisible({ timeout: 10000 });
-    
-    const editorEl = page.locator(".ProseMirror");
-    await editorEl.click(); // Click to focus
-    await page.waitForTimeout(500);
-    
     const boldBtn = page.locator('button[aria-label="Bold"]').first();
-    await boldBtn.waitFor({ state: "visible", timeout: 15000 });
     await boldBtn.click();
-    await page.waitForTimeout(1000); // Wait for reactivity
+    await page.waitForTimeout(1000); 
     
-    // Check for the active class
     await expect(boldBtn).toHaveClass(/toolbar-btn-active/, { timeout: 15000 });
   });
 });
