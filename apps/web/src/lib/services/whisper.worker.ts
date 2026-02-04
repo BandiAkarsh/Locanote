@@ -1,7 +1,7 @@
 import { pipeline, env } from '@xenova/transformers';
 
 /**
- * WHISPER AI WORKER (v2 - Streaming Support)
+ * WHISPER AI WORKER (v2 - Real-Time Streaming)
  * Handles heavy lifting of speech-to-text on a background thread.
  */
 
@@ -47,6 +47,7 @@ self.onmessage = async (event) => {
         }
 
         try {
+            // Whisper transcription
             const output = await transcriber(audio, {
                 chunk_length_s: 30,
                 stride_length_s: 5,
@@ -61,9 +62,9 @@ self.onmessage = async (event) => {
                 isInterim: isInterim || false
             });
         } catch (error: any) {
-            console.error('[Worker] Transcription failed:', error);
-            // Don't kill the worker for interim errors
+            // Silently handle interim errors to prevent loop interruption
             if (!isInterim) {
+              console.error('[Worker] Transcription failed:', error);
               self.postMessage({ status: 'error', error: error.message });
             }
         }

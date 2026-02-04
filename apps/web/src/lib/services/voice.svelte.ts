@@ -2,6 +2,7 @@
 // OFFLINE VOICE SERVICE (voice.svelte.ts)
 // ============================================================================
 // Manages the Whisper AI worker and microphone recording for 100% offline dictation.
+// Supports real-time "Streaming" by transcribing the buffer while listening.
 
 import { isBrowser } from "$utils/browser";
 
@@ -47,7 +48,8 @@ class VoiceService {
           this.error = error;
         } else if (status === 'result') {
           this.handleResult(text, isInterim);
-          if (!isInterim && this._isManualStop) {
+          // Only go back to ready if it was the final result and we manually stopped
+          if (!isInterim && this._isManualStop && this.status === 'processing') {
             this.status = 'ready';
           }
         }
@@ -93,9 +95,9 @@ class VoiceService {
 
       this.status = 'listening';
       
-      // Real-time loop: Transcribe the current buffer every 3 seconds
+      // REAL-TIME LOOP: Transcribe the current buffer every 3.5 seconds
       this._intervalId = setInterval(() => {
-        if (this.status === 'listening' && this._chunks.length > 0) {
+        if (this.status === 'listening' && this._chunks.length > 5) {
           const audio = this.getAudioBuffer();
           this.worker?.postMessage({ type: 'transcribe', audio, isInterim: true });
         }
@@ -146,7 +148,7 @@ class VoiceService {
   onResult: ((text: string, isInterim: boolean) => void) | null = null;
 
   private handleResult(text: string, isInterim: boolean) {
-    if (this.onResult) {
+    if (this.onResult && text.trim()) {
       this.onResult(text.trim(), isInterim);
     }
   }
