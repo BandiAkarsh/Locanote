@@ -1,20 +1,29 @@
 // ============================================================================
 // UI STATE STORE (ui.svelte.ts)
 // ============================================================================
-// Manages global UI preferences like "Clean Mode" and accessibility settings.
+// Manages global UI preferences including Futuristic Liquid Workspace features.
 
 import { isBrowser } from "$utils/browser";
+
+export type BackgroundStyle = 'nebula' | 'crystalline' | 'aura' | 'static';
+export type IntentMode = 'none' | 'recipe' | 'task' | 'code' | 'journal';
 
 export interface UIState {
   cleanMode: boolean; // Simplified UI for non-technical users
   sidebarOpen: boolean;
   fontSize: 'small' | 'default' | 'large';
+  backgroundStyle: BackgroundStyle;
+  intentMode: IntentMode;
+  performanceTier: 'low' | 'medium' | 'high';
 }
 
 const DEFAULT_STATE: UIState = {
   cleanMode: false,
   sidebarOpen: true,
-  fontSize: 'default'
+  fontSize: 'default',
+  backgroundStyle: 'nebula',
+  intentMode: 'none',
+  performanceTier: 'medium'
 };
 
 class UIStore {
@@ -31,7 +40,7 @@ class UIStore {
     if (!isBrowser) return;
 
     try {
-      const saved = localStorage.getItem('locanote_ui_state');
+      const saved = localStorage.getItem('locanote_ui_state_v2');
       if (saved) {
         const parsed = JSON.parse(saved);
         this.#state = { ...DEFAULT_STATE, ...parsed };
@@ -46,13 +55,16 @@ class UIStore {
    */
   #save() {
     if (!isBrowser) return;
-    localStorage.setItem('locanote_ui_state', JSON.stringify(this.#state));
+    localStorage.setItem('locanote_ui_state_v2', JSON.stringify(this.#state));
   }
 
   // Getters
   get cleanMode() { return this.#state.cleanMode; }
   get sidebarOpen() { return this.#state.sidebarOpen; }
   get fontSize() { return this.#state.fontSize; }
+  get backgroundStyle() { return this.#state.backgroundStyle; }
+  get intentMode() { return this.#state.intentMode; }
+  get performanceTier() { return this.#state.performanceTier; }
 
   // Setters
   set cleanMode(value: boolean) {
@@ -67,6 +79,21 @@ class UIStore {
 
   set fontSize(value: 'small' | 'default' | 'large') {
     this.#state.fontSize = value;
+    this.#save();
+  }
+
+  set backgroundStyle(value: BackgroundStyle) {
+    this.#state.backgroundStyle = value;
+    this.#save();
+  }
+
+  set intentMode(value: IntentMode) {
+    this.#state.intentMode = value;
+    // Don't persist intent mode, reset on session
+  }
+
+  set performanceTier(value: 'low' | 'medium' | 'high') {
+    this.#state.performanceTier = value;
     this.#save();
   }
 
