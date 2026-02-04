@@ -60,7 +60,7 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
     };
   });
 
-  // Re-initialize if style changes
+  // Re-initialize if style changes or canvas is bound
   $effect(() => {
     if (currentStyle === 'nebula' && canvas) {
       if (!ctx) initNebula();
@@ -192,7 +192,7 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   
   <!-- 4. STATIC / PERFORMANCE -->
   {:else if currentStyle === 'static'}
-    <div class="absolute inset-0 opacity-10 bg-gradient-to-br from-primary via-purple-500 to-pink-500"></div>
+    <div class="absolute inset-0 opacity-10 bg-gradient-to-br from-primary via-purple-500 to-transparent"></div>
   {/if}
   
   <!-- Global Intent Overlay -->
