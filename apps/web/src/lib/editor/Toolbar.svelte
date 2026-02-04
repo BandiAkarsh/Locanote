@@ -22,13 +22,14 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   let isCodeBlock = $state(false);
   let isBlockquote = $state(false);
 
+  let interimText = $state('');
+  let lastInterimLength = 0;
+
   /**
    * Update all active states at once
    */
   function updateActiveStates() {
     if (!editor) return;
-    
-    // Using $state.snapshot or just direct assignment in Svelte 5
     isBold = editor.isActive('bold');
     isItalic = editor.isActive('italic');
     isHighlight = editor.isActive('highlight');
@@ -38,8 +39,6 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     isTaskList = editor.isActive('taskList');
     isCodeBlock = editor.isActive('codeBlock');
     isBlockquote = editor.isActive('blockquote');
-    
-    console.log('[Toolbar] Updated active states. Bold:', isBold);
   }
 
   onMount(() => {
@@ -51,9 +50,25 @@ TOOLBAR COMPONENT (Toolbar.svelte)
       updateActiveStates();
     }
 
-    voice.onResult = (text) => {
-      if (editor) {
-        editor.chain().focus().insertContent(text + ' ').run();
+    voice.onResult = (text, isInterim) => {
+      if (!editor) return;
+
+      if (isInterim) {
+        // Real-time "Streaming" feel
+        // We delete the last interim insertion and replace it with the new one
+        editor.chain()
+          .focus()
+          .deleteRange({ from: editor.state.selection.from - lastInterimLength, to: editor.state.selection.from })
+          .insertContent(text + ' ')
+          .run();
+        
+        lastInterimLength = text.length + 1;
+        interimText = text;
+      } else {
+        // Final result: Just keep it and reset the tracker
+        lastInterimLength = 0;
+        interimText = '';
+        console.log('[Voice] Final result inserted');
       }
     };
   });
@@ -71,10 +86,15 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     if (voice.status === 'idle' || voice.status === 'error') {
       voice.loadModel();
     } else if (voice.status === 'ready') {
+      lastInterimLength = 0;
       voice.startListening();
     } else if (voice.status === 'listening') {
       voice.stopListening();
     }
+  }
+
+  function getGlowClass(active: boolean): string {
+    return active ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent';
   }
 </script>
 
@@ -127,7 +147,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     <button
       onclick={() => { editor?.chain().focus().toggleBold().run(); updateActiveStates(); }}
-      class="p-2 rounded-lg transition-all duration-200 border-2 {isBold ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="p-2 rounded-lg transition-all duration-200 border-2 {getGlowClass(isBold)}"
       title="Bold (Ctrl+B)"
       aria-label="Bold"
     >
@@ -138,7 +158,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     
     <button
       onclick={() => { editor?.chain().focus().toggleItalic().run(); updateActiveStates(); }}
-      class="p-2 rounded-lg transition-all duration-200 border-2 {isItalic ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="p-2 rounded-lg transition-all duration-200 border-2 {getGlowClass(isItalic)}"
       title="Italic (Ctrl+I)"
       aria-label="Italic"
     >
@@ -163,12 +183,12 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     <button
       onclick={() => { editor?.chain().focus().toggleHeading({ level: 1 }).run(); updateActiveStates(); }}
-      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {isH1 ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {getGlowClass(isH1)}"
       aria-label="Heading 1"
     >H1</button>
     <button
       onclick={() => { editor?.chain().focus().toggleHeading({ level: 2 }).run(); updateActiveStates(); }}
-      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {isH2 ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="px-2.5 py-1 rounded-lg text-xs font-black transition-all border-2 {getGlowClass(isH2)}"
       aria-label="Heading 2"
     >H2</button>
   </div>
@@ -177,7 +197,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   <div class="flex items-center gap-0.5 px-2 border-r border-[var(--ui-border)]">
     <button
       onclick={() => { editor?.chain().focus().toggleBulletList().run(); updateActiveStates(); }}
-      class="p-2 rounded-lg transition-all border-2 {isBulletList ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="p-2 rounded-lg transition-all border-2 {getGlowClass(isBulletList)}"
       aria-label="Bullet List"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -186,7 +206,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     </button>
     <button
       onclick={() => { editor?.chain().focus().toggleTaskList().run(); updateActiveStates(); }}
-      class="p-2 rounded-lg transition-all border-2 {isTaskList ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="p-2 rounded-lg transition-all border-2 {getGlowClass(isTaskList)}"
       aria-label="Task List"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -200,7 +220,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     {#if !ui.cleanMode}
       <button
         onclick={() => { editor?.chain().focus().toggleCodeBlock().run(); updateActiveStates(); }}
-        class="p-2 rounded-lg transition-all border-2 {isCodeBlock ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+        class="p-2 rounded-lg transition-all border-2 {getGlowClass(isCodeBlock)}"
         aria-label="Code Block"
       >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -210,7 +230,7 @@ TOOLBAR COMPONENT (Toolbar.svelte)
     {/if}
     <button
       onclick={() => { editor?.chain().focus().toggleBlockquote().run(); updateActiveStates(); }}
-      class="p-2 rounded-lg transition-all border-2 {isBlockquote ? 'toolbar-btn-active' : 'text-[var(--ui-text-muted)] hover:bg-primary/10 border-transparent'}"
+      class="p-2 rounded-lg transition-all border-2 {getGlowClass(isBlockquote)}"
       aria-label="Quote"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

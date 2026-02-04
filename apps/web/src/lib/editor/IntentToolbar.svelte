@@ -17,12 +17,22 @@ INTENT TOOLBAR (IntentToolbar.svelte)
 
   // Mode-specific labels and themes
   const modeInfo = {
-    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool },
-    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool },
-    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool },
-    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null },
-    none: { label: '', color: '', icon: '', component: null }
+    recipe: { label: 'Chef Mode', color: 'emerald', icon: '🍳', component: ChefTool, themeColor: 'rgba(16, 185, 129, 0.2)' },
+    task: { label: 'Project Mode', color: 'blue', icon: '🎯', component: ProjectTool, themeColor: 'rgba(59, 130, 246, 0.2)' },
+    code: { label: 'Developer Mode', color: 'indigo', icon: '💻', component: DevTool, themeColor: 'rgba(99, 102, 241, 0.2)' },
+    journal: { label: 'Zen Mode', color: 'rose', icon: '📔', component: null, themeColor: 'rgba(244, 63, 94, 0.2)' },
+    none: { label: '', color: '', icon: '', component: null, themeColor: 'transparent' }
   };
+
+  // Immersive Background Shift (The "Magic")
+  $effect(() => {
+    if (intent.currentMode !== 'none') {
+      const color = modeInfo[intent.currentMode].themeColor;
+      document.documentElement.style.setProperty('--intent-bg-shift', color);
+    } else {
+      document.documentElement.style.setProperty('--intent-bg-shift', 'transparent');
+    }
+  });
 </script>
 
 <div class="space-y-3 w-full animate-fade-in">

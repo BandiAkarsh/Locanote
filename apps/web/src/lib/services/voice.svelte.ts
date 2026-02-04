@@ -18,6 +18,8 @@ class VoiceService {
   private processor: ScriptProcessorNode | null = null;
   private input: AudioNode | null = null;
   private _chunks: Float32Array[] = [];
+  private _intervalId: any = null;
+  private _isManualStop = false;
 
   constructor() {
     if (isBrowser) {
@@ -25,52 +27,41 @@ class VoiceService {
     }
   }
 
-  /**
-   * Initialize the Web Worker for background AI processing
-   */
   private initWorker() {
     try {
-      // Create worker using Vite's URL constructor pattern
       this.worker = new Worker(new URL('./whisper.worker.ts', import.meta.url), {
         type: 'module'
       });
 
       this.worker.onmessage = (event) => {
-        const { status, progress, message, error, text } = event.data;
+        const { status, progress, message, error, text, isInterim } = event.data;
 
         if (status === 'progress') {
           this.progress = progress;
         } else if (status === 'loading') {
           this.status = 'loading';
         } else if (status === 'ready') {
-          this.status = 'ready';
-          console.log('[VoiceService] Neural Engine is ready (Offline)');
+          if (this.status === 'loading') this.status = 'ready';
         } else if (status === 'error') {
           this.status = 'error';
           this.error = error;
-          console.error('[VoiceService] AI Error:', error);
         } else if (status === 'result') {
-          this.status = 'ready';
-          this.handleResult(text);
+          this.handleResult(text, isInterim);
+          if (!isInterim && this._isManualStop) {
+            this.status = 'ready';
+          }
         }
       };
     } catch (err) {
-      console.error('[VoiceService] Failed to init AI worker:', err);
       this.status = 'error';
     }
   }
 
-  /**
-   * Load the AI model (approx 30MB q4 tiny)
-   */
   async loadModel() {
     if (this.status !== 'idle' && this.status !== 'error') return;
     this.worker?.postMessage({ type: 'load' });
   }
 
-  /**
-   * Start recording audio for transcription
-   */
   async startListening() {
     if (this.status === 'idle') {
       await this.loadModel();
@@ -78,15 +69,15 @@ class VoiceService {
     }
 
     if (this.status !== 'ready') return;
+    this._isManualStop = false;
 
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
-        sampleRate: 16000, // Whisper expects 16kHz
+        sampleRate: 16000,
       });
 
       this.input = this.audioContext.createMediaStreamSource(this.stream);
-      // ScriptProcessor is old but reliable for this specific raw audio capture in browsers
       this.processor = this.audioContext.createScriptProcessor(4096, 1, 1);
 
       this._chunks = [];
@@ -101,24 +92,22 @@ class VoiceService {
       this.processor.connect(this.audioContext.destination);
 
       this.status = 'listening';
-      console.log('[VoiceService] AI is listening...');
+      
+      // Real-time loop: Transcribe the current buffer every 3 seconds
+      this._intervalId = setInterval(() => {
+        if (this.status === 'listening' && this._chunks.length > 0) {
+          const audio = this.getAudioBuffer();
+          this.worker?.postMessage({ type: 'transcribe', audio, isInterim: true });
+        }
+      }, 3500);
+
     } catch (err: any) {
-      console.error('[VoiceService] Mic access failed:', err);
       this.status = 'error';
       this.error = err.message;
     }
   }
 
-  /**
-   * Stop recording and trigger AI transcription
-   */
-  async stopListening() {
-    if (this.status !== 'listening') return;
-
-    this.status = 'processing';
-    console.log('[VoiceService] AI is transcribing...');
-
-    // Combine chunks into single Float32Array
+  private getAudioBuffer(): Float32Array {
     const length = this._chunks.reduce((acc, curr) => acc + curr.length, 0);
     const audio = new Float32Array(length);
     let offset = 0;
@@ -126,9 +115,18 @@ class VoiceService {
       audio.set(chunk, offset);
       offset += chunk.length;
     }
+    return audio;
+  }
 
-    // Send audio buffer to the background AI worker
-    this.worker?.postMessage({ type: 'transcribe', audio });
+  async stopListening() {
+    if (this.status !== 'listening') return;
+
+    this._isManualStop = true;
+    if (this._intervalId) clearInterval(this._intervalId);
+    this.status = 'processing';
+
+    const audio = this.getAudioBuffer();
+    this.worker?.postMessage({ type: 'transcribe', audio, isInterim: false });
 
     this.cleanupAudio();
   }
@@ -145,14 +143,11 @@ class VoiceService {
     this.audioContext = null;
   }
 
-  /**
-   * Callback for UI to receive the final transcribed text
-   */
-  onResult: ((text: string) => void) | null = null;
+  onResult: ((text: string, isInterim: boolean) => void) | null = null;
 
-  private handleResult(text: string) {
-    if (this.onResult && text.trim()) {
-      this.onResult(text.trim());
+  private handleResult(text: string, isInterim: boolean) {
+    if (this.onResult) {
+      this.onResult(text.trim(), isInterim);
     }
   }
 }

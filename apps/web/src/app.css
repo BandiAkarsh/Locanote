@@ -76,6 +76,17 @@
   overflow: hidden;
 }
 
+/* Intent-Driven Background Overlay */
+.liquid-mesh::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--intent-bg-shift, transparent);
+  transition: background 1s ease-in-out;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
 /* Aura Fallback (Low Power but Beautiful) */
 .aura-bg {
   position: absolute;
