@@ -43,6 +43,7 @@ EVENTS:
     placeholder?: string;
     debounceMs?: number;
     onSearch?: (query: string) => void;
+    onSemanticSearch?: (query: string) => void;
     onTagSelect?: (tag: string | null) => void;
     onClear?: () => void;
   }
@@ -54,6 +55,7 @@ EVENTS:
     placeholder = 'Search notes...',
     debounceMs = 300,
     onSearch,
+    onSemanticSearch,
     onTagSelect,
     onClear
   }: Props = $props();
@@ -164,42 +166,49 @@ EVENTS:
       onblur={handleBlur}
       {placeholder}
       class="
-        w-full pl-12 pr-12 py-3.5
+        w-full pl-12 pr-24
         bg-transparent border-none
         text-[var(--ui-text)] placeholder-[var(--ui-text-muted)]
         focus:outline-none
-        text-base sm:text-lg
+        text-base sm:text-lg py-3.5
       "
       aria-label="Search notes"
       autocomplete="off"
     />
 
-    <!-- Keyboard Shortcut Hint (shown when empty and focused) -->
-    {#if !hasContent && !isFocused}
-      <div class="absolute right-12 hidden sm:flex items-center gap-1 text-xs text-[var(--ui-text-muted)]">
-        <kbd class="px-1.5 py-0.5 rounded bg-[var(--ui-border)] font-mono">⌘K</kbd>
-      </div>
-    {/if}
-
-    <!-- Clear Button -->
-    {#if hasContent}
+    <!-- Action Group (Scout + Clear) -->
+    <div class="absolute right-3 flex items-center gap-1">
+      <!-- Semantic Scout Symbol -->
       <button
         type="button"
-        onclick={handleClear}
-        class="
-          absolute right-3 p-1.5 rounded-full
-          text-[var(--ui-text-muted)]
-          hover:bg-[var(--ui-border)] hover:text-[var(--ui-text)]
-          transition-all duration-200
-          focus:outline-none focus:ring-2 focus:ring-primary/20
-        "
-        aria-label="Clear search"
+        onclick={() => onSemanticSearch?.(value)}
+        class="p-2 rounded-xl text-primary hover:bg-primary/10 transition-all group/scout"
+        title="AI Semantic Scout"
       >
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        <svg class="w-5 h-5 group-hover/scout:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       </button>
-    {/if}
+
+      {#if hasContent}
+        <button
+          type="button"
+          onclick={handleClear}
+          class="
+            p-1.5 rounded-full
+            text-[var(--ui-text-muted)]
+            hover:bg-[var(--ui-border)] hover:text-[var(--ui-text)]
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-primary/20
+          "
+          aria-label="Clear search"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      {/if}
+    </div>
   </div>
 
   <!-- Active Filters Row -->

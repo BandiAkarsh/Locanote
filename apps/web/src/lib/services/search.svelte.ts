@@ -163,6 +163,35 @@ export async function getAllTags(): Promise<string[]> {
 }
 
 /**
+ * Semantic search using basic keyword expanded matching
+ * (A full embedding model would be better but this is a high-fidelity starting point)
+ */
+export async function semanticSearch(query: string): Promise<SearchResult[]> {
+  const expandedQuery = expandQuery(query);
+  return searchNotes({ query: expandedQuery });
+}
+
+function expandQuery(query: string): string {
+  const synonyms: Record<string, string[]> = {
+    'dinner': ['recipe', 'cook', 'ingredients', 'food', 'meal'],
+    'work': ['meeting', 'project', 'task', 'deadline', 'office'],
+    'todo': ['task', 'action', 'check', 'list'],
+    'personal': ['journal', 'diary', 'feel', 'life']
+  };
+
+  const words = query.toLowerCase().split(/\s+/);
+  const expanded = new Set(words);
+  
+  words.forEach(word => {
+    if (synonyms[word]) {
+      synonyms[word].forEach(s => expanded.add(s));
+    }
+  });
+
+  return Array.from(expanded).join(' ');
+}
+
+/**
  * Quick search - searches only titles and tags (faster)
  */
 export async function quickSearch(query: string): Promise<Note[]> {

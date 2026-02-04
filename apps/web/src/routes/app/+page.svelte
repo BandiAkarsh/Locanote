@@ -8,7 +8,7 @@ APP DASHBOARD (+page.svelte for /app)
   import { auth, ui } from '$stores';
   import { createNewNote, getUserNotes, deleteUserNote } from '$lib/services/notes.svelte';
   import { Button, Modal, TemplateModal, SearchBar } from '$components';
-  import { searchNotes, getAllTags } from '$lib/services/search.svelte';
+  import { searchNotes, getAllTags, semanticSearch } from '$lib/services/search.svelte';
   import { getParam, setParam } from '$lib/utils/url-params.svelte';
   import type { Note } from '$db';
 
@@ -132,6 +132,21 @@ APP DASHBOARD (+page.svelte for /app)
     searchQuery = query;
     updateUrlParams();
     executeSearch();
+  }
+
+  async function handleSemanticSearch(query: string) {
+    if (!query.trim()) return;
+    
+    try {
+      isSearching = true;
+      const results = await semanticSearch(query);
+      filteredNotes = results.map(r => r.note);
+      console.log(`[SemanticSearch] Found ${filteredNotes.length} results`);
+    } catch (err) {
+      console.error('Semantic search failed:', err);
+    } finally {
+      isSearching = false;
+    }
   }
 
   // Handle tag selection
@@ -320,6 +335,7 @@ APP DASHBOARD (+page.svelte for /app)
       availableTags={availableTags}
       activeTag={selectedTag}
       onSearch={handleSearch}
+      onSemanticSearch={handleSemanticSearch}
       onTagSelect={handleTagSelect}
       onClear={handleClearFilters}
       placeholder="Search your notes..."
