@@ -7,8 +7,8 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   import { ui } from '$stores';
   import { performanceScout } from '$lib/utils/performance.svelte';
 
-  let canvas: HTMLCanvasElement;
-  let ctx: CanvasRenderingContext2D | null;
+  let canvas = $state<HTMLCanvasElement | null>(null);
+  let ctx: CanvasRenderingContext2D | null = null;
   let animationFrame: number;
   let time = 0;
 
@@ -18,13 +18,23 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   );
 
   onMount(() => {
-    if (currentStyle === 'nebula') {
+    if (currentStyle === 'nebula' && canvas) {
       initNebula();
     }
 
     return () => {
       if (animationFrame) cancelAnimationFrame(animationFrame);
     };
+  });
+
+  // Re-initialize if style changes
+  $effect(() => {
+    if (currentStyle === 'nebula' && canvas && !ctx) {
+      initNebula();
+    } else if (currentStyle !== 'nebula' && animationFrame) {
+      cancelAnimationFrame(animationFrame);
+      ctx = null;
+    }
   });
 
   function initNebula() {
@@ -96,11 +106,9 @@ BACKGROUND PROVIDER (BackgroundProvider.svelte)
   {:else if currentStyle === 'aura'}
     <div class="aura-bg"></div>
   {:else if currentStyle === 'crystalline'}
-    <!-- Simplified Crystalline implementation for now -->
     <div class="absolute inset-0 opacity-20" style="background-image: linear-gradient(30deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(150deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(30deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(150deg, var(--brand-color) 12%, transparent 12.5%, transparent 87%, var(--brand-color) 87.5%, var(--brand-color)), linear-gradient(60deg, #a855f7 25%, transparent 25.5%, transparent 75%, #a855f7 75%, #a855f7), linear-gradient(60deg, #a855f7 25%, transparent 25.5%, transparent 75%, #a855f7 75%, #a855f7); background-size: 80px 140px;"></div>
   {/if}
   
-  <!-- Subtle Grain Overly for premium feel -->
   <div class="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style="background-image: url('https://grainy-gradients.vercel.app/noise.svg');"></div>
 </div>
 
