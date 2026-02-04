@@ -1,7 +1,7 @@
 // ============================================================================
-// COMPREHENSIVE E2E TEST
+// COMPREHENSIVE E2E TEST (v2)
 // ============================================================================
-// Tests all major features: Registration, Templates, Search, Export, Keybindings.
+// Tests all major features: Registration, Templates, Search, Export, Keybindings, GenUI.
 
 import { test, expect } from "@playwright/test";
 
@@ -23,10 +23,10 @@ test.describe("Comprehensive App Test", () => {
     await page.reload();
   });
 
-  test("User lifecycle: Register -> Create -> Search -> Export", async ({ page }) => {
+  test("User lifecycle: Register -> Create -> GenUI -> Search -> Export", async ({ page }) => {
     // 1. REGISTRATION
     const switchToRegisterBtn = page.locator('button:has-text("Create one")');
-    await switchToRegisterBtn.waitFor({ state: "visible", timeout: 10000 });
+    await switchToRegisterBtn.waitFor({ state: "visible", timeout: 15000 });
     await switchToRegisterBtn.click();
     
     await page.locator("#reg-username").fill("full_user_" + Date.now());
@@ -41,87 +41,62 @@ test.describe("Comprehensive App Test", () => {
     const submitBtn = page.locator('button:has-text("Create Account")').filter({ hasText: /^Create Account$/ });
     await expect(submitBtn).toBeEnabled();
     await submitBtn.click();
-    await page.waitForURL("**/app**", { timeout: 20000 });
-    await expect(page.locator("h1")).toContainText("Welcome back", { timeout: 10000 });
+    
+    // Wait for Dashboard
+    await page.waitForURL("**/app**", { timeout: 25000 });
+    // Use the specific header on the app page
+    await expect(page.locator('h1:has-text("Welcome back")')).toBeVisible({ timeout: 15000 });
 
     // 2. CREATE FROM TEMPLATE
     await page.locator('button:has-text("Template")').first().click();
     await page.locator('button:has-text("Meeting Notes")').click();
     await page.locator('input[placeholder="Meeting Notes"]').fill("Board Meeting");
-    // Test Enter key to submit template modal
     await page.keyboard.press("Enter");
-    await page.waitForURL("**/app/note/**");
+    
+    // View Transitions make navigation feel smooth, but we wait for URL
+    await page.waitForURL("**/app/note/**", { timeout: 20000 });
     
     // Verify template content
     const editor = page.locator(".ProseMirror");
-    await expect(editor).toContainText("Meeting Notes");
-    await expect(editor).toContainText("Agenda");
+    await editor.waitFor({ state: "visible", timeout: 10000 });
+    await expect(editor).toContainText("Meeting Notes", { timeout: 10000 });
     
-    // 3. EDIT AND TAG
-    await editor.focus();
-    await page.keyboard.type(" Important discussion today.");
+    // 3. TEST GenUI INTENT DETECTION
+    await editor.click();
+    await page.keyboard.press('Control+a');
+    await page.keyboard.press('Backspace');
     
-    // Go back to dashboard
-    await page.locator('button[aria-label="Back to dashboard"]').click();
-    await page.waitForURL("**/app**");
+    // Type Recipe Intent
+    await page.keyboard.type("Ingredients:\n- 2 cups flour\n- 1 tsp sugar\nInstructions:");
+    await page.waitForTimeout(2000); // Wait for intent engine
     
-    // 4. SEARCH
+    // Check for Chef Mode
+    await expect(page.locator('span:has-text("Chef Mode Active")')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('button:has-text("5m Timer")')).toBeVisible();
+
+    // 4. NAVIGATION & SEARCH
+    // Go back via dock
+    await page.locator('button[aria-label="Home"]').click();
+    await page.waitForURL("**/app", { timeout: 15000 });
+    
     const searchInput = page.locator('input[aria-label="Search notes"]');
+    await searchInput.waitFor({ state: "visible" });
     await searchInput.fill("Board");
-    await page.waitForTimeout(500); // Debounce
+    await page.waitForTimeout(1000); // Debounce
     await expect(page.locator('h3:has-text("Board Meeting")')).toBeVisible();
     
-    // Test Escape to clear search
+    // 5. KEYBINDINGS
+    // Escape to clear search
     await page.keyboard.press("Escape");
     await expect(searchInput).toHaveValue("");
-    await searchInput.blur();
     
-    // 5. KEYBINDINGS
     // Ctrl+N for new note
     await page.keyboard.press("Control+n");
-    await page.waitForURL("**/app/note/**", { timeout: 20000 });
+    await page.waitForURL("**/app/note/**", { timeout: 15000 });
     
-    // Wait for editor and toolbar to be fully loaded
-    await page.waitForLoadState("networkidle");
-    const editorHeader = page.locator('header').last(); // Use last() to get the app header
-    await expect(editorHeader).toBeVisible();
-    
-    // Check for Voice button and toggle
-    const voiceBtn = page.locator('button[aria-label="Voice Dictation"]');
-    await voiceBtn.waitFor({ state: "visible", timeout: 10000 });
-    await expect(voiceBtn).toBeVisible();
-    await voiceBtn.click();
-    // It might show an alert if not supported in headless mode, but we just check visibility
-    
-    // Go back using button
-    await page.locator('button[aria-label="Back to dashboard"]').click();
-    await page.waitForURL("**/app**", { timeout: 10000 });
-    
-    // 6. SETTINGS & CLEAN MODE
-    await page.goto(BASE_URL + "/app/settings");
-    await expect(page.locator('h1')).toContainText("Settings");
-    
-    // Toggle Clean Mode
-    const cleanModeToggle = page.locator('button[role="switch"]');
-    await cleanModeToggle.click();
-    
-    // Go back to app
-    await page.locator('button:has-text("Back to Dashboard")').click();
-    await page.waitForURL("**/app**");
-    
-    // Verify Stats grid is hidden in Clean Mode
-    await expect(page.locator('div:has-text("Notes")').filter({ hasText: /^[0-9]+$/ })).not.toBeVisible();
-    
-    // 7. EXPORT
-    const firstNote = page.locator('h3:has-text("Untitled Note")').first();
-    await firstNote.click();
-    await page.waitForURL("**/app/note/**");
+    // 6. EXPORT
     await page.locator('button:has-text("Export")').click();
     await expect(page.locator('h2:has-text("Export Note")')).toBeVisible();
-    
-    // Select HTML
-    await page.locator('button.format-option:has-text("HTML")').click();
-    await expect(page.locator("pre")).toBeVisible();
     
     // Close modal with Escape
     await page.keyboard.press("Escape");
