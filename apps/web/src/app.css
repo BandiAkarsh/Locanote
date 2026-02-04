@@ -45,26 +45,26 @@
   --brand-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
 
   /* UI Palette - Light (Frosted Crystal) */
-  --ui-bg: #f8fafc;
-  --ui-surface: rgba(255, 255, 255, 0.7);
-  --ui-surface-elevated: rgba(255, 255, 255, 0.9);
-  --ui-border: rgba(0, 0, 0, 0.08);
-  --ui-border-hover: rgba(0, 0, 0, 0.15);
-  --ui-text: #0f172a;
-  --ui-text-muted: #64748b;
-  --ui-blur: 20px;
+  --ui-bg: #ffffff;
+  --ui-surface: rgba(248, 250, 252, 0.8);
+  --ui-surface-elevated: rgba(255, 255, 255, 1);
+  --ui-border: rgba(0, 0, 0, 0.1);
+  --ui-border-hover: rgba(0, 0, 0, 0.2);
+  --ui-text: #020617;
+  --ui-text-muted: #475569;
+  --ui-blur: 12px;
 }
 
 .dark {
   /* UI Palette - Dark (OLED Space) */
   --ui-bg: #000000;
-  --ui-surface: rgba(15, 15, 20, 0.6);
-  --ui-surface-elevated: rgba(25, 25, 35, 0.8);
-  --ui-border: rgba(255, 255, 255, 0.08);
-  --ui-border-hover: rgba(255, 255, 255, 0.2);
-  --ui-text: #f8fafc;
+  --ui-surface: rgba(10, 10, 15, 0.7);
+  --ui-surface-elevated: rgba(20, 20, 30, 0.9);
+  --ui-border: rgba(255, 255, 255, 0.1);
+  --ui-border-hover: rgba(255, 255, 255, 0.25);
+  --ui-text: #f1f5f9;
   --ui-text-muted: #94a3b8;
-  --ui-blur: 24px;
+  --ui-blur: 20px;
 }
 
 /* Background Engine Styles */
@@ -165,13 +165,14 @@
     opacity: 0.6;
   }
 
-  /* Toolbar Button Active State */
+  /* Toolbar Button Active State - Extremely distinct for 2026 */
   .toolbar-btn-active {
-    background-color: rgba(var(--brand-color-rgb), 0.2) !important;
-    color: var(--brand-color) !important;
+    background-color: var(--brand-color) !important;
+    color: white !important;
     border-color: var(--brand-color) !important;
-    box-shadow: 0 0 15px rgba(var(--brand-color-rgb), 0.4) !important;
+    box-shadow: 0 0 20px -2px var(--brand-color) !important;
     transform: scale(1.1);
+    z-index: 10;
   }
 }
 
