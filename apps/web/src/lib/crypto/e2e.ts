@@ -4,6 +4,9 @@
 // This module provides end-to-end encryption for collaborative notes using
 // TweetNaCl (NaCl = Networking and Cryptography library).
 //
+// NOTE: This file contains the legacy API for backward compatibility.
+// For new code, consider using the CryptoAdapter interface from types.ts.
+//
 // ENCRYPTION SCHEME:
 // - XSalsa20-Poly1305: Fast, authenticated encryption
 // - Each room has a unique encryption key
@@ -21,23 +24,17 @@
 // - Room passwords derive keys using PBKDF2
 // ============================================================================
 
-import nacl from 'tweetnacl';
-import naclUtil from 'tweetnacl-util';
+import nacl from "tweetnacl";
+import naclUtil from "tweetnacl-util";
 
-// ============================================================================
-// TYPES
-// ============================================================================
-
-export interface RoomKey {
-  roomId: string;
-  key: Uint8Array; // 32-byte key for XSalsa20-Poly1305
-  createdAt: number;
-}
-
-export interface EncryptedMessage {
-  ciphertext: string; // Base64 encoded encrypted data
-  nonce: string; // Base64 encoded nonce (24 bytes)
-}
+// Re-export types from the central types file
+export type {
+  RoomKey,
+  EncryptedMessage,
+  DerivedKey,
+  CryptoAdapter,
+} from "./types";
+import type { EncryptedMessage } from "./types";
 
 // ============================================================================
 // KEY STORAGE (IN-MEMORY ONLY)
@@ -63,24 +60,27 @@ export function generateRoomKey(): Uint8Array {
 // Derives a 32-byte key from a user password using simple hashing.
 // In production, use PBKDF2 or Argon2 with proper salt and iterations.
 
-export function deriveKeyFromPassword(password: string, salt?: Uint8Array): { key: Uint8Array; salt: Uint8Array } {
+export function deriveKeyFromPassword(
+  password: string,
+  salt?: Uint8Array,
+): { key: Uint8Array; salt: Uint8Array } {
   // Generate salt if not provided
   const usedSalt = salt || nacl.randomBytes(16);
-  
+
   // Simple key derivation (in production, use PBKDF2)
   // This is a basic implementation for demonstration
   const encoder = new TextEncoder();
   const passwordBytes = encoder.encode(password);
-  
+
   // Combine password and salt
   const combined = new Uint8Array(passwordBytes.length + usedSalt.length);
   combined.set(passwordBytes);
   combined.set(usedSalt, passwordBytes.length);
-  
+
   // Hash to get 32-byte key
   const hash = nacl.hash(combined);
   const key = hash.slice(0, 32);
-  
+
   return { key, salt: usedSalt };
 }
 
@@ -88,7 +88,10 @@ export function deriveKeyFromPassword(password: string, salt?: Uint8Array): { ke
  * Derives a key from a password and stores it for a room
  * Returns the salt used so it can be saved in note metadata
  */
-export function protectRoomWithPassword(roomId: string, password: string): { key: Uint8Array; salt: Uint8Array } {
+export function protectRoomWithPassword(
+  roomId: string,
+  password: string,
+): { key: Uint8Array; salt: Uint8Array } {
   const { key, salt } = deriveKeyFromPassword(password);
   storeRoomKey(roomId, key);
   return { key, salt };
@@ -136,23 +139,26 @@ export function removeRoomKey(roomId: string): void {
 // Encrypts a string message using XSalsa20-Poly1305.
 // Returns base64-encoded ciphertext and nonce.
 
-export function encryptMessage(message: string, key: Uint8Array): EncryptedMessage {
+export function encryptMessage(
+  message: string,
+  key: Uint8Array,
+): EncryptedMessage {
   const encoder = new TextEncoder();
   const plaintext = encoder.encode(message);
-  
+
   // Generate random nonce (24 bytes for XSalsa20)
   const nonce = nacl.randomBytes(24);
-  
+
   // Encrypt
   const ciphertext = nacl.secretbox(plaintext, nonce, key);
-  
+
   if (!ciphertext) {
-    throw new Error('Encryption failed');
+    throw new Error("Encryption failed");
   }
-  
+
   return {
     ciphertext: naclUtil.encodeBase64(ciphertext),
-    nonce: naclUtil.encodeBase64(nonce)
+    nonce: naclUtil.encodeBase64(nonce),
   };
 }
 
@@ -162,18 +168,21 @@ export function encryptMessage(message: string, key: Uint8Array): EncryptedMessa
 // Decrypts a message using XSalsa20-Poly1305.
 // Returns the decrypted string or null if decryption fails.
 
-export function decryptMessage(encrypted: EncryptedMessage, key: Uint8Array): string | null {
+export function decryptMessage(
+  encrypted: EncryptedMessage,
+  key: Uint8Array,
+): string | null {
   try {
     const ciphertext = naclUtil.decodeBase64(encrypted.ciphertext);
     const nonce = naclUtil.decodeBase64(encrypted.nonce);
-    
+
     // Decrypt
     const plaintext = nacl.secretbox.open(ciphertext, nonce, key);
-    
+
     if (!plaintext) {
       return null; // Decryption failed (wrong key or tampered message)
     }
-    
+
     const decoder = new TextDecoder();
     return decoder.decode(plaintext);
   } catch (error) {
@@ -186,17 +195,20 @@ export function decryptMessage(encrypted: EncryptedMessage, key: Uint8Array): st
 // ============================================================================
 // Encrypts raw bytes (for Yjs updates).
 
-export function encryptBytes(data: Uint8Array, key: Uint8Array): EncryptedMessage {
+export function encryptBytes(
+  data: Uint8Array,
+  key: Uint8Array,
+): EncryptedMessage {
   const nonce = nacl.randomBytes(24);
   const ciphertext = nacl.secretbox(data, nonce, key);
-  
+
   if (!ciphertext) {
-    throw new Error('Encryption failed');
+    throw new Error("Encryption failed");
   }
-  
+
   return {
     ciphertext: naclUtil.encodeBase64(ciphertext),
-    nonce: naclUtil.encodeBase64(nonce)
+    nonce: naclUtil.encodeBase64(nonce),
   };
 }
 
@@ -205,11 +217,14 @@ export function encryptBytes(data: Uint8Array, key: Uint8Array): EncryptedMessag
 // ============================================================================
 // Decrypts to raw bytes (for Yjs updates).
 
-export function decryptBytes(encrypted: EncryptedMessage, key: Uint8Array): Uint8Array | null {
+export function decryptBytes(
+  encrypted: EncryptedMessage,
+  key: Uint8Array,
+): Uint8Array | null {
   try {
     const ciphertext = naclUtil.decodeBase64(encrypted.ciphertext);
     const nonce = naclUtil.decodeBase64(encrypted.nonce);
-    
+
     return nacl.secretbox.open(ciphertext, nonce, key);
   } catch (error) {
     return null;
