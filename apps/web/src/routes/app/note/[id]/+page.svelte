@@ -15,6 +15,7 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
   import { storeRoomKey, hasRoomKey, deriveKeyFromPassword, protectRoomWithPassword } from '$crypto/e2e';
   import { setupKeyboardShortcuts } from '$lib/keyboard/shortcuts';
   import { intent } from '$lib/services/intent.svelte';
+  import { openDocument } from '$crdt/doc.svelte';
   import { fly } from 'svelte/transition';
   import type { Note } from '$db';
   import type { Editor as TiptapEditor } from '@tiptap/core';
@@ -74,6 +75,25 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
     const currentId = page.params.id;
     if (currentId) {
       loadNoteData(currentId);
+      
+      // Sync Yjs Title to IndexedDB metadata
+      const docInfo = openDocument(currentId);
+      const handleTitleUpdate = () => {
+        const newTitle = docInfo.title.toString();
+        if (newTitle && note && note.title !== newTitle) {
+          console.log('[Sync] Updating local metadata title from Yjs:', newTitle);
+          updateNoteTitle(currentId, newTitle).then(updated => {
+            if (updated) note = updated;
+          });
+        }
+      };
+      
+      docInfo.title.observe(handleTitleUpdate);
+      
+      return () => {
+        docInfo.title.unobserve(handleTitleUpdate);
+        docInfo.destroy();
+      };
     }
   });
 
@@ -83,6 +103,9 @@ NOTE EDITOR PAGE (+page.svelte for /app/note/[id])
       isLoading = true;
       const loadedNote = await getNoteForCollaboration(id);
       
+      // Safety check: Has the ID changed while we were loading?
+      if (page.params.id !== id) return;
+
       if (!loadedNote) {
         error = 'Neural link failed. Access denied or portal destroyed.';
       } else {

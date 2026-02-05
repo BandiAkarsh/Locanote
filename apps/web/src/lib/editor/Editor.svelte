@@ -4,19 +4,12 @@ EDITOR COMPONENT (Editor.svelte)
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Editor } from '@tiptap/core';
-  import StarterKit from '@tiptap/starter-kit';
-  import Collaboration from '@tiptap/extension-collaboration';
-  import CollaborationCursor from '@tiptap/extension-collaboration-cursor';
-  import Placeholder from '@tiptap/extension-placeholder';
-  import Highlight from '@tiptap/extension-highlight';
-  import TaskList from '@tiptap/extension-task-list';
-  import TaskItem from '@tiptap/extension-task-item';
-  import { Typography } from '@tiptap/extension-typography';
+  import { createEditor } from './extensions';
   import { openDocument } from '$crdt/doc.svelte';
   import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
   import { isBrowser } from '$utils/browser';
   import { intent } from '$lib/services/intent.svelte';
+  import { networkStatus } from '$stores';
   import Toolbar from './Toolbar.svelte';
 
   // Props
@@ -76,6 +69,14 @@ EDITOR COMPONENT (Editor.svelte)
       const updateStatus = () => {
         if (provider) {
           connectionStatus = getWebRTCStatus(provider);
+          
+          // Update global network store
+          networkStatus.updatePeerState(
+            connectionStatus.connected, 
+            connectionStatus.peerCount, 
+            connectionStatus.signalingConnected
+          );
+
           console.log('[DEBUG] WebRTC Status Update:', {
             connected: connectionStatus.connected,
             peerCount: connectionStatus.peerCount,
@@ -115,30 +116,6 @@ EDITOR COMPONENT (Editor.svelte)
         });
       }
 
-      const extensions: any[] = [
-        StarterKit.configure({ history: false }),
-        Typography,
-        Highlight.configure({ multicolor: true }),
-        TaskList,
-        TaskItem.configure({ nested: true }),
-        Placeholder.configure({
-          placeholder: 'Start typing your ideas...',
-          emptyEditorClass: 'is-empty'
-        }),
-        Collaboration.configure({
-          document: docInfo.document
-        })
-      ];
-
-      if (provider) {
-        extensions.push(
-          CollaborationCursor.configure({
-            provider: provider,
-            user: user
-          })
-        );
-      }
-
       // Check for template content in sessionStorage if initialContent not provided
       let editorContent: any = initialContent;
       if (!editorContent && typeof window !== 'undefined') {
@@ -148,25 +125,18 @@ EDITOR COMPONENT (Editor.svelte)
           try {
             editorContent = JSON.parse(storedTemplate);
             window.sessionStorage.removeItem(templateKey);
-            console.log('[Editor] Loaded template content from sessionStorage');
-          } catch (err) {
-            console.error('[Editor] Failed to parse template content:', err);
-          }
+          } catch (err) {}
         }
       }
 
-      editor = new Editor({
-        element: element,
-        extensions: extensions,
-        // content property is ignored by Collaboration extension, 
-        // we'll set it manually if needed in onCreate
-        editable: true,
-        autofocus: true,
-        injectCSS: false,
+      // Initialize TipTap
+      editor = createEditor({
+        element,
+        ydoc: docInfo.document,
+        user,
+        provider,
         onUpdate: ({ editor }) => {
           if (onUpdate) onUpdate(editor.getJSON());
-          
-          // Trigger intent detection
           const text = editor.getText();
           intent.analyze(text);
         },
@@ -176,31 +146,24 @@ EDITOR COMPONENT (Editor.svelte)
           if (hasContent) {
             isContentLoaded = true;
           } else if (editorContent) {
-            // If it's an empty document and we have template content, set it!
-            // This will sync to Yjs and then to other peers
+            // Wait a tiny bit for Yjs to fully initialize
             setTimeout(() => {
-              // Wait a tiny bit for Yjs to fully initialize
               const currentContent = editor.getJSON();
               const isEmpty = !currentContent.content || 
                              (currentContent.content.length === 1 && 
                               !currentContent.content[0].content);
               
               if (isEmpty) {
-                console.log('[Editor] Applying template content to empty document');
                 editor.commands.setContent(editorContent);
                 isContentLoaded = true;
               }
             }, 100);
           }
-          // Don't mark ready until content is confirmed loaded
-        },
-        onDestroy: () => {
-          isDestroyed = true;
         }
       });
 
       // Listen for IndexedDB sync (when local data is loaded)
-      docInfo.provider.on('synced', () => {
+      const handleIdbSync = () => {
         console.log(`[Editor] Document ${noteId} synced from IndexedDB`);
         // Check if document has content after IndexedDB sync
         const yContent = docInfo?.document.getXmlFragment('content');
@@ -214,11 +177,17 @@ EDITOR COMPONENT (Editor.svelte)
             if (editor) onEditorReady?.(editor);
           }
         }
-      });
+      };
+
+      docInfo.provider.on('synced', handleIdbSync);
+      // Immediate check if already synced
+      if (docInfo.provider.synced) {
+        handleIdbSync();
+      }
 
       // If no IndexedDB content, wait for WebRTC sync (collaborative loading)
       if (provider) {
-        provider.on('synced', (event: { synced: boolean }) => {
+        const handleWebrtcSync = (event: { synced: boolean }) => {
           if (event.synced && !isContentLoaded && !isDestroyed) {
             console.log(`[Editor] Document ${noteId} synced via WebRTC`);
             isContentLoaded = true;
@@ -226,7 +195,13 @@ EDITOR COMPONENT (Editor.svelte)
             updateStatus();
             if (editor) onEditorReady?.(editor);
           }
-        });
+        };
+
+        provider.on('synced', handleWebrtcSync);
+        // Immediate check if already synced
+        if (provider.synced) {
+          handleWebrtcSync({ synced: true });
+        }
       }
 
       // Fallback: If no sync events fire within 2 seconds, assume empty new note
