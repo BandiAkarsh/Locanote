@@ -53,6 +53,20 @@ Built with the cutting-edge stack of 2026:
 - **Testing**: Playwright Deep UI Scan for verified component stability.
 - **Security**: XSalsa20-Poly1305 (TweetNaCl) + Passkey Authentication.
 
+### 🔌 Modular Microarchitecture
+
+Every major technology is behind an abstract interface, making components easily swappable:
+
+| Module        | Interface               | Current Implementation        |
+| ------------- | ----------------------- | ----------------------------- |
+| **Crypto**    | `CryptoAdapter`         | TweetNaCl (XSalsa20-Poly1305) |
+| **Auth**      | `AuthStrategy`          | WebAuthn Passkeys + Password  |
+| **Database**  | `*Repository`           | IndexedDB                     |
+| **CRDT/Sync** | `CollaborativeDocument` | Yjs + WebRTC                  |
+| **Editor**    | `EditorAdapter`         | TipTap (ProseMirror)          |
+
+See [AGENTS.md](./AGENTS.md) for detailed architecture documentation.
+
 ---
 
 ## 🧪 Quality & Verification
