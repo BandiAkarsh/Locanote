@@ -83,3 +83,10 @@ export function updateUserCursor(
     collaborationCursor.options.user = user;
   }
 }
+
+/**
+ * Properly cleanup an editor instance
+ */
+export function destroyEditor(editor: Editor): void {
+  editor.destroy();
+}

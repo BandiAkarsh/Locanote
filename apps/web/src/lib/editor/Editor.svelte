@@ -4,6 +4,7 @@ EDITOR COMPONENT (Editor.svelte)
 
 <script lang="ts">
   import { onMount } from 'svelte';
+  import type { Editor } from '@tiptap/core';
   import { createEditor } from './extensions';
   import { openDocument } from '$crdt/doc.svelte';
   import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
@@ -199,6 +200,7 @@ EDITOR COMPONENT (Editor.svelte)
 
         provider.on('synced', handleWebrtcSync);
         // Immediate check if already synced
+        // @ts-expect-error - internal property
         if (provider.synced) {
           handleWebrtcSync({ synced: true });
         }
@@ -240,7 +242,7 @@ EDITOR COMPONENT (Editor.svelte)
   $effect(() => {
     if (editor && user) {
       const collaborationCursor = editor.extensionManager.extensions.find(
-        ext => ext.name === 'collaborationCursor'
+        (ext: any) => ext.name === 'collaborationCursor'
       );
       if (collaborationCursor) {
         collaborationCursor.options.user = user;
