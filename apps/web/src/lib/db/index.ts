@@ -226,3 +226,18 @@ export function closeDB(): void {
     db = null;
   }
 }
+
+// ============================================================================
+// REPOSITORY PATTERN EXPORTS (NEW - Modular Architecture)
+// ============================================================================
+// Export repository interfaces and implementations for swappable storage.
+// New code should prefer using repositories over the legacy functions.
+
+export * from "./repositories";
+export type {
+  UserRepository,
+  NoteRepository,
+  TagRepository,
+  CredentialRepository,
+  RepositoryFactory,
+} from "./repositories/types";
