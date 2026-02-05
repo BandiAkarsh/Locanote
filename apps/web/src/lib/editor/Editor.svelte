@@ -3,123 +3,155 @@ EDITOR COMPONENT (Editor.svelte)
 ============================================================================ -->
 
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import type { Editor } from '@tiptap/core';
-  import { createEditor } from './extensions';
-  import { openDocument } from '$crdt/doc.svelte';
-  import { createWebRTCProvider, destroyWebRTCProvider, getWebRTCStatus, type WebrtcProvider } from '$crdt/providers';
-  import { isBrowser } from '$utils/browser';
-  import { intent } from '$lib/services/intent.svelte';
-  import { networkStatus } from '$stores';
-  import Toolbar from './Toolbar.svelte';
+  import { onMount } from "svelte";
+  import type { Editor as TiptapEditor, JSONContent } from "@tiptap/core";
+  import { createEditor } from "./extensions";
+  import { openDocument } from "$crdt/doc.svelte";
+  import {
+    createWebRTCProvider,
+    destroyWebRTCProvider,
+    getWebRTCStatus,
+    type WebrtcProvider,
+  } from "$crdt/providers";
+  import { isBrowser } from "$utils/browser";
+  import { intent } from "$lib/services/intent.svelte";
+  import { networkStatus } from "$stores";
+  import Toolbar from "./Toolbar.svelte";
 
   // Props
   let {
     noteId,
-    user = { name: 'Anonymous', color: '#6366f1', id: 'anonymous' },
+    user = { name: "Anonymous", color: "#6366f1", id: "anonymous" },
     initialContent = null,
     onUpdate,
     onConnectionStatusChange,
     onSyncStatusChange,
-    onEditorReady
+    onEditorReady,
   }: {
     noteId: string;
     user?: { name: string; color: string; id: string };
-    initialContent?: any | null;
-    onUpdate?: (content: any) => void;
-    onConnectionStatusChange?: (status: { connected: boolean; peerCount: number; signalingConnected?: boolean }) => void;
-    onSyncStatusChange?: (status: 'syncing' | 'synced') => void;
-    onEditorReady?: (editor: Editor) => void;
+    initialContent?: JSONContent | null;
+    onUpdate?: (content: JSONContent) => void;
+    onConnectionStatusChange?: (status: {
+      connected: boolean;
+      peerCount: number;
+      signalingConnected?: boolean;
+    }) => void;
+    onSyncStatusChange?: (status: "syncing" | "synced") => void;
+    onEditorReady?: (editor: TiptapEditor) => void;
   } = $props();
 
   // Local state
-  let editor: Editor | null = $state.raw(null);
+  let editor: TiptapEditor | null = $state.raw(null);
   let element: HTMLElement;
   let docInfo = $state<ReturnType<typeof openDocument> | null>(null);
   let isReady = $state(false);
   let isContentLoaded = $state(false);
   let provider = $state<WebrtcProvider | null>(null);
   let isMobileToolbarOpen = $state(false);
-  let connectionStatus = $state({ connected: false, peerCount: 0, signalingConnected: false });
+  let connectionStatus = $state({
+    connected: false,
+    peerCount: 0,
+    signalingConnected: false,
+  });
 
   // Initialize editor on mount
   onMount(() => {
     let isDestroyed = false;
-    
-    console.log('[DEBUG] Editor onMount starting for noteId:', noteId);
-    
+
+    console.log("[DEBUG] Editor onMount starting for noteId:", noteId);
+
     try {
       docInfo = openDocument(noteId);
-      console.log('[DEBUG] Document opened for noteId:', noteId);
+      console.log("[DEBUG] Document opened for noteId:", noteId);
 
       try {
-        console.log('[DEBUG] Creating WebRTC provider with noteId:', noteId, 'user:', user.name);
+        console.log(
+          "[DEBUG] Creating WebRTC provider with noteId:",
+          noteId,
+          "user:",
+          user.name,
+        );
         // FIX: No roomPassword needed - provider now uses noteId as password internally
         // All users with same noteId will join same WebRTC room
-        provider = createWebRTCProvider(
-          noteId,
-          docInfo.document,
-          user
-        );
-        console.log('[DEBUG] WebRTC provider created successfully');
+        provider = createWebRTCProvider(noteId, docInfo.document, user);
+        console.log("[DEBUG] WebRTC provider created successfully");
       } catch (webrtcError) {
-        console.warn('[Editor] WebRTC provider failed:', webrtcError);
+        console.warn("[Editor] WebRTC provider failed:", webrtcError);
         provider = null;
       }
 
       const updateStatus = () => {
         if (provider) {
           connectionStatus = getWebRTCStatus(provider);
-          
+
           // Update global network store
           networkStatus.updatePeerState(
-            connectionStatus.connected, 
-            connectionStatus.peerCount, 
-            connectionStatus.signalingConnected
+            connectionStatus.connected,
+            connectionStatus.peerCount,
+            connectionStatus.signalingConnected,
           );
 
-          console.log('[DEBUG] WebRTC Status Update:', {
+          console.log("[DEBUG] WebRTC Status Update:", {
             connected: connectionStatus.connected,
             peerCount: connectionStatus.peerCount,
             signalingConnected: connectionStatus.signalingConnected,
-            noteId: noteId
+            noteId: noteId,
           });
         }
-        
+
         onConnectionStatusChange?.({
           connected: connectionStatus.connected,
           peerCount: connectionStatus.peerCount,
-          signalingConnected: connectionStatus.signalingConnected
+          signalingConnected: connectionStatus.signalingConnected,
         });
       };
 
       const handleSync = (isSynced: boolean) => {
-        onSyncStatusChange?.(isSynced ? 'synced' : 'syncing');
+        onSyncStatusChange?.(isSynced ? "synced" : "syncing");
         updateStatus();
       };
 
       if (provider) {
-        console.log('[DEBUG] Attaching WebRTC event listeners');
-        
-        provider.on('status', (event: { connected: boolean }) => {
-          console.log('[DEBUG] WebRTC status event:', event, 'for noteId:', noteId);
+        console.log("[DEBUG] Attaching WebRTC event listeners");
+
+        provider.on("status", (event: { connected: boolean }) => {
+          console.log(
+            "[DEBUG] WebRTC status event:",
+            event,
+            "for noteId:",
+            noteId,
+          );
           updateStatus();
         });
-        
-        provider.on('peers', (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
-          console.log('[DEBUG] WebRTC peers event:', event, 'for noteId:', noteId);
-          updateStatus();
-        });
-        
-        provider.on('synced', (event: { synced: boolean }) => {
-          console.log('[DEBUG] WebRTC synced event:', event, 'for noteId:', noteId);
+
+        provider.on(
+          "peers",
+          (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
+            console.log(
+              "[DEBUG] WebRTC peers event:",
+              event,
+              "for noteId:",
+              noteId,
+            );
+            updateStatus();
+          },
+        );
+
+        provider.on("synced", (event: { synced: boolean }) => {
+          console.log(
+            "[DEBUG] WebRTC synced event:",
+            event,
+            "for noteId:",
+            noteId,
+          );
           handleSync(event.synced);
         });
       }
 
       // Check for template content in sessionStorage if initialContent not provided
-      let editorContent: any = initialContent;
-      if (!editorContent && typeof window !== 'undefined') {
+      let editorContent: JSONContent | null = initialContent;
+      if (!editorContent && typeof window !== "undefined") {
         const templateKey = `template-content-${noteId}`;
         const storedTemplate = window.sessionStorage.getItem(templateKey);
         if (storedTemplate) {
@@ -143,33 +175,35 @@ EDITOR COMPONENT (Editor.svelte)
         },
         onCreate: ({ editor }) => {
           // Check if document already has content from IndexedDB
-          const hasContent = docInfo && docInfo.content && docInfo.content.length > 0;
+          const hasContent =
+            docInfo && docInfo.content && docInfo.content.length > 0;
           if (hasContent) {
             isContentLoaded = true;
           } else if (editorContent) {
             // Wait a tiny bit for Yjs to fully initialize
             setTimeout(() => {
               const currentContent = editor.getJSON();
-              const isEmpty = !currentContent.content || 
-                             (currentContent.content.length === 1 && 
-                              !currentContent.content[0].content);
-              
+              const isEmpty =
+                !currentContent.content ||
+                (currentContent.content.length === 1 &&
+                  !currentContent.content[0].content);
+
               if (isEmpty) {
                 editor.commands.setContent(editorContent);
                 isContentLoaded = true;
               }
             }, 100);
           }
-        }
+        },
       });
 
       // Listen for IndexedDB sync (when local data is loaded)
       const handleIdbSync = () => {
         console.log(`[Editor] Document ${noteId} synced from IndexedDB`);
         // Check if document has content after IndexedDB sync
-        const yContent = docInfo?.document.getXmlFragment('content');
+        const yContent = docInfo?.document.getXmlFragment("content");
         const hasContent = yContent && yContent.length > 0;
-        
+
         if (hasContent || isContentLoaded) {
           isContentLoaded = true;
           if (!isReady && !isDestroyed) {
@@ -180,9 +214,9 @@ EDITOR COMPONENT (Editor.svelte)
         }
       };
 
-      docInfo.provider.on('synced', handleIdbSync);
+      docInfo.provider.on("synced", handleIdbSync);
       // Immediate check if already synced
-      if (docInfo.provider.synced) {
+      if ((docInfo.provider as any).synced) {
         handleIdbSync();
       }
 
@@ -198,10 +232,9 @@ EDITOR COMPONENT (Editor.svelte)
           }
         };
 
-        provider.on('synced', handleWebrtcSync);
+        provider.on("synced", handleWebrtcSync);
         // Immediate check if already synced
-        // @ts-expect-error - internal property
-        if (provider.synced) {
+        if ((provider as any).synced) {
           handleWebrtcSync({ synced: true });
         }
       }
@@ -217,17 +250,17 @@ EDITOR COMPONENT (Editor.svelte)
         }
       }, 2000);
     } catch (error) {
-      console.error('[Editor] Failed to initialize:', error);
+      console.error("[Editor] Failed to initialize:", error);
       isReady = true;
     }
 
-      return () => {
-        isDestroyed = true;
-        intent.reset();
-        if (editor) {
-          editor.destroy();
-          editor = null;
-        }
+    return () => {
+      isDestroyed = true;
+      intent.reset();
+      if (editor) {
+        editor.destroy();
+        editor = null;
+      }
       if (provider) {
         destroyWebRTCProvider(provider);
         provider = null;
@@ -242,7 +275,7 @@ EDITOR COMPONENT (Editor.svelte)
   $effect(() => {
     if (editor && user) {
       const collaborationCursor = editor.extensionManager.extensions.find(
-        (ext: any) => ext.name === 'collaborationCursor'
+        (ext: any) => ext.name === "collaborationCursor",
       );
       if (collaborationCursor) {
         collaborationCursor.options.user = user;
@@ -250,26 +283,38 @@ EDITOR COMPONENT (Editor.svelte)
     }
     if (provider && provider.awareness && user) {
       provider.awareness.setLocalState({
-        user: { name: user.name, color: user.color, id: user.id }
+        user: { name: user.name, color: user.color, id: user.id },
       });
     }
   });
 </script>
 
-<div class="relative w-full h-full bg-[var(--ui-surface)] backdrop-blur-[var(--ui-blur)] rounded-2xl overflow-hidden transition-all duration-500">
+<div
+  class="relative w-full h-full bg-[var(--ui-surface)] backdrop-blur-[var(--ui-blur)] rounded-2xl overflow-hidden transition-all duration-500"
+>
   <!-- Loading State - Shows while syncing content -->
   {#if !isContentLoaded}
-    <div class="absolute inset-0 flex items-center justify-center z-20 bg-[var(--ui-surface)]/80 backdrop-blur-sm">
+    <div
+      class="absolute inset-0 flex items-center justify-center z-20 bg-[var(--ui-surface)]/80 backdrop-blur-sm"
+    >
       <div class="text-center">
-        <div class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
-        <p class="text-sm font-bold text-[var(--ui-text-muted)] uppercase tracking-widest">Syncing...</p>
-        <p class="text-xs text-[var(--ui-text-muted)] mt-2">Loading collaborative content</p>
+        <div
+          class="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4"
+        ></div>
+        <p
+          class="text-sm font-bold text-[var(--ui-text-muted)] uppercase tracking-widest"
+        >
+          Syncing...
+        </p>
+        <p class="text-xs text-[var(--ui-text-muted)] mt-2">
+          Loading collaborative content
+        </p>
       </div>
     </div>
   {/if}
 
   <!-- Editor Content Area -->
-  <div 
+  <div
     bind:this={element}
     class="prose prose-lg max-w-none h-full overflow-y-auto p-4 sm:p-8 focus:outline-none
            prose-headings:text-[var(--ui-text)]
@@ -277,9 +322,9 @@ EDITOR COMPONENT (Editor.svelte)
            prose-strong:text-[var(--ui-text)]
            prose-code:text-primary prose-pre:bg-[var(--ui-bg)]
            prose-blockquote:border-l-primary prose-blockquote:bg-primary/5
-           [&_.is-empty]:before:content-[attr(data-placeholder)] 
+           [&_.is-empty]:before:content-[attr(data-placeholder)]
            [&_.is-empty]:before:text-[var(--ui-text-muted)]
-           [&_.is-empty]:before:float-left 
+           [&_.is-empty]:before:float-left
            [&_.is-empty]:before:pointer-events-none"
     class:opacity-50={!isContentLoaded}
   >
@@ -289,7 +334,9 @@ EDITOR COMPONENT (Editor.svelte)
 
 <style>
   /* Custom scrollbar for editor */
-  div :global(::-webkit-scrollbar) { width: 6px; }
+  div :global(::-webkit-scrollbar) {
+    width: 6px;
+  }
   div :global(::-webkit-scrollbar-thumb) {
     background: var(--brand-color);
     border-radius: 10px;
@@ -300,16 +347,16 @@ EDITOR COMPONENT (Editor.svelte)
   :global(.ProseMirror) {
     caret-color: var(--brand-color, #6366f1) !important;
   }
-  
+
   :global(.ProseMirror-focused) {
     outline: none !important;
   }
-  
+
   /* Ensure cursor is visible immediately on empty editor */
   :global(.ProseMirror p.is-empty) {
     position: relative;
   }
-  
+
   :global(.ProseMirror p.is-empty::before) {
     content: attr(data-placeholder);
     float: left;
@@ -318,16 +365,16 @@ EDITOR COMPONENT (Editor.svelte)
     height: 0;
     z-index: 0;
   }
-  
+
   /* Make cursor always visible and solid */
   :global(.ProseMirror) {
     caret-color: var(--brand-color, #6366f1) !important;
   }
-  
+
   :global(.ProseMirror-focused) {
     outline: none !important;
   }
-  
+
   /* Force cursor visibility and disable blinking */
   :global(.ProseMirror .ProseMirror-cursor) {
     border-left: 2px solid var(--brand-color, #6366f1) !important;
@@ -362,9 +409,9 @@ EDITOR COMPONENT (Editor.svelte)
     white-space: nowrap;
     user-select: none;
     pointer-events: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
-  
+
   /* Ensure cursor visible in empty state */
   :global(.ProseMirror[data-placeholder]::before) {
     position: absolute;

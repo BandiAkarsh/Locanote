@@ -5,8 +5,8 @@ A full-width search input with debounced search, clear button, and tag filters.
 ========================================================================== -->
 
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { Button, TagBadge, Input } from '$components';
+  import { onMount } from "svelte";
+  import { Button, TagBadge, Input } from "$components";
 
   interface Tag {
     name: string;
@@ -26,15 +26,15 @@ A full-width search input with debounced search, clear button, and tag filters.
   }
 
   let {
-    value = $bindable(''),
+    value = $bindable(""),
     availableTags = [],
     activeTag = null,
-    placeholder = 'Search notes...',
+    placeholder = "Search notes...",
     debounceMs = 300,
     onSearch,
     onSemanticSearch,
     onTagSelect,
-    onClear
+    onClear,
   }: Props = $props();
 
   // Internal state
@@ -65,11 +65,11 @@ A full-width search input with debounced search, clear button, and tag filters.
 
   // Clear search and filters
   function handleClear() {
-    value = '';
+    value = "";
     if (debounceTimer) {
       clearTimeout(debounceTimer);
     }
-    onSearch?.('');
+    onSearch?.("");
     onClear?.();
     inputRef?.focus();
   }
@@ -87,11 +87,11 @@ A full-width search input with debounced search, clear button, and tag filters.
 
   // Keyboard shortcut: Cmd/Ctrl + K to focus
   function handleKeydown(e: KeyboardEvent) {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
       e.preventDefault();
       inputRef?.focus();
     }
-    if (e.key === 'Escape' && hasActiveFilters) {
+    if (e.key === "Escape" && hasActiveFilters) {
       handleClear();
     }
   }
@@ -113,21 +113,33 @@ A full-width search input with debounced search, clear button, and tag filters.
       type="text"
       bind:value
       oninput={handleInput}
-      onfocus={() => isFocused = true}
-      onblur={() => isFocused = false}
+      onfocus={() => (isFocused = true)}
+      onblur={() => (isFocused = false)}
       {placeholder}
       aria-label="Search notes"
       autocomplete="off"
     >
       {#snippet icon()}
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
       {/snippet}
     </Input>
 
     <!-- Action Group (Scout + Clear) -->
-    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10">
+    <div
+      class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 z-10"
+    >
       <!-- Semantic Scout Symbol -->
       <button
         type="button"
@@ -135,8 +147,18 @@ A full-width search input with debounced search, clear button, and tag filters.
         class="p-2 rounded-xl text-primary hover:bg-primary/10 transition-all group/scout"
         title="AI Semantic Scout"
       >
-        <svg class="w-5 h-5 group-hover/scout:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        <svg
+          class="w-5 h-5 group-hover/scout:scale-110 transition-transform"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2.5"
+            d="M13 10V3L4 14h7v7l9-11h-7z"
+          />
         </svg>
       </button>
 
@@ -153,8 +175,18 @@ A full-width search input with debounced search, clear button, and tag filters.
           "
           aria-label="Clear search"
         >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <svg
+            class="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       {/if}
@@ -165,7 +197,7 @@ A full-width search input with debounced search, clear button, and tag filters.
   {#if hasActiveFilters}
     <div class="flex flex-wrap items-center gap-2 mt-3">
       <span class="text-sm text-[var(--ui-text-muted)]">Filters:</span>
-      
+
       {#if hasContent}
         <div
           class="
@@ -174,8 +206,18 @@ A full-width search input with debounced search, clear button, and tag filters.
             bg-primary/10 text-primary border border-primary/20
           "
         >
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          <svg
+            class="w-3.5 h-3.5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
           </svg>
           <span class="max-w-[150px] truncate">"{value}"</span>
           <button
@@ -184,15 +226,25 @@ A full-width search input with debounced search, clear button, and tag filters.
             class="p-0.5 rounded-full hover:bg-primary/20 transition-colors"
             aria-label="Remove search filter"
           >
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
       {/if}
 
       {#if activeTag}
-        {@const tag = availableTags.find(t => t.name === activeTag)}
+        {@const tag = availableTags.find((t) => t.name === activeTag)}
         {#if tag}
           <TagBadge
             name={tag.name}
@@ -203,12 +255,7 @@ A full-width search input with debounced search, clear button, and tag filters.
         {/if}
       {/if}
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onclick={handleClear}
-        class="text-xs"
-      >
+      <Button variant="ghost" size="sm" onclick={handleClear} class="text-xs">
         Clear all
       </Button>
     </div>
@@ -227,9 +274,8 @@ A full-width search input with debounced search, clear button, and tag filters.
             rounded-full text-sm font-medium
             transition-all duration-200
             {activeTag === tag.name
-              ? 'bg-primary text-white shadow-md'
-              : 'bg-[var(--ui-surface)] text-[var(--ui-text)] border border-[var(--ui-border)] hover:bg-[var(--ui-border)]'
-            }
+            ? 'bg-primary text-white shadow-md'
+            : 'bg-[var(--ui-surface)] text-[var(--ui-text)] border border-[var(--ui-border)] hover:bg-[var(--ui-border)]'}
           "
         >
           <span
@@ -238,8 +284,18 @@ A full-width search input with debounced search, clear button, and tag filters.
           ></span>
           <span>{tag.name}</span>
           {#if activeTag === tag.name}
-            <svg class="w-3 h-3 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            <svg
+              class="w-3 h-3 ml-0.5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           {/if}
         </button>

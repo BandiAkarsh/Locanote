@@ -5,25 +5,25 @@
 
 import { isBrowser } from "$utils/browser";
 
-export type BackgroundStyle = 'nebula' | 'crystalline' | 'aura' | 'static';
-export type IntentMode = 'none' | 'recipe' | 'task' | 'code' | 'journal';
+export type BackgroundStyle = "nebula" | "crystalline" | "aura" | "static";
+export type IntentMode = "none" | "recipe" | "task" | "code" | "journal";
 
 export interface UIState {
   cleanMode: boolean; // Simplified UI for non-technical users
   sidebarOpen: boolean;
-  fontSize: 'small' | 'default' | 'large';
+  fontSize: "small" | "default" | "large";
   backgroundStyle: BackgroundStyle;
   intentMode: IntentMode;
-  performanceTier: 'low' | 'medium' | 'high';
+  performanceTier: "low" | "medium" | "high";
 }
 
 const DEFAULT_STATE: UIState = {
   cleanMode: false,
   sidebarOpen: true,
-  fontSize: 'default',
-  backgroundStyle: 'nebula',
-  intentMode: 'none',
-  performanceTier: 'medium'
+  fontSize: "default",
+  backgroundStyle: "nebula",
+  intentMode: "none",
+  performanceTier: "medium",
 };
 
 class UIStore {
@@ -40,13 +40,21 @@ class UIStore {
     if (!isBrowser) return;
 
     try {
-      const saved = localStorage.getItem('locanote_ui_state_v2');
+      const saved = localStorage.getItem("locanote_ui_state_v2");
       if (saved) {
         const parsed = JSON.parse(saved);
         this.#state = { ...DEFAULT_STATE, ...parsed };
       }
+
+      // MOBILE OPTIMIZATION: Force static background on small screens
+      if (window.innerWidth < 768) {
+        console.log(
+          "[UIStore] Mobile device detected. Forcing static background.",
+        );
+        this.#state.backgroundStyle = "static";
+      }
     } catch (err) {
-      console.warn('[UIStore] Failed to load state:', err);
+      console.warn("[UIStore] Failed to load state:", err);
     }
   }
 
@@ -55,16 +63,28 @@ class UIStore {
    */
   #save() {
     if (!isBrowser) return;
-    localStorage.setItem('locanote_ui_state_v2', JSON.stringify(this.#state));
+    localStorage.setItem("locanote_ui_state_v2", JSON.stringify(this.#state));
   }
 
   // Getters
-  get cleanMode() { return this.#state.cleanMode; }
-  get sidebarOpen() { return this.#state.sidebarOpen; }
-  get fontSize() { return this.#state.fontSize; }
-  get backgroundStyle() { return this.#state.backgroundStyle; }
-  get intentMode() { return this.#state.intentMode; }
-  get performanceTier() { return this.#state.performanceTier; }
+  get cleanMode() {
+    return this.#state.cleanMode;
+  }
+  get sidebarOpen() {
+    return this.#state.sidebarOpen;
+  }
+  get fontSize() {
+    return this.#state.fontSize;
+  }
+  get backgroundStyle() {
+    return this.#state.backgroundStyle;
+  }
+  get intentMode() {
+    return this.#state.intentMode;
+  }
+  get performanceTier() {
+    return this.#state.performanceTier;
+  }
 
   // Setters
   set cleanMode(value: boolean) {
@@ -77,7 +97,7 @@ class UIStore {
     this.#save();
   }
 
-  set fontSize(value: 'small' | 'default' | 'large') {
+  set fontSize(value: "small" | "default" | "large") {
     this.#state.fontSize = value;
     this.#save();
   }
@@ -92,7 +112,7 @@ class UIStore {
     // Don't persist intent mode, reset on session
   }
 
-  set performanceTier(value: 'low' | 'medium' | 'high') {
+  set performanceTier(value: "low" | "medium" | "high") {
     this.#state.performanceTier = value;
     this.#save();
   }

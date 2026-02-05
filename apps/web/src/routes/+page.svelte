@@ -11,13 +11,13 @@ FEATURES:
 ========================================================================== -->
 
 <script lang="ts">
-  import { AuthCard, RegisterCard } from '$components';
-  import { auth } from '$stores/auth.svelte';
-  import { loginWithPasskey } from '$auth/webauthn-login.svelte';
-  import { loginWithPassword } from '$auth/password-login.svelte';
-  import { registerWithPasskey } from '$auth/webauthn.svelte';
-  import { registerWithPassword } from '$auth/password.svelte';
-  import { goto } from '$app/navigation';
+  import { AuthCard, RegisterCard } from "$components";
+  import { auth } from "$stores/auth.svelte";
+  import { loginWithPasskey } from "$auth/webauthn-login.svelte";
+  import { loginWithPassword } from "$auth/password-login.svelte";
+  import { registerWithPasskey } from "$auth/webauthn.svelte";
+  import { registerWithPassword } from "$auth/password.svelte";
+  import { goto } from "$app/navigation";
 
   // Initialize auth state on mount
   $effect(() => {
@@ -27,16 +27,20 @@ FEATURES:
   // Redirect to /app if already authenticated
   $effect(() => {
     if (auth.isAuthenticated) {
-      goto('/app');
+      goto("/app");
     }
   });
 
   // Current view mode
-  let viewMode = $state<'login' | 'register'>('login');
+  let viewMode = $state<"login" | "register">("login");
 
-  function switchMode(mode: 'login' | 'register') {
+  function switchMode(mode: "login" | "register") {
     // @ts-ignore
-    if (typeof document !== 'undefined' && 'startViewTransition' in document && !window.__PW_TEST__) {
+    if (
+      typeof document !== "undefined" &&
+      "startViewTransition" in document &&
+      !window.__PW_TEST__
+    ) {
       // @ts-ignore
       document.startViewTransition(() => {
         viewMode = mode;
@@ -48,9 +52,9 @@ FEATURES:
 
   // Handle passkey login
   async function handlePasskeyLogin() {
-    auth.setLoading('Authenticating with passkey...');
+    auth.setLoading("Authenticating with passkey...");
     const result = await loginWithPasskey();
-    
+
     if (result.success) {
       auth.handleAuthSuccess(result);
     } else {
@@ -60,9 +64,9 @@ FEATURES:
 
   // Handle password login
   async function handlePasswordLogin(username: string, password: string) {
-    auth.setLoading('Authenticating...');
+    auth.setLoading("Authenticating...");
     const result = await loginWithPassword(username, password);
-    
+
     if (result.success) {
       auth.handleAuthSuccess(result);
     } else {
@@ -72,17 +76,17 @@ FEATURES:
 
   // Handle passkey registration
   async function handleRegisterPasskey(username: string) {
-    auth.setLoading('Creating your account...');
+    auth.setLoading("Creating your account...");
     const result = await registerWithPasskey(username);
-    
+
     if (result.success) {
       // Auto-login after registration
       auth.handleAuthSuccess({
         success: true,
         userId: result.userId,
         username: result.username,
-        method: 'passkey',
-        credentialId: result.credentialId
+        method: "passkey",
+        credentialId: result.credentialId,
       });
     } else {
       auth.handleAuthError(result);
@@ -91,17 +95,17 @@ FEATURES:
 
   // Handle password registration
   async function handleRegisterPassword(username: string, password: string) {
-    auth.setLoading('Creating your account...');
+    auth.setLoading("Creating your account...");
     const result = await registerWithPassword(username, password);
-    
+
     if (result.success) {
       // Auto-login after registration
       auth.handleAuthSuccess({
         success: true,
         userId: result.userId,
         username: result.username,
-        method: 'password',
-        credentialId: result.credentialId
+        method: "password",
+        credentialId: result.credentialId,
       });
     } else {
       auth.handleAuthError(result);
@@ -111,21 +115,24 @@ FEATURES:
 
 <svelte:head>
   <title>Locanote - Local-First Collaborative Notes</title>
-  <meta name="description" content="A secure, local-first note-taking app with real-time collaboration. Your notes stay on your device." />
+  <meta
+    name="description"
+    content="A secure, local-first note-taking app with real-time collaboration. Your notes stay on your device."
+  />
 </svelte:head>
 
-{#if viewMode === 'login'}
+{#if viewMode === "login"}
   <AuthCard
     bind:authState={auth.state}
     onPasskeyLogin={handlePasskeyLogin}
     onPasswordLogin={handlePasswordLogin}
-    onSwitchToRegister={() => switchMode('register')}
+    onSwitchToRegister={() => switchMode("register")}
   />
 {:else}
   <RegisterCard
     bind:authState={auth.state}
     onRegisterPasskey={handleRegisterPasskey}
     onRegisterPassword={handleRegisterPassword}
-    onSwitchToLogin={() => switchMode('login')}
+    onSwitchToLogin={() => switchMode("login")}
   />
 {/if}

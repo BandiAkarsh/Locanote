@@ -20,10 +20,14 @@
 // - The private key never leaves the user's device
 // ============================================================================
 
-import { generateChallenge, generateUserId, generateCredentialId } from './challenge';
-import { createUser, usernameExists, getUserByUsername } from '$db/users';
-import { createCredential } from '$db/credentials';
-import type { RegistrationResult, RegistrationError } from './types';
+import {
+  generateChallenge,
+  generateUserId,
+  generateCredentialId,
+} from "./challenge";
+import { createUser, usernameExists, getUserByUsername } from "$db/users";
+import { createCredential } from "$db/credentials";
+import type { RegistrationResult, RegistrationError } from "./types";
 
 // ============================================================================
 // REGISTER WITH PASSKEY
@@ -34,108 +38,114 @@ import type { RegistrationResult, RegistrationError } from './types';
 // @returns RegistrationResult on success, RegistrationError on failure
 
 export async function registerWithPasskey(
-  username: string
+  username: string,
 ): Promise<RegistrationResult | RegistrationError> {
   // Guard for SSR - WebAuthn is browser-only
-  if (typeof globalThis === 'undefined' || typeof (globalThis as any).window === 'undefined') {
+  if (
+    typeof globalThis === "undefined" ||
+    typeof (globalThis as any).window === "undefined"
+  ) {
     return {
       success: false,
-      error: 'Passkey registration is only available in the browser',
-      code: 'BROWSER_ONLY'
+      error: "Passkey registration is only available in the browser",
+      code: "BROWSER_ONLY",
     };
   }
-  
+
   try {
     // --------------------------------------------------------------------
     // VALIDATION
     // --------------------------------------------------------------------
     // Check if username is already taken
-    const exists = await usernameExists(username);               // Check database
+    const exists = await usernameExists(username); // Check database
     if (exists) {
-      return {                                                     // Return error
+      return {
+        // Return error
         success: false,
-        error: 'Username already taken. Please choose a different one.',
-        code: 'USERNAME_EXISTS'
+        error: "Username already taken. Please choose a different one.",
+        code: "USERNAME_EXISTS",
       };
     }
 
     // --------------------------------------------------------------------
     // GENERATE IDS
     // --------------------------------------------------------------------
-    const userId = generateUserId();                               // Unique user ID
-    const credentialId = generateCredentialId();                   // Unique credential ID
-    const challenge = generateChallenge();                         // Random challenge bytes
+    const userId = generateUserId(); // Unique user ID
+    const credentialId = generateCredentialId(); // Unique credential ID
+    const challenge = generateChallenge(); // Random challenge bytes
 
     // --------------------------------------------------------------------
     // CREATE WEBAUTHN OPTIONS
     // --------------------------------------------------------------------
     // These options tell the browser how to create the passkey
-    
-    const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions = {
-      // The challenge that the authenticator must sign
-      challenge: challenge,
-      
-      // Information about my app (the "relying party")
-      rp: {
-        name: 'Locanote',                                          // App name shown to user
-        id: window.location.hostname                               // Domain (e.g., "localhost" or "locanote.app")
-      },
-      
-      // Information about the user
-      user: {
-        id: new TextEncoder().encode(userId),                      // User ID as bytes
-        name: username,                                            // Username
-        displayName: username                                      // Display name
-      },
-      
-      // What type of credentials I want
-      pubKeyCredParams: [
-        { type: 'public-key', alg: -7 },                            // ES256 (Elliptic Curve P-256 with SHA-256)
-        { type: 'public-key', alg: -257 }                           // RS256 (RSASSA-PKCS1-v1_5 with SHA-256)
-      ],
-      
-      // Timeout: how long the user has to authenticate (5 minutes)
-      timeout: 300000,
-      
-      // What types of authenticators I accept
-      authenticatorSelection: {
-        // authenticatorAttachment: 'platform' means built-in (Face ID, Touch ID, Windows Hello)
-        // 'cross-platform' would accept USB security keys
-        // undefined accepts both
-        authenticatorAttachment: undefined,
-        
-        // residentKey: 'required' means the credential is stored on the device
-        // This allows the user to select their credential without typing username
-        residentKey: 'required',
-        
-        // requireResidentKey is the old name for residentKey (for backwards compatibility)
-        requireResidentKey: true,
-        
-        // userVerification: 'preferred' means try to get biometric/PIN if available
-        // but don't fail if the authenticator doesn't support it
-        userVerification: 'preferred'
-      },
-      
-      // attestation: 'none' means I don't need hardware attestation
-      // This is simpler and works with all authenticators
-      attestation: 'none'
-    };
+
+    const publicKeyCredentialCreationOptions: PublicKeyCredentialCreationOptions =
+      {
+        // The challenge that the authenticator must sign
+        challenge: challenge,
+
+        // Information about my app (the "relying party")
+        rp: {
+          name: "Locanote", // App name shown to user
+          id: window.location.hostname, // Domain (e.g., "localhost" or "locanote.app")
+        },
+
+        // Information about the user
+        user: {
+          id: new TextEncoder().encode(userId), // User ID as bytes
+          name: username, // Username
+          displayName: username, // Display name
+        },
+
+        // What type of credentials I want
+        pubKeyCredParams: [
+          { type: "public-key", alg: -7 }, // ES256 (Elliptic Curve P-256 with SHA-256)
+          { type: "public-key", alg: -257 }, // RS256 (RSASSA-PKCS1-v1_5 with SHA-256)
+        ],
+
+        // Timeout: how long the user has to authenticate (5 minutes)
+        timeout: 300000,
+
+        // What types of authenticators I accept
+        authenticatorSelection: {
+          // authenticatorAttachment: 'platform' means built-in (Face ID, Touch ID, Windows Hello)
+          // 'cross-platform' would accept USB security keys
+          // undefined accepts both
+          authenticatorAttachment: undefined,
+
+          // residentKey: 'required' means the credential is stored on the device
+          // This allows the user to select their credential without typing username
+          residentKey: "required",
+
+          // requireResidentKey is the old name for residentKey (for backwards compatibility)
+          requireResidentKey: true,
+
+          // userVerification: 'preferred' means try to get biometric/PIN if available
+          // but don't fail if the authenticator doesn't support it
+          userVerification: "preferred",
+        },
+
+        // attestation: 'none' means I don't need hardware attestation
+        // This is simpler and works with all authenticators
+        attestation: "none",
+      };
 
     // --------------------------------------------------------------------
     // CALL WEBAUTHN API
     // --------------------------------------------------------------------
     // This triggers the browser's native UI (Face ID prompt, fingerprint, etc.)
-    
-    const credential = await navigator.credentials.create({        // Browser API
-      publicKey: publicKeyCredentialCreationOptions                 // Pass my options
-    }) as PublicKeyCredential;                                     // Cast to expected type
+
+    const credential = (await navigator.credentials.create({
+      // Browser API
+      publicKey: publicKeyCredentialCreationOptions, // Pass my options
+    })) as PublicKeyCredential; // Cast to expected type
 
     // If user cancels (presses Cancel or fails biometric), credential will be null
     if (!credential) {
       return {
         success: false,
-        error: 'Registration cancelled. Please try again.',
-        code: 'CANCELLED'
+        error: "Registration cancelled. Please try again.",
+        code: "CANCELLED",
       };
     }
 
@@ -143,17 +153,17 @@ export async function registerWithPasskey(
     // EXTRACT DATA FROM CREDENTIAL
     // --------------------------------------------------------------------
     // The credential contains the public key I need to store
-    
+
     const response = credential.response as AuthenticatorAttestationResponse;
-    
+
     // Get the raw credential ID
-    const rawCredentialId = credential.rawId;                      // Raw bytes (ArrayBuffer)
-    
+    const rawCredentialId = credential.rawId; // Raw bytes (ArrayBuffer)
+
     // Get the public key if available (some authenticators might not include it directly)
-    const publicKey = response.getPublicKey();                     // May be null
-    
+    const publicKey = response.getPublicKey(); // May be null
+
     // Get the attestation object (contains additional data)
-    const attestationObject = response.attestationObject;          // Raw bytes
+    const attestationObject = response.attestationObject; // Raw bytes
 
     // --------------------------------------------------------------------
     // SAVE TO DATABASE
@@ -164,17 +174,17 @@ export async function registerWithPasskey(
       id: userId,
       username,
       createdAt: now,
-      lastLoginAt: now
+      lastLoginAt: now,
     });
 
     // 2. Create the credential record
     await createCredential({
       id: credentialId,
       userId,
-      type: 'passkey',
-      publicKey: publicKey || undefined,                           // Store public key if available
-      credentialId: rawCredentialId,                               // Store raw credential ID
-      createdAt: now
+      type: "passkey",
+      publicKey: publicKey || undefined, // Store public key if available
+      credentialId: rawCredentialId, // Store raw credential ID
+      createdAt: now,
     });
 
     // --------------------------------------------------------------------
@@ -184,45 +194,45 @@ export async function registerWithPasskey(
       success: true,
       userId,
       username,
-      credentialId
+      credentialId,
     };
-
   } catch (error) {
     // --------------------------------------------------------------------
     // HANDLE ERRORS
     // --------------------------------------------------------------------
-    console.error('Passkey registration error:', error);           // Log for debugging
-    
+    console.error("Passkey registration error:", error); // Log for debugging
+
     // Check for specific error types
     if (error instanceof DOMException) {
-      if (error.name === 'NotAllowedError') {
+      if (error.name === "NotAllowedError") {
         return {
           success: false,
-          error: 'Permission denied. Please allow access to your authenticator.',
-          code: 'NOT_ALLOWED'
+          error:
+            "Permission denied. Please allow access to your authenticator.",
+          code: "NOT_ALLOWED",
         };
       }
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         return {
           success: false,
-          error: 'Registration cancelled.',
-          code: 'ABORTED'
+          error: "Registration cancelled.",
+          code: "ABORTED",
         };
       }
-      if (error.name === 'SecurityError') {
+      if (error.name === "SecurityError") {
         return {
           success: false,
-          error: 'WebAuthn requires a secure context (HTTPS or localhost).',
-          code: 'SECURITY_ERROR'
+          error: "WebAuthn requires a secure context (HTTPS or localhost).",
+          code: "SECURITY_ERROR",
         };
       }
     }
-    
+
     // Generic error
     return {
       success: false,
-      error: 'Failed to create passkey. Please try again.',
-      code: 'UNKNOWN_ERROR'
+      error: "Failed to create passkey. Please try again.",
+      code: "UNKNOWN_ERROR",
     };
   }
 }
@@ -235,13 +245,16 @@ export async function registerWithPasskey(
 // @returns true if WebAuthn is supported
 
 export function isWebAuthnAvailable(): boolean {
-  if (typeof globalThis === 'undefined' || typeof (globalThis as any).window === 'undefined') {
+  if (
+    typeof globalThis === "undefined" ||
+    typeof (globalThis as any).window === "undefined"
+  ) {
     return false;
   }
   const win = (globalThis as any).window;
   return (
-    win.PublicKeyCredential !== undefined &&                  // Check for WebAuthn API
-    typeof win.PublicKeyCredential === 'function'             // Ensure it's a function
+    win.PublicKeyCredential !== undefined && // Check for WebAuthn API
+    typeof win.PublicKeyCredential === "function" // Ensure it's a function
   );
 }
 
@@ -254,12 +267,12 @@ export function isWebAuthnAvailable(): boolean {
 // @returns Promise<boolean> true if platform authenticator available
 
 export async function isPlatformAuthenticatorAvailable(): Promise<boolean> {
-  if (!isWebAuthnAvailable()) return false;                      // WebAuthn not supported
-  
+  if (!isWebAuthnAvailable()) return false; // WebAuthn not supported
+
   try {
     // Check if platform authenticator is available
     return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
   } catch {
-    return false;                                                // Error checking availability
+    return false; // Error checking availability
   }
 }

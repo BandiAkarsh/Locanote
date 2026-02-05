@@ -42,86 +42,116 @@ export async function createNewNote(
   title: string = "Untitled Note",
   initialTags: string[] = [],
 ): Promise<Note> {
-  const session = auth.session;
-  if (!session) throw new Error("User not authenticated");
+  try {
+    const session = auth.session;
+    if (!session) throw new Error("User not authenticated");
 
-  const now = Date.now();
-  const noteId = generateNoteId();
+    const now = Date.now();
+    const noteId = generateNoteId();
 
-  return await createNote({
-    id: noteId,
-    userId: session.userId,
-    title,
-    tags: initialTags,
-    createdAt: now,
-    updatedAt: now,
-    yjsDocId: noteId,
-  });
+    return await createNote({
+      id: noteId,
+      userId: session.userId,
+      title,
+      tags: initialTags,
+      createdAt: now,
+      updatedAt: now,
+      yjsDocId: noteId,
+    });
+  } catch (error) {
+    console.error("Failed to create new note:", error);
+    throw error;
+  }
 }
 
 export async function getUserNotes(): Promise<Note[]> {
-  const session = auth.session;
-  if (!session) return [];
-  return getNotesByUser(session.userId);
+  try {
+    const session = auth.session;
+    if (!session) return [];
+    return await getNotesByUser(session.userId);
+  } catch (error) {
+    console.error("Failed to get user notes:", error);
+    return [];
+  }
 }
 
 export async function getNote(noteId: string): Promise<Note | undefined> {
-  const session = auth.session;
-  if (!session) return undefined;
+  try {
+    const session = auth.session;
+    if (!session) return undefined;
 
-  const note = await getNoteById(noteId);
-  if (note && note.userId !== session.userId) return undefined;
+    const note = await getNoteById(noteId);
+    if (note && note.userId !== session.userId) return undefined;
 
-  return note;
+    return note;
+  } catch (error) {
+    console.error(`Failed to get note ${noteId}:`, error);
+    return undefined;
+  }
 }
 
 export async function updateNoteTitle(
   noteId: string,
   newTitle: string,
 ): Promise<Note | undefined> {
-  const note = await getNote(noteId);
-  if (!note) return undefined;
+  try {
+    const note = await getNote(noteId);
+    if (!note) return undefined;
 
-  note.title = newTitle;
-  note.updatedAt = Date.now();
+    note.title = newTitle;
+    note.updatedAt = Date.now();
 
-  const docInfo = openDocument(noteId);
-  const currentTitle = docInfo.title.toString();
+    const docInfo = openDocument(noteId);
+    const currentTitle = docInfo.title.toString();
 
-  if (currentTitle !== newTitle) {
-    docInfo.title.delete(0, currentTitle.length);
-    docInfo.title.insert(0, newTitle);
+    if (currentTitle !== newTitle) {
+      docInfo.title.delete(0, currentTitle.length);
+      docInfo.title.insert(0, newTitle);
+    }
+
+    docInfo.destroy();
+    return await updateNote(note);
+  } catch (error) {
+    console.error(`Failed to update note title for ${noteId}:`, error);
+    return undefined;
   }
-
-  docInfo.destroy();
-  return updateNote(note);
 }
 
 export async function updateNoteTags(
   noteId: string,
   newTags: string[],
 ): Promise<Note | undefined> {
-  const note = await getNote(noteId);
-  if (!note) return undefined;
+  try {
+    const note = await getNote(noteId);
+    if (!note) return undefined;
 
-  note.tags = newTags;
-  note.updatedAt = Date.now();
+    note.tags = newTags;
+    note.updatedAt = Date.now();
 
-  const docInfo = openDocument(noteId);
-  docInfo.tags.delete(0, docInfo.tags.length);
-  newTags.forEach((tag) => docInfo.tags.push([tag]));
-  docInfo.destroy();
+    const docInfo = openDocument(noteId);
+    docInfo.tags.delete(0, docInfo.tags.length);
+    newTags.forEach((tag) => docInfo.tags.push([tag]));
+    docInfo.destroy();
 
-  return updateNote(note);
+    return await updateNote(note);
+  } catch (error) {
+    console.error(`Failed to update note tags for ${noteId}:`, error);
+    return undefined;
+  }
 }
 
 export async function deleteUserNote(noteId: string): Promise<boolean> {
-  const note = await getNote(noteId);
-  if (!note) return false;
+  try {
+    const note = await getNote(noteId);
+    if (!note) return false;
 
-  await deleteNote(noteId);
-  closeDocument(noteId);
-  return true;
+    await deleteNote(noteId);
+    closeDocument(noteId);
+    return true;
+  } catch (error) {
+    console.error(`Failed to delete note ${noteId}:`, error);
+    return false;
+  }
 }
 
 // ============================================================================
@@ -135,20 +165,25 @@ export async function protectNote(
   noteId: string,
   password?: string,
 ): Promise<Note | undefined> {
-  const note = await getNote(noteId);
-  if (!note) return undefined;
+  try {
+    const note = await getNote(noteId);
+    if (!note) return undefined;
 
-  if (password) {
-    const { key, salt } = deriveKeyFromPassword(password);
-    note.isProtected = true;
-    note.passwordSalt = uint8ArrayToBase64(salt);
-    storeRoomKey(noteId, key);
-  } else {
-    note.isProtected = false;
-    note.passwordSalt = undefined;
+    if (password) {
+      const { key, salt } = deriveKeyFromPassword(password);
+      note.isProtected = true;
+      note.passwordSalt = uint8ArrayToBase64(salt);
+      storeRoomKey(noteId, key);
+    } else {
+      note.isProtected = false;
+      note.passwordSalt = undefined;
+    }
+
+    return await updateNote(note);
+  } catch (error) {
+    console.error(`Failed to protect note ${noteId}:`, error);
+    return undefined;
   }
-
-  return updateNote(note);
 }
 
 /**
@@ -158,24 +193,29 @@ export async function joinSharedNote(
   noteId: string,
   title: string = "Shared Note",
 ): Promise<Note | undefined> {
-  const session = auth.session;
-  if (!session) return undefined;
+  try {
+    const session = auth.session;
+    if (!session) return undefined;
 
-  const existingNote = await getNoteById(noteId);
-  if (existingNote) {
-    if (existingNote.userId === session.userId) return existingNote;
+    const existingNote = await getNoteById(noteId);
+    if (existingNote) {
+      if (existingNote.userId === session.userId) return existingNote;
+    }
+
+    const now = Date.now();
+    return await createNote({
+      id: noteId,
+      userId: session.userId,
+      title,
+      tags: [],
+      createdAt: now,
+      updatedAt: now,
+      yjsDocId: noteId,
+    });
+  } catch (error) {
+    console.error(`Failed to join shared note ${noteId}:`, error);
+    return undefined;
   }
-
-  const now = Date.now();
-  return await createNote({
-    id: noteId,
-    userId: session.userId,
-    title,
-    tags: [],
-    createdAt: now,
-    updatedAt: now,
-    yjsDocId: noteId,
-  });
 }
 
 /**
@@ -184,17 +224,22 @@ export async function joinSharedNote(
 export async function getNoteForCollaboration(
   noteId: string,
 ): Promise<Note | undefined> {
-  const session = auth.session;
-  if (!session) return undefined;
+  try {
+    const session = auth.session;
+    if (!session) return undefined;
 
-  const note = await getNoteById(noteId);
-  if (note && note.userId === session.userId) return note;
+    const note = await getNoteById(noteId);
+    if (note && note.userId === session.userId) return note;
 
-  if (!note) {
-    return joinSharedNote(noteId);
+    if (!note) {
+      return await joinSharedNote(noteId);
+    }
+
+    return undefined;
+  } catch (error) {
+    console.error(`Failed to get note for collaboration ${noteId}:`, error);
+    return undefined;
   }
-
-  return undefined;
 }
 
 // ============================================================================
@@ -202,34 +247,49 @@ export async function getNoteForCollaboration(
 // ============================================================================
 
 export async function searchUserNotes(query: string): Promise<Note[]> {
-  const session = auth.session;
-  if (!session) return [];
-  return searchNotes(session.userId, query);
+  try {
+    const session = auth.session;
+    if (!session) return [];
+    return await searchNotes(session.userId, query);
+  } catch (error) {
+    console.error("Failed to search user notes:", error);
+    return [];
+  }
 }
 
 export async function getNotesByTagId(tagId: string): Promise<Note[]> {
-  const session = auth.session;
-  if (!session) return [];
-  const allNotes = await getNotesByUser(session.userId);
-  return allNotes.filter((note) => note.tags.includes(tagId));
+  try {
+    const session = auth.session;
+    if (!session) return [];
+    const allNotes = await getNotesByUser(session.userId);
+    return allNotes.filter((note) => note.tags.includes(tagId));
+  } catch (error) {
+    console.error(`Failed to get notes by tag ${tagId}:`, error);
+    return [];
+  }
 }
 
 export async function duplicateNote(noteId: string): Promise<Note | undefined> {
-  const original = await getNote(noteId);
-  if (!original) return undefined;
+  try {
+    const original = await getNote(noteId);
+    if (!original) return undefined;
 
-  const newTitle = `${original.title} (Copy)`;
-  const newNote = await createNewNote(newTitle, [...original.tags]);
+    const newTitle = `${original.title} (Copy)`;
+    const newNote = await createNewNote(newTitle, [...original.tags]);
 
-  const originalDoc = openDocument(noteId);
-  const newDoc = openDocument(newNote.id);
+    const originalDoc = openDocument(noteId);
+    const newDoc = openDocument(newNote.id);
 
-  const titleText = originalDoc.title.toString();
-  newDoc.title.delete(0, newDoc.title.toString().length);
-  newDoc.title.insert(0, titleText);
+    const titleText = originalDoc.title.toString();
+    newDoc.title.delete(0, newDoc.title.toString().length);
+    newDoc.title.insert(0, titleText);
 
-  originalDoc.destroy();
-  newDoc.destroy();
+    originalDoc.destroy();
+    newDoc.destroy();
 
-  return newNote;
+    return newNote;
+  } catch (error) {
+    console.error(`Failed to duplicate note ${noteId}:`, error);
+    return undefined;
+  }
 }

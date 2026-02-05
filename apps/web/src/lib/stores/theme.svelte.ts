@@ -42,7 +42,13 @@ function getStoredAccent(): AccentColor {
   if (!storage) return DEFAULT_ACCENT;
   const stored = storage.getItem(ACCENT_KEY);
   const validAccents: AccentColor[] = [
-    "indigo", "violet", "rose", "emerald", "amber", "blue", "fuchsia",
+    "indigo",
+    "violet",
+    "rose",
+    "emerald",
+    "amber",
+    "blue",
+    "fuchsia",
   ];
   if (validAccents.includes(stored as AccentColor)) {
     return stored as AccentColor;
@@ -109,9 +115,9 @@ function createThemeStore() {
     async toggle(event?: MouseEvent) {
       const win = getWindow();
       const doc = win?.document;
-      
+
       // Fallback for non-supporting browsers
-      if (!doc || !('startViewTransition' in doc)) {
+      if (!doc || !("startViewTransition" in doc)) {
         currentTheme = isDark ? "light" : "dark";
         const storage = getLocalStorage();
         if (storage) storage.setItem(THEME_KEY, currentTheme);
@@ -121,11 +127,11 @@ function createThemeStore() {
       // 1. Get click coordinates
       const x = event?.clientX ?? win.innerWidth / 2;
       const y = event?.clientY ?? win.innerHeight / 2;
-      
+
       // 2. Calculate distance to furthest corner
       const endRadius = Math.hypot(
         Math.max(x, win.innerWidth - x),
-        Math.max(y, win.innerHeight - y)
+        Math.max(y, win.innerHeight - y),
       );
 
       // 3. Trigger Transition
@@ -134,9 +140,9 @@ function createThemeStore() {
         currentTheme = isDark ? "light" : "dark";
         const storage = getLocalStorage();
         if (storage) storage.setItem(THEME_KEY, currentTheme);
-        
+
         // Let Svelte update the DOM
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       });
 
       try {
@@ -147,22 +153,28 @@ function createThemeStore() {
           {
             clipPath: [
               `circle(0px at ${x}px ${y}px)`,
-              `circle(${endRadius}px at ${x}px ${y}px)`
-            ]
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
           },
           {
             duration: 600,
-            easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
-            pseudoElement: '::view-transition-new(root)'
-          }
+            easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+            pseudoElement: "::view-transition-new(root)",
+          },
         );
       } catch (e) {
-        console.warn('[Theme] Circular reveal failed', e);
+        console.warn("[Theme] Circular reveal failed", e);
       }
     },
-    setLight() { this.current = "light"; },
-    setDark() { this.current = "dark"; },
-    setSystem() { this.current = "system"; },
+    setLight() {
+      this.current = "light";
+    },
+    setDark() {
+      this.current = "dark";
+    },
+    setSystem() {
+      this.current = "system";
+    },
   };
 }
 

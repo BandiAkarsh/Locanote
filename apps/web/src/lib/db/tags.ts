@@ -11,8 +11,8 @@
 // Each tag has a color for visual identification in the UI.
 // ============================================================================
 
-import { getDB } from './index';                                // Import database getter
-import type { Tag } from './index';                             // Import Tag type
+import { getDB } from "./index"; // Import database getter
+import type { Tag } from "./index"; // Import Tag type
 
 // ============================================================================
 // CREATE TAG
@@ -24,7 +24,7 @@ import type { Tag } from './index';                             // Import Tag ty
 
 export async function createTag(tag: Tag): Promise<Tag> {
   const db = await getDB();
-  await db.add('tags', tag);                                     // Add to 'tags' store
+  await db.add("tags", tag); // Add to 'tags' store
   return tag;
 }
 
@@ -38,7 +38,7 @@ export async function createTag(tag: Tag): Promise<Tag> {
 
 export async function getTagById(id: string): Promise<Tag | undefined> {
   const db = await getDB();
-  return db.get('tags', id);
+  return db.get("tags", id);
 }
 
 // ============================================================================
@@ -51,8 +51,8 @@ export async function getTagById(id: string): Promise<Tag | undefined> {
 
 export async function getTagsByUser(userId: string): Promise<Tag[]> {
   const db = await getDB();
-  const index = db.transaction('tags').store.index('by-user');
-  return index.getAll(userId);                                   // Get all tags for user
+  const index = db.transaction("tags").store.index("by-user");
+  return index.getAll(userId); // Get all tags for user
 }
 
 // ============================================================================
@@ -65,10 +65,13 @@ export async function getTagsByUser(userId: string): Promise<Tag[]> {
 // @param name - The tag name to search for
 // @returns The tag, or undefined if not found
 
-export async function getTagByName(userId: string, name: string): Promise<Tag | undefined> {
-  const tags = await getTagsByUser(userId);                      // Get all user tags
+export async function getTagByName(
+  userId: string,
+  name: string,
+): Promise<Tag | undefined> {
+  const tags = await getTagsByUser(userId); // Get all user tags
   const lowerName = name.toLowerCase();
-  return tags.find(tag => tag.name.toLowerCase() === lowerName);
+  return tags.find((tag) => tag.name.toLowerCase() === lowerName);
 }
 
 // ============================================================================
@@ -81,7 +84,7 @@ export async function getTagByName(userId: string, name: string): Promise<Tag | 
 
 export async function updateTag(tag: Tag): Promise<Tag> {
   const db = await getDB();
-  await db.put('tags', tag);                                     // Save changes
+  await db.put("tags", tag); // Save changes
   return tag;
 }
 
@@ -96,7 +99,7 @@ export async function updateTag(tag: Tag): Promise<Tag> {
 
 export async function deleteTag(tagId: string): Promise<void> {
   const db = await getDB();
-  await db.delete('tags', tagId);
+  await db.delete("tags", tagId);
 }
 
 // ============================================================================
@@ -109,10 +112,10 @@ export async function deleteTag(tagId: string): Promise<void> {
 
 export async function deleteTagsByUser(userId: string): Promise<void> {
   const db = await getDB();
-  const tags = await getTagsByUser(userId);                      // Get all user tags
+  const tags = await getTagsByUser(userId); // Get all user tags
 
   // Delete each one
-  const tx = db.transaction('tags', 'readwrite');
+  const tx = db.transaction("tags", "readwrite");
   for (const tag of tags) {
     await tx.store.delete(tag.id);
   }
@@ -128,9 +131,12 @@ export async function deleteTagsByUser(userId: string): Promise<void> {
 // @param name - The tag name to check
 // @returns True if tag exists
 
-export async function tagExists(userId: string, name: string): Promise<boolean> {
-  const tag = await getTagByName(userId, name);                  // Try to find tag
-  return !!tag;                                                  // Convert to boolean
+export async function tagExists(
+  userId: string,
+  name: string,
+): Promise<boolean> {
+  const tag = await getTagByName(userId, name); // Try to find tag
+  return !!tag; // Convert to boolean
 }
 
 // ============================================================================
@@ -139,22 +145,22 @@ export async function tagExists(userId: string, name: string): Promise<boolean> 
 // A palette of nice colors for tags
 
 export const TAG_COLORS = [
-  '#ef4444', // red-500
-  '#f97316', // orange-500
-  '#f59e0b', // amber-500
-  '#84cc16', // lime-500
-  '#22c55e', // green-500
-  '#10b981', // emerald-500
-  '#14b8a6', // teal-500
-  '#06b6d4', // cyan-500
-  '#0ea5e9', // sky-500
-  '#3b82f6', // blue-500
-  '#6366f1', // indigo-500
-  '#8b5cf6', // violet-500
-  '#a855f7', // purple-500
-  '#d946ef', // fuchsia-500
-  '#ec4899', // pink-500
-  '#f43f5e', // rose-500
+  "#ef4444", // red-500
+  "#f97316", // orange-500
+  "#f59e0b", // amber-500
+  "#84cc16", // lime-500
+  "#22c55e", // green-500
+  "#10b981", // emerald-500
+  "#14b8a6", // teal-500
+  "#06b6d4", // cyan-500
+  "#0ea5e9", // sky-500
+  "#3b82f6", // blue-500
+  "#6366f1", // indigo-500
+  "#8b5cf6", // violet-500
+  "#a855f7", // purple-500
+  "#d946ef", // fuchsia-500
+  "#ec4899", // pink-500
+  "#f43f5e", // rose-500
 ];
 
 // ============================================================================
@@ -163,6 +169,6 @@ export const TAG_COLORS = [
 // Returns a random color from the palette
 
 export function getRandomTagColor(): string {
-  const index = Math.floor(Math.random() * TAG_COLORS.length);   // Pick random index
-  return TAG_COLORS[index];                                      // Return color at index
+  const index = Math.floor(Math.random() * TAG_COLORS.length); // Pick random index
+  return TAG_COLORS[index]; // Return color at index
 }

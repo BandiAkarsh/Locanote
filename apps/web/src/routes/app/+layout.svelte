@@ -8,11 +8,11 @@ PLACEMENT: apps/web/src/routes/app/+layout.svelte
 ========================================================================== -->
 
 <script lang="ts">
-  import { auth } from '$stores/auth.svelte';
-  import { theme } from '$stores/theme.svelte';
-  import { goto } from '$app/navigation';
-  import { OfflineBanner, SpatialDock } from '$components';
-  import type { Snippet } from 'svelte';
+  import { auth } from "$stores/auth.svelte";
+  import { theme } from "$stores/theme.svelte";
+  import { goto } from "$app/navigation";
+  import { OfflineBanner, SpatialDock } from "$components";
+  import type { Snippet } from "svelte";
 
   // Props
   let { children }: { children: Snippet } = $props();
@@ -24,8 +24,8 @@ PLACEMENT: apps/web/src/routes/app/+layout.svelte
 
   // Watch auth state and redirect if not authenticated
   $effect(() => {
-    if (auth.state.status === 'unauthenticated') {
-      goto('/');
+    if (auth.state.status === "unauthenticated") {
+      goto("/");
     }
   });
 </script>
@@ -45,7 +45,9 @@ PLACEMENT: apps/web/src/routes/app/+layout.svelte
   </div>
 {:else}
   <!-- Show loading or nothing while checking auth -->
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+  <div
+    class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900"
+  >
     <div class="animate-pulse text-gray-400">Loading...</div>
   </div>
 {/if}

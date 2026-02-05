@@ -3,10 +3,14 @@
 // ============================================================================
 // Business logic for creating notes from templates
 
-import { createNewNote, getUserNotes } from '$lib/services/notes.svelte';
-import { allTemplates, getTemplateById, getTemplatesByCategory } from './templates-data';
-import type { NoteTemplate, TemplateCategory, TemplateFilter } from './types';
-import type { Note } from '$db';
+import { createNewNote, getUserNotes } from "$lib/services/notes.svelte";
+import {
+  allTemplates,
+  getTemplateById,
+  getTemplatesByCategory,
+} from "./templates-data";
+import type { NoteTemplate, TemplateCategory, TemplateFilter } from "./types";
+import type { Note } from "$db";
 
 /**
  * Get all available templates
@@ -19,7 +23,7 @@ export function getAllTemplates(): NoteTemplate[] {
  * Get templates filtered by category
  */
 export function getTemplates(category?: TemplateCategory): NoteTemplate[] {
-  return getTemplatesByCategory(category || 'all');
+  return getTemplatesByCategory(category || "all");
 }
 
 /**
@@ -33,26 +37,27 @@ export function findTemplate(id: string): NoteTemplate | undefined {
  * Filter templates by search query
  */
 export function filterTemplates(
-  templates: NoteTemplate[], 
-  filter: TemplateFilter
+  templates: NoteTemplate[],
+  filter: TemplateFilter,
 ): NoteTemplate[] {
   let filtered = [...templates];
-  
+
   // Filter by category
-  if (filter.category && filter.category !== 'all') {
-    filtered = filtered.filter(t => t.category === filter.category);
+  if (filter.category && filter.category !== "all") {
+    filtered = filtered.filter((t) => t.category === filter.category);
   }
-  
+
   // Filter by search query
   if (filter.search) {
     const query = filter.search.toLowerCase();
-    filtered = filtered.filter(t => 
-      t.name.toLowerCase().includes(query) ||
-      t.description.toLowerCase().includes(query) ||
-      t.defaultTags.some(tag => tag.toLowerCase().includes(query))
+    filtered = filtered.filter(
+      (t) =>
+        t.name.toLowerCase().includes(query) ||
+        t.description.toLowerCase().includes(query) ||
+        t.defaultTags.some((tag) => tag.toLowerCase().includes(query)),
     );
   }
-  
+
   return filtered;
 }
 
@@ -62,37 +67,41 @@ export function filterTemplates(
  */
 export async function createNoteFromTemplate(
   templateId: string,
-  customTitle?: string
+  customTitle?: string,
 ): Promise<{ note: Note | null; templateContent: any | null }> {
   const template = getTemplateById(templateId);
-  
+
   if (!template) {
     console.error(`[TemplateService] Template not found: ${templateId}`);
     return { note: null, templateContent: null };
   }
-  
+
   try {
     // Use custom title if provided, otherwise use template default
     const title = customTitle?.trim() || template.defaultTitle;
-    
+
     // Create the note with template tags
     const note = await createNewNote(title, template.defaultTags);
-    
+
     if (!note) {
       return { note: null, templateContent: null };
     }
-    
-    console.log(`[TemplateService] Created note from template: ${template.name}`);
-    
+
+    console.log(
+      `[TemplateService] Created note from template: ${template.name}`,
+    );
+
     // Return the note AND the template content
     // The editor will use this content as initial content
-    return { 
-      note, 
-      templateContent: template.content 
+    return {
+      note,
+      templateContent: template.content,
     };
-    
   } catch (error) {
-    console.error('[TemplateService] Failed to create note from template:', error);
+    console.error(
+      "[TemplateService] Failed to create note from template:",
+      error,
+    );
     return { note: null, templateContent: null };
   }
 }
@@ -109,14 +118,25 @@ export function getTemplateContent(templateId: string): any | null {
 /**
  * Get template categories for filtering UI
  */
-export function getTemplateCategories(): Array<{ id: TemplateCategory; name: string; count: number }> {
-  const categories: TemplateCategory[] = ['all', 'work', 'personal', 'creative', 'education'];
-  
-  return categories.map(cat => ({
+export function getTemplateCategories(): Array<{
+  id: TemplateCategory;
+  name: string;
+  count: number;
+}> {
+  const categories: TemplateCategory[] = [
+    "all",
+    "work",
+    "personal",
+    "creative",
+    "education",
+  ];
+
+  return categories.map((cat) => ({
     id: cat,
     name: cat.charAt(0).toUpperCase() + cat.slice(1),
-    count: cat === 'all' 
-      ? allTemplates.length 
-      : allTemplates.filter(t => t.category === cat).length
+    count:
+      cat === "all"
+        ? allTemplates.length
+        : allTemplates.filter((t) => t.category === cat).length,
   }));
 }

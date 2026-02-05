@@ -16,18 +16,18 @@
 // params.view = 'grid';
 // ============================================================================
 
-import { pushState, replaceState } from '$app/navigation';
-import { isBrowser } from './browser';
+import { pushState, replaceState } from "$app/navigation";
+import { isBrowser } from "./browser";
 
 /**
  * Valid URL parameter keys
  */
-export type UrlParamKey = 'search' | 'tag' | 'view';
+export type UrlParamKey = "search" | "tag" | "view";
 
 /**
  * Valid view modes
  */
-export type ViewMode = 'grid' | 'list';
+export type ViewMode = "grid" | "list";
 
 /**
  * URL parameter state interface
@@ -54,7 +54,7 @@ function getSearchParams(): URLSearchParams {
 function updateUrl(params: URLSearchParams, replace: boolean = false): void {
   if (!isBrowser) return;
 
-  const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}${window.location.hash}`;
+  const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}${window.location.hash}`;
 
   if (replace) {
     replaceState(newUrl, {});
@@ -69,7 +69,7 @@ function updateUrl(params: URLSearchParams, replace: boolean = false): void {
  * @param defaultValue - Default value if param not present
  * @returns Parameter value or default
  */
-export function getParam(key: UrlParamKey, defaultValue: string = ''): string {
+export function getParam(key: UrlParamKey, defaultValue: string = ""): string {
   const params = getSearchParams();
   return params.get(key) ?? defaultValue;
 }
@@ -93,11 +93,11 @@ export function getParamOrNull(key: UrlParamKey): string | null {
 export function setParam(
   key: UrlParamKey,
   value: string | null,
-  options: { replace?: boolean } = {}
+  options: { replace?: boolean } = {},
 ): void {
   const params = getSearchParams();
 
-  if (value === null || value === '') {
+  if (value === null || value === "") {
     params.delete(key);
   } else {
     params.set(key, value);
@@ -111,7 +111,10 @@ export function setParam(
  * @param key - Parameter key to remove
  * @param options - Options for update
  */
-export function removeParam(key: UrlParamKey, options: { replace?: boolean } = {}): void {
+export function removeParam(
+  key: UrlParamKey,
+  options: { replace?: boolean } = {},
+): void {
   setParam(key, null, options);
 }
 
@@ -122,12 +125,12 @@ export function removeParam(key: UrlParamKey, options: { replace?: boolean } = {
  */
 export function setParams(
   updates: Partial<Record<UrlParamKey, string | null>>,
-  options: { replace?: boolean } = {}
+  options: { replace?: boolean } = {},
 ): void {
   const params = getSearchParams();
 
   for (const [key, value] of Object.entries(updates)) {
-    if (value === null || value === '') {
+    if (value === null || value === "") {
       params.delete(key);
     } else {
       params.set(key, value);
@@ -152,9 +155,9 @@ export function clearParams(options: { replace?: boolean } = {}): void {
  */
 export function getAllParams(): UrlParamsState {
   return {
-    search: getParam('search', ''),
-    tag: getParamOrNull('tag'),
-    view: (getParam('view', 'grid') as ViewMode) === 'list' ? 'list' : 'grid'
+    search: getParam("search", ""),
+    tag: getParamOrNull("tag"),
+    view: (getParam("view", "grid") as ViewMode) === "list" ? "list" : "grid",
   };
 }
 
@@ -164,9 +167,11 @@ export function getAllParams(): UrlParamsState {
  * @returns Reactive store with get/set methods
  */
 export function createUrlParams() {
-  let search = $state(getParam('search', ''));
-  let tag = $state<string | null>(getParamOrNull('tag'));
-  let view = $state<ViewMode>(getParam('view', 'grid') === 'list' ? 'list' : 'grid');
+  let search = $state(getParam("search", ""));
+  let tag = $state<string | null>(getParamOrNull("tag"));
+  let view = $state<ViewMode>(
+    getParam("view", "grid") === "list" ? "list" : "grid",
+  );
 
   // Sync state to URL when values change
   $effect(() => {
@@ -186,7 +191,7 @@ export function createUrlParams() {
       updates.tag = null;
     }
 
-    if (view !== 'grid') {
+    if (view !== "grid") {
       updates.view = view;
     } else {
       updates.view = null;
@@ -197,10 +202,10 @@ export function createUrlParams() {
 
   // Listen to popstate events (back/forward buttons)
   if (isBrowser) {
-    window.addEventListener('popstate', () => {
-      search = getParam('search', '');
-      tag = getParamOrNull('tag');
-      view = getParam('view', 'grid') === 'list' ? 'list' : 'grid';
+    window.addEventListener("popstate", () => {
+      search = getParam("search", "");
+      tag = getParamOrNull("tag");
+      view = getParam("view", "grid") === "list" ? "list" : "grid";
     });
   }
 
@@ -228,9 +233,9 @@ export function createUrlParams() {
      * Clear all parameters and reset to defaults
      */
     clear() {
-      search = '';
+      search = "";
       tag = null;
-      view = 'grid';
+      view = "grid";
     },
 
     /**
@@ -249,7 +254,7 @@ export function createUrlParams() {
       return {
         search,
         tag,
-        view
+        view,
       };
     },
 
@@ -257,10 +262,10 @@ export function createUrlParams() {
      * Build a shareable URL with current parameters
      */
     toUrl(): string {
-      if (!isBrowser) return '';
+      if (!isBrowser) return "";
       const params = getSearchParams();
-      return `${window.location.origin}${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
-    }
+      return `${window.location.origin}${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+    },
   };
 }
 
@@ -304,6 +309,6 @@ export function useSearchWithUrl() {
     setViewMode,
     get params() {
       return params;
-    }
+    },
   };
 }

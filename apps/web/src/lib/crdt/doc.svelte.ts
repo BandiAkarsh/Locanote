@@ -12,7 +12,7 @@ import { IndexeddbPersistence } from "y-indexeddb"; // Local persistence
 // I keep track of open documents and how many components are using them.
 // This prevents closing a document while it's still active in the UI.
 
-const activeDocuments = new Map<string, Y.Doc>(); 
+const activeDocuments = new Map<string, Y.Doc>();
 const activeProviders = new Map<string, IndexeddbPersistence>();
 const refCounts = new Map<string, number>();
 
@@ -54,13 +54,13 @@ export function openDocument(noteId: string): {
   }
 
   // CREATE NEW DOCUMENT
-  const doc = new Y.Doc(); 
+  const doc = new Y.Doc();
 
   // Initialize shared types
-  const content = doc.getXmlFragment("content"); 
-  const title = doc.getText("title"); 
-  const tags = doc.getArray<string>("tags"); 
-  const meta = doc.getMap("meta"); 
+  const content = doc.getXmlFragment("content");
+  const title = doc.getText("title");
+  const tags = doc.getArray<string>("tags");
+  const meta = doc.getMap("meta");
 
   if (meta.get("createdAt") === undefined) {
     meta.set("createdAt", Date.now());
@@ -95,28 +95,30 @@ export function openDocument(noteId: string): {
 
 export function closeDocument(noteId: string): void {
   const count = refCounts.get(noteId) || 0;
-  
+
   if (count <= 1) {
     // Last reference or zero, safe to destroy
     const doc = activeDocuments.get(noteId);
     const provider = activeProviders.get(noteId);
 
     if (provider) {
-      provider.destroy(); 
+      provider.destroy();
       activeProviders.delete(noteId);
     }
 
     if (doc) {
-      doc.destroy(); 
+      doc.destroy();
       activeDocuments.delete(noteId);
     }
-    
+
     refCounts.delete(noteId);
     console.log(`[Yjs] Document ${noteId} fully closed and garbage collected.`);
   } else {
     // Other components are still using this document
     refCounts.set(noteId, count - 1);
-    console.log(`[Yjs] Decremented reference for ${noteId}. Current count: ${count - 1}`);
+    console.log(
+      `[Yjs] Decremented reference for ${noteId}. Current count: ${count - 1}`,
+    );
   }
 }
 

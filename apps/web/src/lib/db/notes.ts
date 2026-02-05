@@ -11,8 +11,8 @@
 // - Actual note text/content (that's in Yjs IndexedDB)
 // ============================================================================
 
-import { getDB } from './index';                                // Import database getter
-import type { Note } from './index';                            // Import Note type
+import { getDB } from "./index"; // Import database getter
+import type { Note } from "./index"; // Import Note type
 
 // ============================================================================
 // CREATE NOTE
@@ -24,7 +24,7 @@ import type { Note } from './index';                            // Import Note t
 
 export async function createNote(note: Note): Promise<Note> {
   const db = await getDB();
-  await db.add('notes', note);                                   // Add to 'notes' store
+  await db.add("notes", note); // Add to 'notes' store
   return note;
 }
 
@@ -38,7 +38,7 @@ export async function createNote(note: Note): Promise<Note> {
 
 export async function getNoteById(id: string): Promise<Note | undefined> {
   const db = await getDB();
-  return db.get('notes', id);
+  return db.get("notes", id);
 }
 
 // ============================================================================
@@ -51,8 +51,8 @@ export async function getNoteById(id: string): Promise<Note | undefined> {
 
 export async function getNotesByUser(userId: string): Promise<Note[]> {
   const db = await getDB();
-  const index = db.transaction('notes').store.index('by-user');
-  const notes = await index.getAll(userId);                      // Get all notes for user
+  const index = db.transaction("notes").store.index("by-user");
+  const notes = await index.getAll(userId); // Get all notes for user
 
   // Sort by updatedAt (newest first)
   return notes.sort((a, b) => b.updatedAt - a.updatedAt);
@@ -68,8 +68,8 @@ export async function getNotesByUser(userId: string): Promise<Note[]> {
 
 export async function getNotesByTag(tagId: string): Promise<Note[]> {
   const db = await getDB();
-  const index = db.transaction('notes').store.index('by-tag');
-  return index.getAll(tagId);                                    // Get all notes with this tag
+  const index = db.transaction("notes").store.index("by-tag");
+  return index.getAll(tagId); // Get all notes with this tag
 }
 
 // ============================================================================
@@ -83,8 +83,8 @@ export async function getNotesByTag(tagId: string): Promise<Note[]> {
 
 export async function updateNote(note: Note): Promise<Note> {
   const db = await getDB();
-  note.updatedAt = Date.now();                                   // Update timestamp
-  await db.put('notes', note);                                   // Save changes
+  note.updatedAt = Date.now(); // Update timestamp
+  await db.put("notes", note); // Save changes
   return note;
 }
 
@@ -99,7 +99,7 @@ export async function updateNote(note: Note): Promise<Note> {
 
 export async function deleteNote(noteId: string): Promise<void> {
   const db = await getDB();
-  await db.delete('notes', noteId);
+  await db.delete("notes", noteId);
 }
 
 // ============================================================================
@@ -112,10 +112,10 @@ export async function deleteNote(noteId: string): Promise<void> {
 
 export async function deleteNotesByUser(userId: string): Promise<void> {
   const db = await getDB();
-  const notes = await getNotesByUser(userId);                    // Get all user notes
+  const notes = await getNotesByUser(userId); // Get all user notes
 
   // Delete each one
-  const tx = db.transaction('notes', 'readwrite');
+  const tx = db.transaction("notes", "readwrite");
   for (const note of notes) {
     await tx.store.delete(note.id);
   }
@@ -132,12 +132,15 @@ export async function deleteNotesByUser(userId: string): Promise<void> {
 // @param query - Search string
 // @returns Array of matching notes
 
-export async function searchNotes(userId: string, query: string): Promise<Note[]> {
-  const notes = await getNotesByUser(userId);                    // Get all user notes
-  const lowerQuery = query.toLowerCase();                        // Case-insensitive search
+export async function searchNotes(
+  userId: string,
+  query: string,
+): Promise<Note[]> {
+  const notes = await getNotesByUser(userId); // Get all user notes
+  const lowerQuery = query.toLowerCase(); // Case-insensitive search
 
-  return notes.filter(note =>
-    note.title.toLowerCase().includes(lowerQuery)                // Check if title matches
+  return notes.filter(
+    (note) => note.title.toLowerCase().includes(lowerQuery), // Check if title matches
   );
 }
 

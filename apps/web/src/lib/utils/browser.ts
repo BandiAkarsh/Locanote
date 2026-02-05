@@ -15,14 +15,13 @@
  * Returns false during SSR (server-side rendering)
  */
 export const isBrowser: boolean =
-  typeof globalThis !== "undefined" &&
-  typeof (globalThis as any).window !== "undefined";
+  typeof globalThis !== "undefined" && typeof globalThis.window !== "undefined";
 
 /**
  * Check if crypto API is available (browser with crypto support)
  */
 export const hasCrypto: boolean =
-  isBrowser && typeof (globalThis as any).crypto !== "undefined";
+  isBrowser && typeof globalThis.crypto !== "undefined";
 
 /**
  * Get the window object safely
@@ -30,7 +29,7 @@ export const hasCrypto: boolean =
  */
 export function getWindow(): Window | undefined {
   if (!isBrowser) return undefined;
-  return (globalThis as any).window;
+  return globalThis.window;
 }
 
 /**
@@ -39,7 +38,7 @@ export function getWindow(): Window | undefined {
  */
 export function getCrypto(): Crypto | undefined {
   if (!hasCrypto) return undefined;
-  return (globalThis as any).crypto;
+  return globalThis.crypto;
 }
 
 /**
@@ -48,7 +47,7 @@ export function getCrypto(): Crypto | undefined {
  */
 export function getNavigator(): Navigator | undefined {
   if (!isBrowser) return undefined;
-  return (globalThis as any).window?.navigator;
+  return globalThis.window?.navigator;
 }
 
 /**
@@ -57,7 +56,7 @@ export function getNavigator(): Navigator | undefined {
  */
 export function getLocalStorage(): Storage | undefined {
   if (!isBrowser) return undefined;
-  return (globalThis as any).window?.localStorage;
+  return globalThis.window?.localStorage;
 }
 
 /**
@@ -68,8 +67,8 @@ export function isWebAuthnSupported(): boolean {
   const win = getWindow();
   return (
     win !== undefined &&
-    (win as any).PublicKeyCredential !== undefined &&
-    typeof (win as any).PublicKeyCredential === "function"
+    win.PublicKeyCredential !== undefined &&
+    typeof win.PublicKeyCredential === "function"
   );
 }
 
@@ -88,7 +87,7 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   for (let i = 0; i < bytes.byteLength; i++) {
     binary += String.fromCharCode(bytes[i]);
   }
-  return (globalThis as any).btoa(binary);
+  return globalThis.btoa(binary);
 }
 
 /**
@@ -101,7 +100,7 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
     );
   }
 
-  const binary = (globalThis as any).atob(base64);
+  const binary = globalThis.atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
@@ -123,7 +122,7 @@ export function uint8ArrayToBase64(array: Uint8Array): string {
   for (let i = 0; i < array.byteLength; i++) {
     binary += String.fromCharCode(array[i]);
   }
-  return (globalThis as any).btoa(binary);
+  return globalThis.btoa(binary);
 }
 
 /**
@@ -142,7 +141,7 @@ export function uint8ArrayToBase64Url(array: Uint8Array): string {
   for (let i = 0; i < array.byteLength; i++) {
     binary += String.fromCharCode(array[i]);
   }
-  const base64 = (globalThis as any).btoa(binary);
+  const base64 = globalThis.btoa(binary);
   // Convert to URL-safe base64url format
   return base64
     .replace(/\+/g, "-") // Replace + with -
@@ -174,7 +173,7 @@ export function base64UrlToUint8Array(base64url: string): Uint8Array {
     base64 += "=";
   }
 
-  const binary = (globalThis as any).atob(base64);
+  const binary = globalThis.atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);

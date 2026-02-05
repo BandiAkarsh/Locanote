@@ -9,28 +9,28 @@
 export interface NoteTemplate {
   /** Unique identifier for the template */
   id: string;
-  
+
   /** Display name */
   name: string;
-  
+
   /** Short description */
   description: string;
-  
+
   /** Icon identifier (Lucide icon name) */
   icon: string;
-  
+
   /** Default title for notes created from this template */
   defaultTitle: string;
-  
+
   /** Tags to auto-apply */
   defaultTags: string[];
-  
+
   /** Template content as TipTap JSON structure */
   content: TemplateContent;
-  
+
   /** Category for grouping */
-  category: 'personal' | 'work' | 'creative' | 'education';
-  
+  category: "personal" | "work" | "creative" | "education";
+
   /** Color accent for visual distinction */
   color: string;
 }
@@ -50,14 +50,19 @@ export interface TemplateContentNode {
  * TipTap-compatible content structure
  */
 export interface TemplateContent {
-  type: 'doc';
+  type: "doc";
   content: TemplateContentNode[];
 }
 
 /**
  * Template category for filtering/grouping
  */
-export type TemplateCategory = 'all' | 'personal' | 'work' | 'creative' | 'education';
+export type TemplateCategory =
+  | "all"
+  | "personal"
+  | "work"
+  | "creative"
+  | "education";
 
 /**
  * Template filter options

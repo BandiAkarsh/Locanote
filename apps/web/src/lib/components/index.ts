@@ -19,7 +19,6 @@ export { default as OfflineBanner } from "./OfflineBanner.svelte";
 export { default as TagBadge } from "./TagBadge.svelte";
 export { default as Toggle } from "./Toggle.svelte";
 export { default as ShareModal } from "./ShareModal.svelte";
-export { default as TemplateModal } from "./TemplateModal.svelte";
 export { default as SearchBar } from "./SearchBar.svelte";
 export { default as ExportModal } from "./ExportModal.svelte";
 export { default as BackgroundProvider } from "./BackgroundProvider.svelte";

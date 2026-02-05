@@ -3,16 +3,16 @@ AUTHENTICATION CARD (AuthCard.svelte)
 ============================================================================ -->
 
 <script lang="ts">
-  import { Spinner } from '$components';
-  import type { AuthState } from '$auth/types';
-  import { fade, fly } from 'svelte/transition';
+  import { Spinner } from "$components";
+  import type { AuthState } from "$auth/types";
+  import { fade, fly } from "svelte/transition";
 
   // Props
   let {
-    authState = $bindable({ status: 'idle' }),
+    authState = $bindable({ status: "idle" }),
     onPasskeyLogin,
     onPasswordLogin,
-    onSwitchToRegister
+    onSwitchToRegister,
   }: {
     authState: AuthState;
     onPasskeyLogin: () => void;
@@ -21,8 +21,8 @@ AUTHENTICATION CARD (AuthCard.svelte)
   } = $props();
 
   // Local state
-  let username = $state('');
-  let password = $state('');
+  let username = $state("");
+  let password = $state("");
   let showPasswordForm = $state(false);
   let isLoading = $state(false);
 
@@ -39,31 +39,56 @@ AUTHENTICATION CARD (AuthCard.svelte)
   }
 </script>
 
-<div class="relative w-full max-w-md mx-auto" in:fly={{ y: 20, duration: 1000 }}>
+<div
+  class="relative w-full max-w-md mx-auto"
+  in:fly={{ y: 20, duration: 1000 }}
+>
   <!-- GLASSMORPHISM 2.0 CARD -->
   <div class="glass-2 p-8 sm:p-12 rounded-[3.5rem] space-y-12">
     <header class="text-center space-y-5">
       <!-- 3D Icon Portal -->
-      <div class="w-24 h-24 mx-auto bg-primary/10 rounded-[2.5rem] flex items-center justify-center border border-primary/20 shadow-glow animate-pulse overflow-hidden relative group">
-        <div class="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-        <svg class="w-12 h-12 text-primary relative z-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-          <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      <div
+        class="w-24 h-24 mx-auto bg-primary/10 rounded-[2.5rem] flex items-center justify-center border border-primary/20 shadow-glow animate-pulse overflow-hidden relative group"
+      >
+        <div
+          class="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700"
+        ></div>
+        <svg
+          class="w-12 h-12 text-primary relative z-10"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="1.5"
+        >
+          <path
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
         </svg>
       </div>
-      <h1 class="text-5xl font-black text-[var(--ui-text)] tracking-tighter leading-none">Portal Login</h1>
-      <p class="text-[var(--ui-text-muted)] font-medium text-lg text-balance">Synchronize your thoughts across the liquid web.</p>
+      <h1
+        class="text-5xl font-black text-[var(--ui-text)] tracking-tighter leading-none"
+      >
+        Portal Login
+      </h1>
+      <p class="text-[var(--ui-text-muted)] font-medium text-lg text-balance">
+        Synchronize your thoughts across the liquid web.
+      </p>
     </header>
 
-    <form 
-      class="space-y-8" 
-      onsubmit={(e) => { 
-        e.preventDefault(); 
-        if (showPasswordForm) handlePasswordLogin(); 
+    <form
+      class="space-y-8"
+      onsubmit={(e) => {
+        e.preventDefault();
+        if (showPasswordForm) handlePasswordLogin();
         else handlePasskeyLogin();
       }}
     >
       <div class="space-y-3">
-        <label for="auth-username" class="text-[11px] font-black uppercase tracking-[0.3em] text-primary ml-6">Neural Identity</label>
+        <label
+          for="auth-username"
+          class="text-[11px] font-black uppercase tracking-[0.3em] text-primary ml-6"
+          >Neural Identity</label
+        >
         <input
           id="auth-username"
           type="text"
@@ -71,7 +96,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
           placeholder="username"
           class="w-full px-8 py-5 rounded-3xl bg-white/5 border border-white/10 text-[var(--ui-text)] placeholder-white/20 focus:outline-none focus:border-primary focus:ring-8 focus:ring-primary/5 transition-all text-xl"
           onkeydown={(e) => {
-            if (e.key === 'Enter' && username) {
+            if (e.key === "Enter" && username) {
               if (showPasswordForm) handlePasswordLogin();
               else showPasswordForm = true;
             }
@@ -81,7 +106,11 @@ AUTHENTICATION CARD (AuthCard.svelte)
 
       {#if showPasswordForm}
         <div class="space-y-3" in:fly={{ y: 20, duration: 600 }}>
-          <label for="auth-password" class="text-[11px] font-black uppercase tracking-[0.3em] text-primary ml-6">Access Key</label>
+          <label
+            for="auth-password"
+            class="text-[11px] font-black uppercase tracking-[0.3em] text-primary ml-6"
+            >Access Key</label
+          >
           <input
             id="auth-password"
             type="password"
@@ -93,10 +122,21 @@ AUTHENTICATION CARD (AuthCard.svelte)
         </div>
       {/if}
 
-      {#if authState.status === 'error'}
-        <div class="p-5 rounded-3xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-4 animate-in fade-in zoom-in-95">
-          <svg class="w-6 h-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-          <span class="font-bold uppercase tracking-widest text-xs">{authState.error}</span>
+      {#if authState.status === "error"}
+        <div
+          class="p-5 rounded-3xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-4 animate-in fade-in zoom-in-95"
+        >
+          <svg
+            class="w-6 h-6 flex-shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2.5"
+            ><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg
+          >
+          <span class="font-bold uppercase tracking-widest text-xs"
+            >{authState.error}</span
+          >
         </div>
       {/if}
 
@@ -112,7 +152,7 @@ AUTHENTICATION CARD (AuthCard.svelte)
           </button>
           <button
             type="button"
-            onclick={() => showPasswordForm = true}
+            onclick={() => (showPasswordForm = true)}
             class="w-full py-5 rounded-[2rem] glass-2 text-[var(--ui-text)] font-black uppercase tracking-widest text-xs hover:bg-white/5 transition-all"
           >
             Manual Access Key
@@ -131,7 +171,10 @@ AUTHENTICATION CARD (AuthCard.svelte)
           </button>
           <button
             type="button"
-            onclick={() => { showPasswordForm = false; password = ''; }}
+            onclick={() => {
+              showPasswordForm = false;
+              password = "";
+            }}
             class="w-full text-center text-[10px] font-black uppercase tracking-[0.3em] text-[var(--ui-text-muted)] hover:text-primary transition-colors"
           >
             ← Change Identity Method
@@ -141,8 +184,8 @@ AUTHENTICATION CARD (AuthCard.svelte)
     </form>
 
     <footer class="text-center pt-10 border-t border-white/5">
-      <button 
-        onclick={onSwitchToRegister} 
+      <button
+        onclick={onSwitchToRegister}
         id="switch-to-register"
         data-testid="switch-to-register"
         class="text-xs font-black uppercase tracking-[0.2em] text-primary hover:text-white transition-all hover:scale-110 active:scale-95"

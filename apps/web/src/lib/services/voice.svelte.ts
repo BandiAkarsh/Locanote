@@ -6,13 +6,19 @@
 
 import { isBrowser } from "$utils/browser";
 
-export type VoiceStatus = 'idle' | 'loading' | 'ready' | 'listening' | 'processing' | 'error';
+export type VoiceStatus =
+  | "idle"
+  | "loading"
+  | "ready"
+  | "listening"
+  | "processing"
+  | "error";
 
 class VoiceService {
-  status = $state<VoiceStatus>('idle');
+  status = $state<VoiceStatus>("idle");
   progress = $state(0);
   error = $state<string | null>(null);
-  
+
   private worker: Worker | null = null;
   private audioContext: AudioContext | null = null;
   private stream: MediaStream | null = null;
@@ -31,60 +37,66 @@ class VoiceService {
 
   private initWorker() {
     try {
-      this.worker = new Worker(new URL('./whisper.worker.ts', import.meta.url), {
-        type: 'module'
-      });
+      this.worker = new Worker(
+        new URL("./whisper.worker.ts", import.meta.url),
+        {
+          type: "module",
+        },
+      );
 
       this.worker.onmessage = (event) => {
-        const { status, progress, message, error, text, isInterim } = event.data;
+        const { status, progress, message, error, text, isInterim } =
+          event.data;
 
-        if (status === 'progress') {
+        if (status === "progress") {
           this.progress = progress;
-        } else if (status === 'loading') {
-          this.status = 'loading';
-        } else if (status === 'ready') {
+        } else if (status === "loading") {
+          this.status = "loading";
+        } else if (status === "ready") {
           this._errorCount = 0;
-          if (this.status === 'loading') this.status = 'ready';
-        } else if (status === 'error') {
+          if (this.status === "loading") this.status = "ready";
+        } else if (status === "error") {
           this._errorCount++;
           if (this._errorCount > 3) {
-            this.status = 'error';
+            this.status = "error";
             this.error = "Neural Engine Failure. Check connection or hardware.";
             this.stopListening();
           }
-          console.error('[VoiceService] AI Error:', error);
-        } else if (status === 'result') {
+          console.error("[VoiceService] AI Error:", error);
+        } else if (status === "result") {
           if (text) {
             this.handleResult(text, isInterim);
           }
-          
+
           if (!isInterim && this._isManualStop) {
-            this.status = 'ready';
+            this.status = "ready";
           }
         }
       };
     } catch (err) {
-      this.status = 'error';
+      this.status = "error";
     }
   }
 
   async loadModel() {
-    if (this.status !== 'idle' && this.status !== 'error') return;
-    this.worker?.postMessage({ type: 'load' });
+    if (this.status !== "idle" && this.status !== "error") return;
+    this.worker?.postMessage({ type: "load" });
   }
 
   async startListening() {
-    if (this.status === 'idle') {
+    if (this.status === "idle") {
       await this.loadModel();
       return;
     }
 
-    if (this.status !== 'ready') return;
+    if (this.status !== "ready") return;
     this._isManualStop = false;
 
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({
+      this.audioContext = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )({
         sampleRate: 16000,
       });
 
@@ -94,7 +106,7 @@ class VoiceService {
       this._chunks = [];
 
       this.processor.onaudioprocess = (e) => {
-        if (this.status !== 'listening') return;
+        if (this.status !== "listening") return;
         const inputData = e.inputBuffer.getChannelData(0);
         this._chunks.push(new Float32Array(inputData));
       };
@@ -102,18 +114,21 @@ class VoiceService {
       this.input.connect(this.processor);
       this.processor.connect(this.audioContext.destination);
 
-      this.status = 'listening';
-      
+      this.status = "listening";
+
       // REAL-TIME LOOP: Transcribe the current buffer every 3.5 seconds
       this._intervalId = setInterval(() => {
-        if (this.status === 'listening' && this._chunks.length > 5) {
+        if (this.status === "listening" && this._chunks.length > 5) {
           const audio = this.getAudioBuffer();
-          this.worker?.postMessage({ type: 'transcribe', audio, isInterim: true });
+          this.worker?.postMessage({
+            type: "transcribe",
+            audio,
+            isInterim: true,
+          });
         }
       }, 3500);
-
     } catch (err: any) {
-      this.status = 'error';
+      this.status = "error";
       this.error = "Mic connection failed. Check permissions.";
     }
   }
@@ -130,24 +145,24 @@ class VoiceService {
   }
 
   async stopListening() {
-    if (this.status !== 'listening') return;
+    if (this.status !== "listening") return;
 
     this._isManualStop = true;
     if (this._intervalId) clearInterval(this._intervalId);
-    this.status = 'processing';
+    this.status = "processing";
 
     const audio = this.getAudioBuffer();
-    this.worker?.postMessage({ type: 'transcribe', audio, isInterim: false });
+    this.worker?.postMessage({ type: "transcribe", audio, isInterim: false });
 
     this.cleanupAudio();
   }
 
   private cleanupAudio() {
-    this.stream?.getTracks().forEach(track => track.stop());
+    this.stream?.getTracks().forEach((track) => track.stop());
     this.processor?.disconnect();
     this.input?.disconnect();
     this.audioContext?.close();
-    
+
     this.stream = null;
     this.processor = null;
     this.input = null;

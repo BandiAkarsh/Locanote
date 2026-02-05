@@ -1,11 +1,18 @@
 <script lang="ts">
-  let { checked = $bindable(false), label = "", id = "", onchange }: { 
-    checked?: boolean, 
-    label?: string, 
-    id?: string, 
-    onchange?: () => void 
+  let {
+    checked = $bindable(false),
+    label = "",
+    id = "",
+    onchange,
+  }: {
+    checked?: boolean;
+    label?: string;
+    id?: string;
+    onchange?: () => void;
   } = $props();
-  let toggleId = $derived(id || `toggle-${Math.random().toString(36).slice(2, 9)}`);
+  let toggleId = $derived(
+    id || `toggle-${Math.random().toString(36).slice(2, 9)}`,
+  );
 
   function handleClick() {
     checked = !checked;
@@ -20,14 +27,16 @@
     role="switch"
     aria-checked={checked}
     onclick={handleClick}
-    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent 
+    class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent
            transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-1
-           {checked ? 'bg-primary' : 'bg-[var(--ui-surface-elevated)] border-[var(--ui-border)]'}"
+           {checked
+      ? 'bg-primary'
+      : 'bg-[var(--ui-surface-elevated)] border-[var(--ui-border)]'}"
   >
-    <span class="sr-only">{label || 'Toggle switch'}</span>
+    <span class="sr-only">{label || "Toggle switch"}</span>
     <span
       aria-hidden="true"
-      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 
+      class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0
              transition duration-200 ease-in-out
              {checked ? 'translate-x-5' : 'translate-x-0'}"
     ></span>

@@ -22,6 +22,14 @@ const config = {
   // vitePreprocess handles: TypeScript, PostCSS, SCSS, etc.
   preprocess: vitePreprocess(),
 
+  // ========================================================================
+  // COMPILER OPTIONS (Svelte 5 Enforcement)
+  // ========================================================================
+  compilerOptions: {
+    runes: true, // Enforce Runes mode (disables legacy features)
+    modernAst: true,
+  },
+
   kit: {
     // ====================================================================
     // ADAPTER CONFIGURATION

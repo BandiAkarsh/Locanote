@@ -28,10 +28,14 @@
 // making it simpler and more reliable for my use case.
 // ============================================================================
 
-import { generateUserId, generateCredentialId } from './challenge';
-import { createUser, usernameExists } from '$db/users';
-import { createCredential, getCredentialByType } from '$db/credentials';
-import type { RegistrationResult, RegistrationError, PasswordValidationResult } from './types';
+import { generateUserId, generateCredentialId } from "./challenge";
+import { createUser, usernameExists } from "$db/users";
+import { createCredential, getCredentialByType } from "$db/credentials";
+import type {
+  RegistrationResult,
+  RegistrationError,
+  PasswordValidationResult,
+} from "./types";
 
 // ============================================================================
 // BROWSER ENVIRONMENT CHECK
@@ -39,27 +43,28 @@ import type { RegistrationResult, RegistrationError, PasswordValidationResult } 
 // These functions require browser-only APIs (crypto, TextEncoder, btoa/atob)
 // I check the environment to provide clear error messages during SSR
 
-const isBrowser = typeof globalThis !== 'undefined' && 
-                  typeof (globalThis as any).window !== 'undefined' &&
-                  typeof (globalThis as any).crypto !== 'undefined';
+const isBrowser =
+  typeof globalThis !== "undefined" &&
+  typeof (globalThis as any).window !== "undefined" &&
+  typeof (globalThis as any).crypto !== "undefined";
 
 // ============================================================================
 // PASSWORD REQUIREMENTS
 // ============================================================================
 // Minimum requirements for a valid password
 
-const MIN_LENGTH = 8;                                            // At least 8 characters
-const MIN_UPPERCASE = 1;                                         // At least 1 uppercase
-const MIN_DIGITS = 1;                                            // At least 1 number
+const MIN_LENGTH = 8; // At least 8 characters
+const MIN_UPPERCASE = 1; // At least 1 uppercase
+const MIN_DIGITS = 1; // At least 1 number
 
 // ============================================================================
 // PBKDF2 CONFIGURATION
 // ============================================================================
 // Parameters for the password hashing algorithm
 
-const ITERATIONS = 100000;                                       // Number of iterations (higher = more secure but slower)
-const KEY_LENGTH = 256;                                          // Output key length in bits (32 bytes)
-const HASH_ALGORITHM = 'SHA-256';                                // Hash algorithm to use
+const ITERATIONS = 100000; // Number of iterations (higher = more secure but slower)
+const KEY_LENGTH = 256; // Output key length in bits (32 bytes)
+const HASH_ALGORITHM = "SHA-256"; // Hash algorithm to use
 
 // ============================================================================
 // VALIDATE PASSWORD
@@ -74,7 +79,7 @@ export function validatePassword(password: string): PasswordValidationResult {
   if (password.length < MIN_LENGTH) {
     return {
       isValid: false,
-      error: `Password must be at least ${MIN_LENGTH} characters long.`
+      error: `Password must be at least ${MIN_LENGTH} characters long.`,
     };
   }
 
@@ -82,7 +87,7 @@ export function validatePassword(password: string): PasswordValidationResult {
   if (!/[A-Z]/.test(password)) {
     return {
       isValid: false,
-      error: 'Password must contain at least one uppercase letter.'
+      error: "Password must contain at least one uppercase letter.",
     };
   }
 
@@ -90,14 +95,14 @@ export function validatePassword(password: string): PasswordValidationResult {
   if (!/[0-9]/.test(password)) {
     return {
       isValid: false,
-      error: 'Password must contain at least one number.'
+      error: "Password must contain at least one number.",
     };
   }
 
   // Password meets all requirements
   return {
     isValid: true,
-    error: null
+    error: null,
   };
 }
 
@@ -111,12 +116,12 @@ export function validatePassword(password: string): PasswordValidationResult {
 
 function generateSalt(): string {
   if (!isBrowser) {
-    throw new Error('generateSalt() can only be called in browser environment');
+    throw new Error("generateSalt() can only be called in browser environment");
   }
-  
-  const array = new Uint8Array(16);                              // 16 bytes of salt
-  (globalThis as any).crypto.getRandomValues(array);             // Fill with random values
-  return arrayToBase64(array);                                   // Convert to base64 string
+
+  const array = new Uint8Array(16); // 16 bytes of salt
+  (globalThis as any).crypto.getRandomValues(array); // Fill with random values
+  return arrayToBase64(array); // Convert to base64 string
 }
 
 // ============================================================================
@@ -130,32 +135,32 @@ function generateSalt(): string {
 
 async function hashPassword(password: string, salt: string): Promise<string> {
   if (!isBrowser) {
-    throw new Error('hashPassword() can only be called in browser environment');
+    throw new Error("hashPassword() can only be called in browser environment");
   }
-  
+
   // Convert inputs to proper formats
-  const passwordBuffer = new TextEncoder().encode(password);     // Password as bytes
-  const saltBuffer = base64ToArray(salt);                        // Salt as bytes
+  const passwordBuffer = new TextEncoder().encode(password); // Password as bytes
+  const saltBuffer = base64ToArray(salt); // Salt as bytes
 
   // Import the password as a CryptoKey
   const keyMaterial = await (globalThis as any).crypto.subtle.importKey(
-    'raw',                                                       // Raw key material
+    "raw", // Raw key material
     passwordBuffer,
-    { name: 'PBKDF2' },                                          // Algorithm
-    false,                                                       // Not extractable
-    ['deriveBits']                                               // Can only derive bits
+    { name: "PBKDF2" }, // Algorithm
+    false, // Not extractable
+    ["deriveBits"], // Can only derive bits
   );
 
   // Derive the hash using PBKDF2
   const derivedBits = await (globalThis as any).crypto.subtle.deriveBits(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt: saltBuffer,
       iterations: ITERATIONS,
-      hash: HASH_ALGORITHM
+      hash: HASH_ALGORITHM,
     },
     keyMaterial,
-    KEY_LENGTH                                                   // Output length in bits
+    KEY_LENGTH, // Output length in bits
   );
 
   // Convert result to base64
@@ -173,44 +178,44 @@ async function hashPassword(password: string, salt: string): Promise<string> {
 
 export async function registerWithPassword(
   username: string,
-  password: string
+  password: string,
 ): Promise<RegistrationResult | RegistrationError> {
   try {
     // --------------------------------------------------------------------
     // VALIDATE PASSWORD
     // --------------------------------------------------------------------
-    const validation = validatePassword(password);               // Check requirements
+    const validation = validatePassword(password); // Check requirements
     if (!validation.isValid) {
       return {
         success: false,
-        error: validation.error || 'Invalid password.',
-        code: 'INVALID_PASSWORD'
+        error: validation.error || "Invalid password.",
+        code: "INVALID_PASSWORD",
       };
     }
 
     // --------------------------------------------------------------------
     // CHECK USERNAME
     // --------------------------------------------------------------------
-    const exists = await usernameExists(username);               // Check if taken
+    const exists = await usernameExists(username); // Check if taken
     if (exists) {
       return {
         success: false,
-        error: 'Username already taken. Please choose a different one.',
-        code: 'USERNAME_EXISTS'
+        error: "Username already taken. Please choose a different one.",
+        code: "USERNAME_EXISTS",
       };
     }
 
     // --------------------------------------------------------------------
     // GENERATE IDS AND SALT
     // --------------------------------------------------------------------
-    const userId = generateUserId();                             // Unique user ID
-    const credentialId = generateCredentialId();                 // Unique credential ID
-    const salt = generateSalt();                                 // Random salt
+    const userId = generateUserId(); // Unique user ID
+    const credentialId = generateCredentialId(); // Unique credential ID
+    const salt = generateSalt(); // Random salt
 
     // --------------------------------------------------------------------
     // HASH PASSWORD
     // --------------------------------------------------------------------
-    const passwordHash = await hashPassword(password, salt);     // Create hash
+    const passwordHash = await hashPassword(password, salt); // Create hash
 
     // --------------------------------------------------------------------
     // SAVE TO DATABASE
@@ -222,17 +227,17 @@ export async function registerWithPassword(
       id: userId,
       username,
       createdAt: now,
-      lastLoginAt: now
+      lastLoginAt: now,
     });
 
     // 2. Create credential record
     await createCredential({
       id: credentialId,
       userId,
-      type: 'password',
-      passwordHash,                                              // Store the hash
-      salt,                                                      // Store the salt
-      createdAt: now
+      type: "password",
+      passwordHash, // Store the hash
+      salt, // Store the salt
+      createdAt: now,
     });
 
     // --------------------------------------------------------------------
@@ -242,18 +247,17 @@ export async function registerWithPassword(
       success: true,
       userId,
       username,
-      credentialId
+      credentialId,
     };
-
   } catch (error) {
     // --------------------------------------------------------------------
     // HANDLE ERRORS
     // --------------------------------------------------------------------
-    console.error('Password registration error:', error);
+    console.error("Password registration error:", error);
     return {
       success: false,
-      error: 'Failed to create account. Please try again.',
-      code: 'UNKNOWN_ERROR'
+      error: "Failed to create account. Please try again.",
+      code: "UNKNOWN_ERROR",
     };
   }
 }
@@ -268,12 +272,15 @@ export async function registerWithPassword(
 // @param password - The password to verify
 // @returns Promise<boolean> true if password is correct
 
-export async function verifyPassword(userId: string, password: string): Promise<boolean> {
+export async function verifyPassword(
+  userId: string,
+  password: string,
+): Promise<boolean> {
   try {
     // Get the stored credential
-    const credential = await getCredentialByType(userId, 'password');
+    const credential = await getCredentialByType(userId, "password");
     if (!credential || !credential.passwordHash || !credential.salt) {
-      return false;                                              // No password credential found
+      return false; // No password credential found
     }
 
     // Hash the provided password with the stored salt
@@ -281,10 +288,9 @@ export async function verifyPassword(userId: string, password: string): Promise<
 
     // Compare hashes (timing-safe comparison not needed for PBKDF2 output)
     return computedHash === credential.passwordHash;
-
   } catch (error) {
-    console.error('Password verification error:', error);
-    return false;                                                // Any error = verification failed
+    console.error("Password verification error:", error);
+    return false; // Any error = verification failed
   }
 }
 
@@ -295,25 +301,29 @@ export async function verifyPassword(userId: string, password: string): Promise<
 
 function arrayToBase64(array: Uint8Array): string {
   if (!isBrowser) {
-    throw new Error('arrayToBase64() can only be called in browser environment');
+    throw new Error(
+      "arrayToBase64() can only be called in browser environment",
+    );
   }
-  
-  let binary = '';
+
+  let binary = "";
   for (let i = 0; i < array.byteLength; i++) {
     binary += String.fromCharCode(array[i]);
   }
-  return (globalThis as any).btoa(binary);                       // Binary to base64
+  return (globalThis as any).btoa(binary); // Binary to base64
 }
 
 function base64ToArray(base64: string): ArrayBuffer {
   if (!isBrowser) {
-    throw new Error('base64ToArray() can only be called in browser environment');
+    throw new Error(
+      "base64ToArray() can only be called in browser environment",
+    );
   }
-  
-  const binary = (globalThis as any).atob(base64);               // Base64 to binary
+
+  const binary = (globalThis as any).atob(base64); // Base64 to binary
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
-  return bytes.buffer;                                           // Return as ArrayBuffer
+  return bytes.buffer; // Return as ArrayBuffer
 }

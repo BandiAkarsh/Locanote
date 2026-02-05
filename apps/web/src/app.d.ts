@@ -22,39 +22,35 @@
 // You can add custom properties to these interfaces.
 
 declare global {
-	namespace App {
-		// ====================================================================
-		// ERROR TYPE
-		// ====================================================================
-		// Customize what your error objects look like.
-		// Example: interface Error { code: string; message: string; }
-		// interface Error {}
-
-		// ====================================================================
-		// LOCALS TYPE
-		// ====================================================================
-		// Data that's available in all server-side code (hooks, endpoints).
-		// Since I're building a static app, I don't use this much.
-		// interface Locals {}
-
-		// ====================================================================
-		// PAGE DATA TYPE
-		// ====================================================================
-		// Data that's passed from +page.ts load functions to +page.svelte.
-		// interface PageData {}
-
-		// ====================================================================
-		// PAGE STATE TYPE
-		// ====================================================================
-		// State that persists across navigation (using pushState/replaceState).
-		// interface PageState {}
-
-		// ====================================================================
-		// PLATFORM TYPE
-		// ====================================================================
-		// Platform-specific context (Cloudflare Workers, Vercel, etc.).
-		// interface Platform {}
-	}
+  namespace App {
+    // ====================================================================
+    // ERROR TYPE
+    // ====================================================================
+    // Customize what your error objects look like.
+    // Example: interface Error { code: string; message: string; }
+    // interface Error {}
+    // ====================================================================
+    // LOCALS TYPE
+    // ====================================================================
+    // Data that's available in all server-side code (hooks, endpoints).
+    // Since I're building a static app, I don't use this much.
+    // interface Locals {}
+    // ====================================================================
+    // PAGE DATA TYPE
+    // ====================================================================
+    // Data that's passed from +page.ts load functions to +page.svelte.
+    // interface PageData {}
+    // ====================================================================
+    // PAGE STATE TYPE
+    // ====================================================================
+    // State that persists across navigation (using pushState/replaceState).
+    // interface PageState {}
+    // ====================================================================
+    // PLATFORM TYPE
+    // ====================================================================
+    // Platform-specific context (Cloudflare Workers, Vercel, etc.).
+    // interface Platform {}
+  }
 }
 
 // ============================================================================

@@ -90,7 +90,7 @@ export function createWebRTCProvider(
   // CREATE PROVIDER
   // --------------------------------------------------------------------
   // WebrtcProvider connects to signaling server and manages P2P connections
-  // 
+  //
   // FIX: Use noteId as room password so ALL users with same note can connect
   // The encryption key is separate and shared via URL hash for document content
 
@@ -100,7 +100,7 @@ export function createWebRTCProvider(
     : `${SIGNALING_SERVER_URL}?room=${roomId}`;
   console.log(`[DEBUG] Connecting to signaling server:`, signalingUrl);
   console.log(`[DEBUG] Room password (noteId):`, roomId);
-  
+
   const provider = new WebrtcProvider(
     roomId, // Room ID - peers in same room sync together
     ydoc, // Yjs document to synchronize
@@ -121,7 +121,7 @@ export function createWebRTCProvider(
       password: roomId,
     },
   );
-  
+
   console.log(`[DEBUG] WebRTC provider created for room: ${roomId}`);
 
   // --------------------------------------------------------------------
@@ -147,9 +147,13 @@ export function createWebRTCProvider(
   // When I connect to the signaling server
   provider.on("status", (event: { connected: boolean }) => {
     if (event.connected) {
-      console.log(`[WebRTC] ✅ CONNECTED to signaling server for room: ${roomId}`);
+      console.log(
+        `[WebRTC] ✅ CONNECTED to signaling server for room: ${roomId}`,
+      );
     } else {
-      console.log(`[WebRTC] ❌ Disconnected from signaling server for room: ${roomId}`);
+      console.log(
+        `[WebRTC] ❌ Disconnected from signaling server for room: ${roomId}`,
+      );
     }
   });
 
@@ -157,7 +161,12 @@ export function createWebRTCProvider(
   provider.on(
     "peers",
     (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
-      console.log(`[WebRTC] 👥 Peers in room ${roomId}:`, event.webrtcPeers.length, 'peers:', event.webrtcPeers);
+      console.log(
+        `[WebRTC] 👥 Peers in room ${roomId}:`,
+        event.webrtcPeers.length,
+        "peers:",
+        event.webrtcPeers,
+      );
     },
   );
 

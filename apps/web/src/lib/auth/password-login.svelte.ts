@@ -12,9 +12,9 @@
 // 6. If match, user is logged in!
 // ============================================================================
 
-import { getUserByUsername, updateLastLogin } from '$db/users';
-import { verifyPassword } from './password.svelte';
-import type { AuthResult, AuthError } from './types';
+import { getUserByUsername, updateLastLogin } from "$db/users";
+import { verifyPassword } from "./password.svelte";
+import type { AuthResult, AuthError } from "./types";
 
 // ============================================================================
 // LOGIN WITH PASSWORD
@@ -27,7 +27,7 @@ import type { AuthResult, AuthError } from './types';
 
 export async function loginWithPassword(
   username: string,
-  password: string
+  password: string,
 ): Promise<AuthResult | AuthError> {
   try {
     // --------------------------------------------------------------------
@@ -36,8 +36,8 @@ export async function loginWithPassword(
     if (!username || !password) {
       return {
         success: false,
-        error: 'Please enter both username and password.',
-        code: 'MISSING_CREDENTIALS'
+        error: "Please enter both username and password.",
+        code: "MISSING_CREDENTIALS",
       };
     }
 
@@ -48,8 +48,8 @@ export async function loginWithPassword(
     if (!user) {
       return {
         success: false,
-        error: 'Invalid username or password.',
-        code: 'INVALID_CREDENTIALS'
+        error: "Invalid username or password.",
+        code: "INVALID_CREDENTIALS",
       };
     }
 
@@ -60,8 +60,8 @@ export async function loginWithPassword(
     if (!isValid) {
       return {
         success: false,
-        error: 'Invalid username or password.',
-        code: 'INVALID_CREDENTIALS'
+        error: "Invalid username or password.",
+        code: "INVALID_CREDENTIALS",
       };
     }
 
@@ -77,19 +77,18 @@ export async function loginWithPassword(
       success: true,
       userId: user.id,
       username: user.username,
-      method: 'password',
-      credentialId: user.id // Using userId as credentialId for passwords
+      method: "password",
+      credentialId: user.id, // Using userId as credentialId for passwords
     };
-
   } catch (error) {
     // --------------------------------------------------------------------
     // HANDLE ERRORS
     // --------------------------------------------------------------------
-    console.error('Password login error:', error);
+    console.error("Password login error:", error);
     return {
       success: false,
-      error: 'Login failed. Please try again.',
-      code: 'UNKNOWN_ERROR'
+      error: "Login failed. Please try again.",
+      code: "UNKNOWN_ERROR",
     };
   }
 }
@@ -106,8 +105,8 @@ export async function userHasPassword(username: string): Promise<boolean> {
   try {
     const user = await getUserByUsername(username);
     if (!user) return false;
-    
-    const { hasPassword } = await import('$db/credentials');
+
+    const { hasPassword } = await import("$db/credentials");
     return await hasPassword(user.id);
   } catch {
     return false;

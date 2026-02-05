@@ -10,8 +10,8 @@
 // - Private keys are NEVER stored (they stay in the browser/device)
 // ============================================================================
 
-import { getDB } from './index';                                // Import database getter
-import type { Credential } from './index';                      // Import Credential type
+import { getDB } from "./index"; // Import database getter
+import type { Credential } from "./index"; // Import Credential type
 
 // ============================================================================
 // CREATE CREDENTIAL
@@ -21,9 +21,11 @@ import type { Credential } from './index';                      // Import Creden
 // @param credential - The credential object to add
 // @returns The added credential
 
-export async function createCredential(credential: Credential): Promise<Credential> {
+export async function createCredential(
+  credential: Credential,
+): Promise<Credential> {
   const db = await getDB();
-  await db.add('credentials', credential);                       // Add to 'credentials' store
+  await db.add("credentials", credential); // Add to 'credentials' store
   return credential;
 }
 
@@ -35,9 +37,11 @@ export async function createCredential(credential: Credential): Promise<Credenti
 // @param id - The credential's unique ID
 // @returns The credential, or undefined if not found
 
-export async function getCredentialById(id: string): Promise<Credential | undefined> {
+export async function getCredentialById(
+  id: string,
+): Promise<Credential | undefined> {
   const db = await getDB();
-  return db.get('credentials', id);
+  return db.get("credentials", id);
 }
 
 // ============================================================================
@@ -49,10 +53,12 @@ export async function getCredentialById(id: string): Promise<Credential | undefi
 // @param userId - The user's ID
 // @returns Array of credentials
 
-export async function getCredentialsByUser(userId: string): Promise<Credential[]> {
+export async function getCredentialsByUser(
+  userId: string,
+): Promise<Credential[]> {
   const db = await getDB();
-  const index = db.transaction('credentials').store.index('by-user');
-  return index.getAll(userId);                                   // Get all matching records
+  const index = db.transaction("credentials").store.index("by-user");
+  return index.getAll(userId); // Get all matching records
 }
 
 // ============================================================================
@@ -67,10 +73,10 @@ export async function getCredentialsByUser(userId: string): Promise<Credential[]
 
 export async function getCredentialByType(
   userId: string,
-  type: 'passkey' | 'password'
+  type: "passkey" | "password",
 ): Promise<Credential | undefined> {
-  const credentials = await getCredentialsByUser(userId);        // Get all user credentials
-  return credentials.find(cred => cred.type === type);           // Filter by type
+  const credentials = await getCredentialsByUser(userId); // Get all user credentials
+  return credentials.find((cred) => cred.type === type); // Filter by type
 }
 
 // ============================================================================
@@ -82,7 +88,7 @@ export async function getCredentialByType(
 
 export async function deleteCredential(credentialId: string): Promise<void> {
   const db = await getDB();
-  await db.delete('credentials', credentialId);
+  await db.delete("credentials", credentialId);
 }
 
 // ============================================================================
@@ -95,14 +101,14 @@ export async function deleteCredential(credentialId: string): Promise<void> {
 
 export async function deleteCredentialsByUser(userId: string): Promise<void> {
   const db = await getDB();
-  const credentials = await getCredentialsByUser(userId);        // Get all user credentials
+  const credentials = await getCredentialsByUser(userId); // Get all user credentials
 
   // Delete each one
-  const tx = db.transaction('credentials', 'readwrite');         // Start transaction
+  const tx = db.transaction("credentials", "readwrite"); // Start transaction
   for (const cred of credentials) {
     await tx.store.delete(cred.id);
   }
-  await tx.done;                                                 // Commit transaction
+  await tx.done; // Commit transaction
 }
 
 // ============================================================================
@@ -114,8 +120,8 @@ export async function deleteCredentialsByUser(userId: string): Promise<void> {
 // @returns True if user has at least one passkey
 
 export async function hasPasskey(userId: string): Promise<boolean> {
-  const passkey = await getCredentialByType(userId, 'passkey');  // Look for passkey
-  return !!passkey;                                              // Convert to boolean
+  const passkey = await getCredentialByType(userId, "passkey"); // Look for passkey
+  return !!passkey; // Convert to boolean
 }
 
 // ============================================================================
@@ -127,6 +133,6 @@ export async function hasPasskey(userId: string): Promise<boolean> {
 // @returns True if user has a password
 
 export async function hasPassword(userId: string): Promise<boolean> {
-  const password = await getCredentialByType(userId, 'password'); // Look for password
+  const password = await getCredentialByType(userId, "password"); // Look for password
   return !!password;
 }

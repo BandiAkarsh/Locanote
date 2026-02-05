@@ -14,8 +14,8 @@
 // because IndexedDB operations are asynchronous.
 // ============================================================================
 
-import { getDB } from './index';                                // Import database getter
-import type { User } from './index';                            // Import User type
+import { getDB } from "./index"; // Import database getter
+import type { User } from "./index"; // Import User type
 
 // ============================================================================
 // CREATE USER
@@ -26,9 +26,9 @@ import type { User } from './index';                            // Import User t
 // @returns The added user
 
 export async function createUser(user: User): Promise<User> {
-  const db = await getDB();                                      // Get database instance
-  await db.add('users', user);                                   // Add user to 'users' store
-  return user;                                                   // Return the user
+  const db = await getDB(); // Get database instance
+  await db.add("users", user); // Add user to 'users' store
+  return user; // Return the user
 }
 
 // ============================================================================
@@ -41,7 +41,7 @@ export async function createUser(user: User): Promise<User> {
 
 export async function getUserById(id: string): Promise<User | undefined> {
   const db = await getDB();
-  return db.get('users', id);                                    // Get from 'users' store by key
+  return db.get("users", id); // Get from 'users' store by key
 }
 
 // ============================================================================
@@ -53,10 +53,12 @@ export async function getUserById(id: string): Promise<User | undefined> {
 // @param username - The username to search for
 // @returns The user, or undefined if not found
 
-export async function getUserByUsername(username: string): Promise<User | undefined> {
+export async function getUserByUsername(
+  username: string,
+): Promise<User | undefined> {
   const db = await getDB();
-  const index = db.transaction('users').store.index('by-username'); // Get the username index
-  return index.get(username);                                    // Look up by username
+  const index = db.transaction("users").store.index("by-username"); // Get the username index
+  return index.get(username); // Look up by username
 }
 
 // ============================================================================
@@ -70,7 +72,7 @@ export async function getUserByUsername(username: string): Promise<User | undefi
 
 export async function updateUser(user: User): Promise<User> {
   const db = await getDB();
-  await db.put('users', user);                                   // 'put' updates if exists, adds if not
+  await db.put("users", user); // 'put' updates if exists, adds if not
   return user;
 }
 
@@ -82,12 +84,14 @@ export async function updateUser(user: User): Promise<User> {
 // @param userId - The user's ID
 // @returns The updated user, or undefined if user not found
 
-export async function updateLastLogin(userId: string): Promise<User | undefined> {
-  const user = await getUserById(userId);                        // Get current user
-  if (!user) return undefined;                                   // Return undefined if not found
+export async function updateLastLogin(
+  userId: string,
+): Promise<User | undefined> {
+  const user = await getUserById(userId); // Get current user
+  if (!user) return undefined; // Return undefined if not found
 
-  user.lastLoginAt = Date.now();                                 // Update timestamp
-  return updateUser(user);                                       // Save changes
+  user.lastLoginAt = Date.now(); // Update timestamp
+  return updateUser(user); // Save changes
 }
 
 // ============================================================================
@@ -102,13 +106,13 @@ export async function deleteUser(userId: string): Promise<void> {
   const db = await getDB();
 
   // Delete user
-  await db.delete('users', userId);
+  await db.delete("users", userId);
 
   // Also delete all related data (credentials, notes, tags)
   // I'll implement these helper functions next
-  const { deleteCredentialsByUser } = await import('./credentials');
-  const { deleteNotesByUser } = await import('./notes');
-  const { deleteTagsByUser } = await import('./tags');
+  const { deleteCredentialsByUser } = await import("./credentials");
+  const { deleteNotesByUser } = await import("./notes");
+  const { deleteTagsByUser } = await import("./tags");
 
   await deleteCredentialsByUser(userId);
   await deleteNotesByUser(userId);
@@ -125,6 +129,6 @@ export async function deleteUser(userId: string): Promise<void> {
 // @returns True if username is taken
 
 export async function usernameExists(username: string): Promise<boolean> {
-  const user = await getUserByUsername(username);                // Try to find user
-  return !!user;                                                 // Convert to boolean (!!undefined = false)
+  const user = await getUserByUsername(username); // Try to find user
+  return !!user; // Convert to boolean (!!undefined = false)
 }
