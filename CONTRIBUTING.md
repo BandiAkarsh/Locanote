@@ -58,7 +58,7 @@ One of the best ways to contribute is by adding new **Visual Styles**. If you ha
 
 ## 💬 Communication
 
-If you have questions or want to discuss a new feature, feel free to open an **Issue** on GitHub or start a **Discussion**.
+If you have questions or want to discuss a new feature, feel free to open an [**Issue**](https://github.com/BandiAkarsh/Locanote/issues) on GitHub or start a **Discussion**.
 
 ---
 
