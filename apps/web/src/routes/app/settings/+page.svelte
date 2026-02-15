@@ -345,18 +345,19 @@ SETTINGS PAGE (+page.svelte for /app/settings)
   {/if}
 </div>
 
-<Modal bind:open={showDeleteConfirm} title="Final Directive" type="sheet">
-  <div class="space-y-8 text-center">
-    <p class="text-lg font-medium text-[var(--ui-text-muted)]">
-      Confirm the complete removal of your identity and all associated data?
+<Modal bind:open={showDeleteConfirm} title="Delete Account?">
+  <div class="space-y-4">
+    <p class="text-[var(--np-text)]">
+      This will permanently delete your account and all your notes. This action
+      cannot be undone.
     </p>
-    <div class="flex gap-4">
-      <Button
-        variant="secondary"
-        fullWidth
-        onclick={() => (showDeleteConfirm = false)}>Abort</Button
-      ><Button variant="danger" fullWidth onclick={handleDeleteAccount}
-        >Purge All Data</Button
+    <div class="flex gap-2 justify-end">
+      <button class="np-btn" onclick={() => (showDeleteConfirm = false)}
+        >Cancel</button
+      >
+      <button
+        class="np-btn np-btn-primary bg-red-600 border-red-600 hover:bg-red-700"
+        onclick={handleDeleteAccount}>Delete Account</button
       >
     </div>
   </div>

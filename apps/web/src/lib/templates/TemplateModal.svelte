@@ -138,12 +138,8 @@ TEMPLATE MODAL COMPONENT (TemplateModal.svelte)
 <Modal
   bind:open
   title={showTitleInput ? "Create Note" : "Choose a Template"}
-  description={showTitleInput
-    ? "Customize your note title"
-    : "Select a template to get started quickly"}
   closeOnBackdrop={!isCreating}
   closeOnEscape={!isCreating}
-  size="large"
   onEnter={showTitleInput ? handleCreateNote : undefined}
 >
   {#if showTitleInput && selectedTemplate}

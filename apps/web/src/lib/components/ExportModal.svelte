@@ -155,7 +155,6 @@ EXPORT MODAL COMPONENT
 <Modal
   bind:open
   title="Export Note"
-  size="large"
   closeOnBackdrop={true}
   closeOnEscape={true}
   onEnter={() => handleDownload(selectedFormat)}

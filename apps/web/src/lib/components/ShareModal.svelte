@@ -290,13 +290,9 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
           value={shareUrl}
           class="flex-1 bg-transparent text-xs font-mono text-[var(--ui-text-muted)] outline-none px-2 truncate"
         />
-        <Button
-          size="sm"
-          onclick={copyLink}
-          variant={copied ? "success" : "primary"}
-        >
+        <button class="np-btn np-btn-primary text-sm" onclick={copyLink}>
           {copied ? "Copied!" : "Copy"}
-        </Button>
+        </button>
       </div>
     </div>
   </div>
