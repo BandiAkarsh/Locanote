@@ -1,9 +1,9 @@
 {
   "build": {
-    "beforeBuildCommand": "cd ../../web && pnpm build",
-    "beforeDevCommand": "cd ../../web && pnpm build",
-    "devPath": "../../web/build",
-    "distDir": "../../web/build",
+    "beforeBuildCommand": "cd ../web && pnpm build",
+    "beforeDevCommand": "cd ../web && pnpm build",
+    "devPath": "../web/build",
+    "distDir": "../web/build",
     "withGlobalTauri": false
   },
   "tauri": {
