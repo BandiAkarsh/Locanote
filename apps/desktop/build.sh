@@ -68,11 +68,27 @@ generate_icons() {
     fi
 }
 
+# Build web app first
+build_web() {
+    print_status "Building web app first..."
+    cd ../web
+    
+    if [ ! -d "node_modules" ]; then
+        print_warning "Web app dependencies not found. Installing..."
+        pnpm install
+    fi
+    
+    pnpm build
+    print_status "Web app built successfully"
+    cd "$SCRIPT_DIR"
+}
+
 # Development mode
 dev() {
     print_status "Starting development server..."
     check_prerequisites
     generate_icons
+    build_web
     
     print_status "Launching Locanote Desktop (Dev Mode)..."
     npm run tauri dev
@@ -83,8 +99,9 @@ build() {
     print_status "Building Locanote Desktop (Production)..."
     check_prerequisites
     generate_icons
+    build_web
     
-    print_status "Building for current platform..."
+    print_status "Building desktop app..."
     npm run tauri build
     
     print_status "Build complete!"
