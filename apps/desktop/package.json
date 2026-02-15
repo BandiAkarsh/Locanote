@@ -1,0 +1,27 @@
+{
+  "name": "locanote-desktop",
+  "version": "0.1.0",
+  "description": "Locanote Desktop App",
+  "main": "index.js",
+  "scripts": {
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "build:icons": "tauri icon icon.png",
+    "build:all": "tauri build --target universal-apple-darwin && tauri build --target x86_64-pc-windows-msvc && tauri build --target x86_64-unknown-linux-gnu",
+    "build:mac": "tauri build --target universal-apple-darwin",
+    "build:win": "tauri build --target x86_64-pc-windows-msvc",
+    "build:linux": "tauri build --target x86_64-unknown-linux-gnu"
+  },
+  "keywords": [
+    "notes",
+    "productivity",
+    "desktop",
+    "tauri"
+  ],
+  "author": "Bandi Akarsh",
+  "license": "MIT",
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.0"
+  }
+}

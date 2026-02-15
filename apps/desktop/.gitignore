@@ -1,0 +1,38 @@
+# Tauri Desktop App
+
+# Dependencies
+node_modules/
+
+# Build outputs
+src-tauri/target/
+dist/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+
+# Testing
+coverage/
+
+# Temporary files
+*.tmp
+.cache/
+
+# Don't ignore generated icons (we want to ship them)
+# But ignore icon source files that can be regenerated
+# icon.svg
