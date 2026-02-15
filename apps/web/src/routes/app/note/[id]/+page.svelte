@@ -1,5 +1,5 @@
 <!-- =========================================================================
-NOTEPAD EDITOR PAGE
+NOTEPAD EDITOR PAGE - Notepad++ Style Layout
 ============================================================================ -->
 
 <script lang="ts">
@@ -169,13 +169,13 @@ NOTEPAD EDITOR PAGE
 </script>
 
 <div class="np-container">
-  <!-- Sidebar -->
+  <!-- Left Sidebar - Notes List Only -->
   <aside class="np-sidebar">
     <div class="np-sidebar-header">
       <button
         class="np-btn np-btn-icon"
         onclick={() => goto("/app")}
-        title="Back to notes"
+        title="Back to all notes"
       >
         <svg
           class="w-4 h-4"
@@ -189,89 +189,31 @@ NOTEPAD EDITOR PAGE
       <span class="np-sidebar-title">Notes</span>
     </div>
 
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto p-3">
       {#if note}
-        <div class="p-4 border-b border-[var(--np-border)]">
-          <input
-            type="text"
-            value={note.title}
-            onchange={(e) => handleTitleChange(e.currentTarget.value)}
-            class="np-input font-semibold"
-            placeholder="Note title"
-          />
-          <div class="mt-2 text-xs text-[var(--np-text-muted)]">
-            Last edited {new Date(note.updatedAt).toLocaleString()}
+        <div class="text-sm text-[var(--np-text-muted)] mb-2">Current Note</div>
+        <div class="np-note-item active mb-2">
+          <div class="np-note-title">{note.title || "Untitled Note"}</div>
+          <div class="np-note-date">
+            {new Date(note.updatedAt).toLocaleString()}
           </div>
         </div>
 
-        <div class="p-4 space-y-2">
-          <button
-            class="np-btn w-full justify-start"
-            onclick={() => (isShareModalOpen = true)}
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-              />
-            </svg>
-            Share Note
-          </button>
-
-          <button
-            class="np-btn w-full justify-start"
-            onclick={() => (isExportModalOpen = true)}
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
-            Export
-          </button>
-
-          <button
-            class="np-btn w-full justify-start"
-            onclick={() => (isProtectModalOpen = true)}
-          >
-            <svg
-              class="w-4 h-4 mr-2"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-            {note.isProtected ? "Change Password" : "Add Password"}
-          </button>
-        </div>
-
-        <div class="p-4 border-t border-[var(--np-border)]">
-          <div class="text-xs text-[var(--np-text-muted)] space-y-1">
-            <div>Status: {networkStatus.isOnline ? "Online" : "Offline"}</div>
-            {#if networkStatus.peerCount > 0}
-              <div>{networkStatus.peerCount} person(s) editing</div>
-            {:else}
-              <div>Only you</div>
-            {/if}
-          </div>
+        <div
+          class="mt-4 text-xs text-[var(--np-text-muted)] space-y-1 border-t border-[var(--np-border)] pt-3"
+        >
+          <div>Status: {networkStatus.isOnline ? "Online" : "Offline"}</div>
+          {#if networkStatus.peerCount > 0}
+            <div>{networkStatus.peerCount} person(s) editing</div>
+          {:else}
+            <div>Only you</div>
+          {/if}
         </div>
       {/if}
     </div>
   </aside>
 
-  <!-- Main Editor -->
+  <!-- Main Editor Area -->
   <main class="np-main">
     {#if isLoading}
       <div
@@ -290,139 +232,268 @@ NOTEPAD EDITOR PAGE
       </div>
     {:else if note && noteId && (!note.isProtected || hasRoomKey(noteId))}
       <div class="h-full flex flex-col">
-        <!-- Toolbar -->
+        <!-- Top Menu Bar -->
+        <div class="np-menu-bar">
+          <div class="np-menu-group">
+            <button class="np-menu-item" onclick={() => goto("/app")}
+              >File</button
+            >
+            <div class="np-menu-dropdown">
+              <button class="np-menu-dropdown-item" onclick={() => goto("/app")}
+                >New Note</button
+              >
+              <button class="np-menu-dropdown-item" onclick={() => goto("/app")}
+                >Open...</button
+              >
+              <div class="np-menu-separator"></div>
+              <button
+                class="np-menu-dropdown-item"
+                onclick={() => (isExportModalOpen = true)}>Export...</button
+              >
+              <div class="np-menu-separator"></div>
+              <button class="np-menu-dropdown-item" onclick={() => goto("/app")}
+                >Close</button
+              >
+            </div>
+          </div>
+
+          <div class="np-menu-group">
+            <button class="np-menu-item">Edit</button>
+            <div class="np-menu-dropdown">
+              <button
+                class="np-menu-dropdown-item"
+                onclick={() => editorInstance?.chain().focus().undo().run()}
+                >Undo</button
+              >
+              <button
+                class="np-menu-dropdown-item"
+                onclick={() => editorInstance?.chain().focus().redo().run()}
+                >Redo</button
+              >
+              <div class="np-menu-separator"></div>
+              <button
+                class="np-menu-dropdown-item"
+                onclick={() =>
+                  editorInstance?.chain().focus().selectAll().run()}
+                >Select All</button
+              >
+            </div>
+          </div>
+
+          <div class="np-menu-group">
+            <button class="np-menu-item">Share</button>
+            <div class="np-menu-dropdown">
+              <button
+                class="np-menu-dropdown-item"
+                onclick={() => (isShareModalOpen = true)}>Share Note...</button
+              >
+              <button
+                class="np-menu-dropdown-item"
+                onclick={() => (isProtectModalOpen = true)}
+              >
+                {note.isProtected ? "Change Password" : "Add Password"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Title Bar -->
+        <div class="np-title-bar">
+          <input
+            type="text"
+            value={note.title}
+            onchange={(e) => handleTitleChange(e.currentTarget.value)}
+            class="np-title-input"
+            placeholder="Untitled Note"
+          />
+        </div>
+
+        <!-- Formatting Toolbar -->
         <div class="np-toolbar">
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() => editorInstance?.chain().focus().toggleBold().run()}
-            title="Bold"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+          <div class="np-toolbar-group">
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() => editorInstance?.chain().focus().toggleBold().run()}
+              title="Bold (Ctrl+B)"
             >
-              <path
-                d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6V4zm0 8h9a4 4 0 014 4 4 4 0 01-4 4H6v-8z"
-              />
-            </svg>
-          </button>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() => editorInstance?.chain().focus().toggleItalic().run()}
-            title="Italic"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path
+                  d="M6 4h8a4 4 0 014 4 4 4 0 01-4 4H6V4zm0 8h9a4 4 0 014 4 4 4 0 01-4 4H6v-8z"
+                />
+              </svg>
+            </button>
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance?.chain().focus().toggleItalic().run()}
+              title="Italic (Ctrl+I)"
             >
-              <path d="M10 20l4-16m4 4l4 4M6 16l-4-4" />
-            </svg>
-          </button>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() => editorInstance?.chain().focus().toggleStrike().run()}
-            title="Strikethrough"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M10 20l4-16m4 4l4 4M6 16l-4-4" />
+              </svg>
+            </button>
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance?.chain().focus().toggleStrike().run()}
+              title="Strikethrough"
             >
-              <path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3M4 21h16" />
-            </svg>
-          </button>
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M6 3v7a6 6 0 006 6 6 6 0 006-6V3M4 21h16" />
+              </svg>
+            </button>
+          </div>
+
           <div class="np-toolbar-separator"></div>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() =>
-              editorInstance?.chain().focus().toggleHeading({ level: 1 }).run()}
-            title="Heading"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+
+          <div class="np-toolbar-group">
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance
+                  ?.chain()
+                  .focus()
+                  .toggleHeading({ level: 1 })
+                  .run()}
+              title="Heading"
             >
-              <path d="M4 12h8M4 18V6M12 18V6M17 12h3m0 0v6m0-6l-4-4" />
-            </svg>
-          </button>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() =>
-              editorInstance?.chain().focus().toggleBulletList().run()}
-            title="Bullet List"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M4 12h8M4 18V6M12 18V6M17 12h3m0 0v6m0-6l-4-4" />
+              </svg>
+            </button>
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance?.chain().focus().toggleBulletList().run()}
+              title="Bullet List"
             >
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() =>
-              editorInstance?.chain().focus().toggleOrderedList().run()}
-            title="Numbered List"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance?.chain().focus().toggleOrderedList().run()}
+              title="Numbered List"
             >
-              <path d="M7 7h12M7 12h12M7 17h12M3 7h.01M3 12h.01M3 17h.01" />
-            </svg>
-          </button>
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M7 7h12M7 12h12M7 17h12M3 7h.01M3 12h.01M3 17h.01" />
+              </svg>
+            </button>
+          </div>
+
           <div class="np-toolbar-separator"></div>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() =>
-              editorInstance?.chain().focus().toggleCodeBlock().run()}
-            title="Code"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+
+          <div class="np-toolbar-group">
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance?.chain().focus().toggleCodeBlock().run()}
+              title="Code Block"
             >
-              <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-            </svg>
-          </button>
-          <button
-            class="np-btn np-btn-icon"
-            onclick={() =>
-              editorInstance?.chain().focus().toggleBlockquote().run()}
-            title="Quote"
-          >
-            <svg
-              class="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2.5"
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+            </button>
+            <button
+              class="np-btn np-btn-icon"
+              onclick={() =>
+                editorInstance?.chain().focus().toggleBlockquote().run()}
+              title="Quote"
             >
-              <path
-                d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
-              />
-            </svg>
-          </button>
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path
+                  d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex-1"></div>
+
+          <div class="np-toolbar-group">
+            <button
+              class="np-btn np-btn-sm"
+              onclick={() => (isShareModalOpen = true)}
+            >
+              <svg
+                class="w-4 h-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                />
+              </svg>
+              Share
+            </button>
+            <button
+              class="np-btn np-btn-sm"
+              onclick={() => (isExportModalOpen = true)}
+            >
+              <svg
+                class="w-4 h-4 mr-1"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+              Export
+            </button>
+          </div>
         </div>
 
         <!-- Editor Content -->
@@ -440,7 +511,7 @@ NOTEPAD EDITOR PAGE
   </main>
 </div>
 
-<!-- Share Modal -->
+<!-- Modals -->
 {#if note}
   <ShareModal
     bind:open={isShareModalOpen}
@@ -539,8 +610,118 @@ NOTEPAD EDITOR PAGE
       <div class="text-sm text-[var(--np-error)]">{passwordError}</div>
     {/if}
     <div class="flex gap-2 justify-end">
-      <button class="np-btn" onclick={() => goto("/app")}> Cancel </button>
-      <button type="submit" class="np-btn np-btn-primary"> Open Note </button>
+      <button class="np-btn" onclick={() => goto("/app")}>Cancel</button>
+      <button type="submit" class="np-btn np-btn-primary">Open Note</button>
     </div>
   </form>
 </Modal>
+
+<style>
+  /* Menu Bar Styles */
+  .np-menu-bar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    background: var(--np-bg-secondary);
+    border-bottom: 1px solid var(--np-border);
+  }
+
+  .np-menu-group {
+    position: relative;
+  }
+
+  .np-menu-item {
+    padding: 6px 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--np-text);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  .np-menu-item:hover {
+    background: var(--np-bg);
+  }
+
+  .np-menu-group:hover .np-menu-dropdown {
+    display: block;
+  }
+
+  .np-menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 180px;
+    background: var(--np-bg);
+    border: 1px solid var(--np-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 100;
+    padding: 4px;
+  }
+
+  .np-menu-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--np-text);
+  }
+
+  .np-menu-dropdown-item:hover {
+    background: var(--np-bg-secondary);
+  }
+
+  .np-menu-separator {
+    height: 1px;
+    background: var(--np-border);
+    margin: 4px 0;
+  }
+
+  /* Title Bar */
+  .np-title-bar {
+    padding: 16px 24px 8px;
+    background: var(--np-bg);
+    border-bottom: 1px solid var(--np-border-light);
+  }
+
+  .np-title-input {
+    width: 100%;
+    font-size: 28px;
+    font-weight: 600;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--np-text);
+    padding: 0;
+  }
+
+  .np-title-input::placeholder {
+    color: var(--np-text-light);
+  }
+
+  /* Toolbar Improvements */
+  .np-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--np-bg);
+    border-bottom: 1px solid var(--np-border);
+  }
+
+  .np-toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+</style>

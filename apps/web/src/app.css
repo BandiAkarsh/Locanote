@@ -24,14 +24,27 @@
   --np-toolbar-height: 40px;
 }
 
-/* BASE STYLES */
+/* BASE STYLES - Larger fonts for desktop */
 html {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
     Arial, sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   background: var(--np-bg);
   color: var(--np-text);
+}
+
+/* Desktop font scaling */
+@media (min-width: 1200px) {
+  html {
+    font-size: 18px;
+  }
+}
+
+@media (min-width: 1600px) {
+  html {
+    font-size: 20px;
+  }
 }
 
 /* NOTEPAD LAYOUT */
@@ -215,13 +228,13 @@ html {
 
 .np-editor-title {
   width: 100%;
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 600;
   border: none;
   outline: none;
   background: transparent;
   color: var(--np-text);
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   padding: 0;
 }
 
@@ -230,62 +243,79 @@ html {
 }
 
 .np-editor-content {
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 20px;
+  line-height: 1.8;
 }
 
 .np-editor-content p {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 
 .np-editor-content h1 {
-  font-size: 20px;
+  font-size: 28px;
   font-weight: 600;
-  margin: 24px 0 12px;
+  margin: 32px 0 16px;
 }
 
 .np-editor-content h2 {
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 600;
-  margin: 20px 0 10px;
+  margin: 28px 0 14px;
 }
 
 .np-editor-content ul,
 .np-editor-content ol {
-  margin: 12px 0;
-  padding-left: 24px;
+  margin: 20px 0;
+  padding-left: 32px;
 }
 
 .np-editor-content li {
-  margin: 4px 0;
+  margin: 8px 0;
 }
 
 .np-editor-content blockquote {
-  border-left: 3px solid var(--np-border);
-  padding-left: 16px;
-  margin: 16px 0;
+  border-left: 4px solid var(--np-border);
+  padding-left: 20px;
+  margin: 24px 0;
   color: var(--np-text-muted);
+  font-size: 18px;
 }
 
 .np-editor-content code {
   background: var(--np-bg-secondary);
-  padding: 2px 6px;
-  border-radius: 3px;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-family: "SF Mono", Monaco, monospace;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .np-editor-content pre {
   background: var(--np-bg-secondary);
-  padding: 16px;
-  border-radius: 6px;
+  padding: 20px;
+  border-radius: 8px;
   overflow-x: auto;
-  margin: 16px 0;
+  margin: 24px 0;
+  font-size: 16px;
 }
 
 .np-editor-content pre code {
   background: none;
   padding: 0;
+  font-size: 16px;
+}
+
+/* Larger editor area */
+.np-editor {
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: 100%;
+  padding: 0 20px;
+}
+
+.np-editor-container {
+  flex: 1;
+  padding: 30px 40px;
+  overflow-y: auto;
 }
 
 /* INPUTS */

@@ -1,12 +1,28 @@
 # Locanote Desktop
 
-A lightweight, fast desktop application for Locanote - wraps the web app (locanote.pages.dev) in a native window with offline support and OS integration.
+A lightweight, fast desktop application for Locanote that works **completely offline** like Notepad, with all features retained. When you have internet, it syncs with others in real-time.
+
+## ✨ How It Works
+
+### Offline-First (Like Notepad)
+
+- ✅ **Works without internet** - All features available offline
+- ✅ **Your notes are stored locally** - On your device, always accessible
+- ✅ **Edit anytime** - Create, edit, format notes without connection
+- ✅ **Privacy first** - No data leaves your device until you choose to share
+
+### Online Sync (When Connected)
+
+- ✅ **Auto-sync when online** - Changes sync automatically
+- ✅ **Real-time collaboration** - Others can edit with you live
+- ✅ **Share via links** - Generate links to collaborate
+- ✅ **Encryption** - End-to-end encryption for shared notes
 
 ## Features
 
 ✅ **All Web Features** - Real-time collaboration, encryption, export, etc.
 ✅ **Native Experience** - System tray, keyboard shortcuts, native menus
-✅ **Offline Support** - Works even without internet (uses service worker caching)
+✅ **100% Offline Capable** - Works completely without internet
 ✅ **Auto-Updater** - Automatically checks for and installs updates
 ✅ **Cross-Platform** - Windows, macOS, and Linux
 ✅ **Lightweight** - ~5MB download, minimal RAM usage
@@ -104,12 +120,57 @@ Coming soon! Check the [Releases](https://github.com/BandiAkarsh/Locanote/releas
 
 ## Usage
 
-### First Launch
+### Using Like Notepad (Offline)
 
-1. Open the installed app
-2. The app will load `https://locanote.pages.dev`
-3. Sign in or create an account
-4. Start taking notes!
+The app works **completely offline** - just like Windows Notepad:
+
+1. **Open the app** - Works without internet
+2. **Create notes** - Click "New Note" or File → New
+3. **Type freely** - Large, comfortable text size (20px default)
+4. **Format text** - Use the toolbar or Format menu
+5. **Save locally** - Everything saves automatically to your device
+6. **No internet needed** - All features work offline
+
+### Online Collaboration (Optional)
+
+When you WANT to collaborate:
+
+1. **Connect to internet**
+2. **Click "Share"** in the toolbar
+3. **Copy the link** and send to others
+4. **Edit together** in real-time
+5. **Disconnect anytime** - Continue editing offline
+
+### Interface Layout (Notepad++ Style)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ File  Edit  Share                      [Share] [Export] │  ← Menu Bar
+├─────────────────────────────────────────────────────────┤
+│ My Note Title                                           │  ← Title
+├─────────────────────────────────────────────────────────┤
+│ B  I  S  |  H  •  1.  |  </>  "                        │  ← Toolbar
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Your note content goes here...                         │  ← Editor
+│  Large, easy-to-read text (20px)                        │
+│                                                         │
+│  • Bullet points                                        │
+│  • Numbered lists                                       │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Keyboard Shortcuts
+
+- **Ctrl/Cmd + N**: New note
+- **Ctrl/Cmd + S**: Save (auto-saves)
+- **Ctrl/Cmd + B**: Bold
+- **Ctrl/Cmd + I**: Italic
+- **Ctrl/Cmd + F**: Find in page
+- **Ctrl/Cmd + +/-**: Zoom in/out
+- **Ctrl/Cmd + 0**: Reset zoom
+- **F11**: Fullscreen
 
 ### System Tray
 
@@ -118,23 +179,18 @@ The app runs in the system tray:
 - **Left-click** on tray icon: Show/hide window
 - **Right-click** on tray icon: Menu with Show/Hide/Quit options
 
-### Keyboard Shortcuts
+### Offline vs Online
 
-- **Ctrl/Cmd + N**: New note
-- **Ctrl/Cmd + S**: Save (auto-saves, but manual save available)
-- **Ctrl/Cmd + F**: Find in page
-- **Ctrl/Cmd + +/-**: Zoom in/out
-- **Ctrl/Cmd + 0**: Reset zoom
-- **F11**: Fullscreen
-
-### Offline Mode
-
-The app automatically caches the web content:
-
-- First load requires internet
-- Subsequent loads work offline
-- All data is stored locally in the browser's IndexedDB
-- Sync happens automatically when back online
+| Feature                 | Offline | Online |
+| ----------------------- | ------- | ------ |
+| Create notes            | ✅      | ✅     |
+| Edit notes              | ✅      | ✅     |
+| Format text             | ✅      | ✅     |
+| Export                  | ✅      | ✅     |
+| Password protection     | ✅      | ✅     |
+| Real-time collaboration | ❌      | ✅     |
+| Share via link          | ❌      | ✅     |
+| Sync with others        | ❌      | ✅     |
 
 ## Development
 
