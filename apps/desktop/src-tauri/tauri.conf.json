@@ -1,10 +1,10 @@
 {
   "build": {
-    "beforeBuildCommand": "cd ../web && pnpm build",
-    "beforeDevCommand": "cd ../web && pnpm build",
-    "devPath": "../web/build",
-    "distDir": "../web/build",
-    "withGlobalTauri": true
+    "beforeBuildCommand": "cd ../../web && pnpm build",
+    "beforeDevCommand": "cd ../../web && pnpm build",
+    "devPath": "../../web/build",
+    "distDir": "../../web/build",
+    "withGlobalTauri": false
   },
   "tauri": {
     "allowlist": {
