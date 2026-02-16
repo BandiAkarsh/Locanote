@@ -2,69 +2,72 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use tauri::{
-    CustomMenuItem, Manager, SystemTray, SystemTrayEvent, SystemTrayMenu, SystemTrayMenuItem,
+    menu::{Menu, MenuItem},
+    tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
+    Manager,
 };
 
 fn main() {
-    // System tray menu
-    let quit = CustomMenuItem::new("quit", "Quit");
-    let hide = CustomMenuItem::new("hide", "Hide");
-    let show = CustomMenuItem::new("show", "Show");
-
-    let tray_menu = SystemTrayMenu::new()
-        .add_item(show)
-        .add_item(hide)
-        .add_native_item(SystemTrayMenuItem::Separator)
-        .add_item(quit);
-
-    let system_tray = SystemTray::new().with_menu(tray_menu);
-
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|app| {
-            // Get the main window
-            let main_window = app.get_window("main").unwrap();
+            // Create tray menu items
+            let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
+            let hide = MenuItem::with_id(app, "hide", "Hide", true, None::<&str>)?;
+            let show = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
 
-            // Set window zoom level for better readability
+            // Create menu
+            let menu = Menu::with_items(app, &[&show, &hide, &quit])?;
+
+            // Create tray icon
+            let _tray = TrayIconBuilder::new()
+                .icon(app.default_window_icon().unwrap().clone())
+                .menu(&menu)
+                .show_menu_on_left_click(false)
+                .on_menu_event(|app, event| match event.id.as_ref() {
+                    "quit" => {
+                        std::process::exit(0);
+                    }
+                    "hide" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.hide();
+                        }
+                    }
+                    "show" => {
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                    _ => {}
+                })
+                .on_tray_icon_event(|tray, event| {
+                    if let TrayIconEvent::Click {
+                        button: MouseButton::Left,
+                        button_state: MouseButtonState::Up,
+                        ..
+                    } = event
+                    {
+                        let app = tray.app_handle();
+                        if let Some(window) = app.get_webview_window("main") {
+                            let _ = window.show();
+                            let _ = window.set_focus();
+                        }
+                    }
+                })
+                .build(app)?;
+
+            // Set window zoom level for better readability on macOS
             #[cfg(target_os = "macos")]
             {
-                use tauri::Window;
-                let _ = main_window.with_webview(|webview| {
-                    #[cfg(target_os = "macos")]
-                    unsafe {
-                        let _: () = msg_send![webview.inner(), setMagnification: 1.0];
-                    }
-                });
+                if let Some(window) = app.get_webview_window("main") {
+                    use tauri::WebviewWindowExt;
+                    let _ = window.set_zoom_level(1.0);
+                }
             }
 
             Ok(())
-        })
-        .system_tray(system_tray)
-        .on_system_tray_event(|app, event| match event {
-            SystemTrayEvent::LeftClick {
-                position: _,
-                size: _,
-                ..
-            } => {
-                let window = app.get_window("main").unwrap();
-                window.show().unwrap();
-                window.set_focus().unwrap();
-            }
-            SystemTrayEvent::MenuItemClick { id, .. } => match id.as_str() {
-                "quit" => {
-                    std::process::exit(0);
-                }
-                "hide" => {
-                    let window = app.get_window("main").unwrap();
-                    window.hide().unwrap();
-                }
-                "show" => {
-                    let window = app.get_window("main").unwrap();
-                    window.show().unwrap();
-                    window.set_focus().unwrap();
-                }
-                _ => {}
-            },
-            _ => {}
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

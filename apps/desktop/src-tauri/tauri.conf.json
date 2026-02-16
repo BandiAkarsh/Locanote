@@ -1,97 +1,84 @@
 {
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Locanote",
+  "version": "0.1.0",
+  "identifier": "com.locanote.app",
   "build": {
     "beforeBuildCommand": "",
     "beforeDevCommand": "",
-    "devPath": "../../web/build",
-    "distDir": "../../web/build",
-    "withGlobalTauri": false
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../../web/build"
   },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "window": {
-        "all": false,
-        "close": true,
-        "hide": true,
-        "show": true,
-        "maximize": true,
-        "minimize": true,
-        "unmaximize": true,
-        "unminimize": true,
-        "startDragging": true
-      },
-      "process": {
-        "all": false,
-        "relaunch": true,
-        "exit": true
-      }
-    },
-    "bundle": {
-      "active": true,
-      "category": "Productivity",
-      "copyright": "",
-      "deb": {
-        "depends": []
-      },
-      "externalBin": [],
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ],
-      "identifier": "com.locanote.app",
-      "longDescription": "A simple, fast note-taking app with real-time collaboration",
-      "macOS": {
-        "entitlements": null,
-        "exceptionDomain": "",
-        "frameworks": [],
-        "providerShortName": null,
-        "signingIdentity": null
-      },
-      "resources": [],
-      "shortDescription": "Simple note-taking app",
-      "targets": "all",
-      "windows": {
-        "certificateThumbprint": null,
-        "digestAlgorithm": "sha256",
-        "timestampUrl": ""
-      }
-    },
-    "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss:; img-src 'self' data: blob:; font-src 'self' data:;"
-    },
-    "systemTray": {
+  "app": {
+    "withGlobalTauri": false,
+    "trayIcon": {
       "iconPath": "icons/icon.png",
       "iconAsTemplate": true,
       "menuOnLeftClick": false
     },
-    "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/BandiAkarsh/Locanote/releases/latest/download/latest.json"
-      ],
-      "dialog": true,
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQwMjE0QzYyMTU1RTY0QTQKUldRdnJYRXJTMXZHTFdxenBLUjE3d2d6NUNlTGhEK1lHQkEvSXg1dnM3dWl6djU3OEZlNTE2aW8K"
-    },
     "windows": [
       {
-        "fullscreen": false,
-        "height": 900,
-        "resizable": true,
         "title": "Locanote",
         "width": 1400,
+        "height": 900,
         "minWidth": 1000,
         "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
         "center": true,
         "visible": true,
         "decorations": true
       }
-    ]
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' wss:; img-src 'self' data: blob:; font-src 'self' data:;"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [],
+    "copyright": "",
+    "category": "Productivity",
+    "shortDescription": "Simple note-taking app",
+    "longDescription": "A simple, fast note-taking app with real-time collaboration",
+    "linux": {
+      "deb": {
+        "depends": []
+      }
+    },
+    "macOS": {
+      "frameworks": [],
+      "exceptionDomain": "",
+      "signingIdentity": null,
+      "providerShortName": null,
+      "entitlements": null
+    },
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "certificateThumbprint": null
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQwMjE0QzYyMTU1RTY0QTQKUldRdnJYRXJTMXZHTFdxenBLUjE3d2d6NUNlTGhEK1lHQkEvSXg1dnM3dWl6djU3OEZlNTE2aW8K",
+      "endpoints": [
+        "https://github.com/BandiAkarsh/Locanote/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    },
+    "shell": {
+      "open": true
+    }
   }
 }

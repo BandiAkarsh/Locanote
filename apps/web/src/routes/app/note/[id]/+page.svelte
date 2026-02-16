@@ -22,6 +22,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     protectRoomWithPassword,
   } from "$crypto/e2e";
   import { openDocument } from "$crdt/doc.svelte";
+  import { voice } from "$lib/services/voice.svelte";
   import type { Note } from "$db";
   import type { Editor as TiptapEditor } from "@tiptap/core";
 
@@ -165,6 +166,17 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
   function handleEditorReady(editor: TiptapEditor) {
     editorInstance = editor;
     if (isBrowser) (window as any).editorInstance = editor;
+
+    // Set up voice dictation to insert text into editor
+    voice.onResult = (text: string, isInterim: boolean) => {
+      if (!isInterim && text) {
+        editor
+          .chain()
+          .focus()
+          .insertContent(text + " ")
+          .run();
+      }
+    };
   }
 </script>
 
@@ -312,7 +324,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
         <div class="np-toolbar">
           <div class="np-toolbar-group">
             <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('bold')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() => editorInstance?.chain().focus().toggleBold().run()}
               title="Bold (Ctrl+B)"
             >
@@ -329,7 +343,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
               </svg>
             </button>
             <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('italic')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() =>
                 editorInstance?.chain().focus().toggleItalic().run()}
               title="Italic (Ctrl+I)"
@@ -345,7 +361,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
               </svg>
             </button>
             <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('strike')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() =>
                 editorInstance?.chain().focus().toggleStrike().run()}
               title="Strikethrough"
@@ -366,27 +384,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
 
           <div class="np-toolbar-group">
             <button
-              class="np-btn np-btn-icon"
-              onclick={() =>
-                editorInstance
-                  ?.chain()
-                  .focus()
-                  .toggleHeading({ level: 1 })
-                  .run()}
-              title="Heading"
-            >
-              <svg
-                class="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2.5"
-              >
-                <path d="M4 12h8M4 18V6M12 18V6M17 12h3m0 0v6m0-6l-4-4" />
-              </svg>
-            </button>
-            <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('bulletList')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() =>
                 editorInstance?.chain().focus().toggleBulletList().run()}
               title="Bullet List"
@@ -402,7 +402,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
               </svg>
             </button>
             <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('orderedList')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() =>
                 editorInstance?.chain().focus().toggleOrderedList().run()}
               title="Numbered List"
@@ -423,7 +425,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
 
           <div class="np-toolbar-group">
             <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('codeBlock')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() =>
                 editorInstance?.chain().focus().toggleCodeBlock().run()}
               title="Code Block"
@@ -439,7 +443,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
               </svg>
             </button>
             <button
-              class="np-btn np-btn-icon"
+              class="np-btn np-btn-icon {editorInstance?.isActive('blockquote')
+                ? 'np-btn-active'
+                : ''}"
               onclick={() =>
                 editorInstance?.chain().focus().toggleBlockquote().run()}
               title="Quote"
@@ -459,6 +465,49 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
           </div>
 
           <div class="flex-1"></div>
+
+          <!-- Voice Dictation Button -->
+          <div class="np-toolbar-group">
+            <button
+              class="np-btn np-btn-icon {voice.status === 'listening'
+                ? 'np-btn-active !bg-red-500 !border-red-500'
+                : voice.status === 'ready'
+                  ? 'np-btn-active !bg-green-500 !border-green-500'
+                  : ''}"
+              onclick={() => {
+                if (voice.status === "idle" || voice.status === "error") {
+                  voice.loadModel();
+                } else if (voice.status === "ready") {
+                  voice.startListening();
+                } else if (voice.status === "listening") {
+                  voice.stopListening();
+                }
+              }}
+              disabled={voice.status === "loading" ||
+                voice.status === "processing"}
+              title="Voice Dictation"
+            >
+              {#if voice.status === "listening"}
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <rect x="7" y="7" width="10" height="10" rx="1" />
+                </svg>
+              {:else}
+                <svg
+                  class="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
+                </svg>
+              {/if}
+            </button>
+          </div>
 
           <div class="np-toolbar-group">
             <button

@@ -208,6 +208,17 @@ html {
   min-width: 32px;
 }
 
+.np-btn-active {
+  background: var(--np-accent);
+  color: white;
+  border-color: var(--np-accent);
+}
+
+.np-btn-active:hover {
+  background: var(--np-accent-hover);
+  border-color: var(--np-accent-hover);
+}
+
 .np-btn-sm {
   padding: 4px 8px;
   font-size: 12px;

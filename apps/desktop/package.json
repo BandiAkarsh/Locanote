@@ -22,6 +22,6 @@
   "author": "Bandi Akarsh",
   "license": "MIT",
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.0"
+    "@tauri-apps/cli": "^2"
   }
 }
