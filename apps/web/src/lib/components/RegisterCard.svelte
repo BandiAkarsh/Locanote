@@ -37,7 +37,7 @@ NOTEPAD REGISTER CARD - Simple Registration
 </script>
 
 <div class="np-auth-page">
-  <div class="np-auth-card">
+  <div class="np-auth-card animate-scale-in">
     <div class="np-auth-logo">
       <svg
         class="np-auth-logo-icon"

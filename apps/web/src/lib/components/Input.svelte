@@ -1,6 +1,6 @@
 <!-- =========================================================================
-INPUT COMPONENT (Input.svelte)
-============================================================================ -->
+INPUT COMPONENT (Input.svelte) - M3 Expressive Design
+======================================================================== -->
 
 <script lang="ts">
   import type { HTMLInputAttributes } from "svelte/elements";
@@ -11,7 +11,7 @@ INPUT COMPONENT (Input.svelte)
     error?: string;
     hint?: string;
     value?: string;
-    icon?: Snippet; // Svelte 5 Snippet for icons
+    icon?: Snippet;
     size?: "default" | "sm";
   };
 
@@ -43,7 +43,7 @@ INPUT COMPONENT (Input.svelte)
   {#if label}
     <label
       for={inputId}
-      class="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-4"
+      class="text-[13px] font-medium text-[var(--m3-on-surface)] ml-1"
     >
       {label}
     </label>
@@ -52,7 +52,7 @@ INPUT COMPONENT (Input.svelte)
   <div class="relative group">
     {#if icon}
       <div
-        class="absolute left-6 top-1/2 -translate-y-1/2 text-primary opacity-50 group-focus-within:opacity-100 transition-opacity"
+        class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--m3-on-surface-variant)] transition-all duration-200 group-focus-within:text-[var(--m3-primary)] group-focus-within:scale-110"
       >
         {@render icon()}
       </div>
@@ -71,18 +71,19 @@ INPUT COMPONENT (Input.svelte)
           ? `${inputId}-hint`
           : undefined}
       class="
-        w-full rounded-2xl
-        text-[var(--ui-text)] placeholder-white/20
-        bg-white/5 border border-white/10
-        backdrop-blur-xl
-        transition-all duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)
-        focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10
-        disabled:opacity-30 disabled:cursor-not-allowed disabled:grayscale
+        w-full rounded-xl
+        text-[var(--m3-on-surface)] placeholder:text-[var(--m3-on-surface-variant)]
+        bg-[var(--m3-surface)]
+        border-2 border-[var(--m3-outline-variant)]
+        transition-all duration-200 ease-out
+        hover:border-[var(--m3-outline)]
+        focus:outline-none focus:border-[var(--m3-primary)] focus:ring-4 focus:ring-[var(--m3-primary-container)]/30
+        disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[var(--m3-outline-variant)]
         {error
-        ? 'border-red-500/50 focus:border-red-500 focus:ring-red-500/10'
+        ? 'border-[var(--m3-error)] focus:border-[var(--m3-error)] focus:ring-[var(--m3-error-container)]/30'
         : ''}
-        {icon ? 'pl-16 pr-6' : 'px-6'}
-        {size === 'sm' ? 'py-2 text-sm' : 'py-4'}
+        {icon ? 'pl-12 pr-4' : 'px-4'}
+        {size === 'sm' ? 'py-2.5 text-sm' : 'py-3.5'}
       "
       {...restProps}
     />
@@ -91,7 +92,7 @@ INPUT COMPONENT (Input.svelte)
   {#if error}
     <p
       id="{inputId}-error"
-      class="text-[10px] font-black uppercase tracking-widest text-red-500 ml-4 animate-in fade-in slide-in-from-top-1"
+      class="text-xs font-medium text-[var(--m3-error)] ml-1 animate-slide-in-bottom"
       role="alert"
     >
       {error}
@@ -99,7 +100,7 @@ INPUT COMPONENT (Input.svelte)
   {:else if hint}
     <p
       id="{inputId}-hint"
-      class="text-[10px] font-bold text-[var(--ui-text-muted)] ml-4 opacity-60"
+      class="text-xs text-[var(--m3-on-surface-variant)] ml-1"
     >
       {hint}
     </p>

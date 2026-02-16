@@ -1,6 +1,6 @@
 <!-- =========================================================================
-NOTEPAD MODAL COMPONENT
-============================================================================ -->
+NOTEPAD MODAL COMPONENT - M3 Expressive Design
+======================================================================== -->
 
 <script lang="ts">
   import type { Snippet } from "svelte";
@@ -13,6 +13,7 @@ NOTEPAD MODAL COMPONENT
     onEnter?: () => void;
     type?: "dialog" | "modal";
     children: Snippet;
+    footer?: Snippet;
   };
 
   let {
@@ -23,6 +24,7 @@ NOTEPAD MODAL COMPONENT
     onEnter,
     type = "dialog",
     children,
+    footer,
   }: Props = $props();
 
   let dialogRef: HTMLDialogElement;
@@ -95,7 +97,7 @@ NOTEPAD MODAL COMPONENT
   onclick={handleBackdropClick}
   onclose={handleClose}
   tabindex="-1"
-  class="np-modal"
+  class="np-modal animate-scale-in"
 >
   <div class="np-modal-header">
     {#if title}
@@ -106,7 +108,14 @@ NOTEPAD MODAL COMPONENT
     <button
       type="button"
       onclick={() => (open = false)}
-      class="text-[var(--np-text-muted)] hover:text-[var(--np-text)] p-1"
+      class="
+        p-2 rounded-full
+        text-[var(--m3-on-surface-variant)]
+        hover:text-[var(--m3-on-surface)]
+        hover:bg-[var(--m3-surface-variant)]
+        transition-all duration-200
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--m3-primary)]
+      "
       aria-label="Close"
     >
       <svg
@@ -114,6 +123,7 @@ NOTEPAD MODAL COMPONENT
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
+        aria-hidden="true"
       >
         <path
           stroke-linecap="round"
@@ -127,37 +137,35 @@ NOTEPAD MODAL COMPONENT
   <div class="np-modal-body">
     {@render children()}
   </div>
+  {#if footer}
+    <div class="np-modal-footer">
+      {@render footer()}
+    </div>
+  {/if}
 </dialog>
 
 <style>
   dialog {
     border: none;
-    border-radius: 8px;
+    border-radius: var(--ui-radius-xl, 28px);
     padding: 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--ui-shadow-xl);
     max-width: 500px;
     width: 90vw;
     max-height: 90vh;
+    background: var(--m3-surface);
+    color: var(--m3-on-surface);
   }
 
   dialog::backdrop {
     background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    animation: m3-fade-in var(--m3-duration-short3) var(--m3-easing-standard)
+      forwards;
   }
 
   dialog[open] {
-    animation: fade-in 0.15s ease-out;
-  }
-
-  dialog[open]::backdrop {
-    animation: fade-in 0.15s ease-out;
-  }
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    animation: m3-unfold-in var(--m3-duration-medium3)
+      var(--m3-spring-emphasized) forwards;
   }
 </style>
