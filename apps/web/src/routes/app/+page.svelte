@@ -72,8 +72,8 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
 
 <div class="np-container">
   <!-- Sidebar -->
-  <aside class="np-sidebar">
-    <div class="np-sidebar-header">
+  <aside class="np-sidebar animate-slide-in-left">
+    <div class="np-sidebar-header animate-fade-in">
       <span class="np-sidebar-title">My Notes</span>
       <button
         class="np-btn np-btn-primary np-btn-sm"
@@ -139,45 +139,49 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
           {/if}
         </div>
       {:else}
-        {#each filteredNotes as note}
-          <div
-            class="np-note-item"
-            onclick={() => openNote(note.id)}
-            role="button"
-            tabindex="0"
-            onkeydown={(e) => e.key === "Enter" && openNote(note.id)}
-          >
-            <div class="np-flex np-justify-between np-items-center">
-              <div class="flex-1 min-w-0">
-                <div class="np-note-title">{note.title || "Untitled Note"}</div>
-                <div class="np-note-date">
-                  {new Date(note.updatedAt).toLocaleDateString()} at {new Date(
-                    note.updatedAt,
-                  ).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+        <div class="np-note-list stagger-children">
+          {#each filteredNotes as note}
+            <div
+              class="np-note-item"
+              onclick={() => openNote(note.id)}
+              role="button"
+              tabindex="0"
+              onkeydown={(e) => e.key === "Enter" && openNote(note.id)}
+            >
+              <div class="np-flex np-justify-between np-items-center">
+                <div class="flex-1 min-w-0">
+                  <div class="np-note-title">
+                    {note.title || "Untitled Note"}
+                  </div>
+                  <div class="np-note-date">
+                    {new Date(note.updatedAt).toLocaleDateString()} at {new Date(
+                      note.updatedAt,
+                    ).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </div>
                 </div>
-              </div>
-              <button
-                class="np-btn np-btn-icon opacity-0 group-hover:opacity-100"
-                onclick={(e) => confirmDelete(note, e)}
-                title="Delete note"
-              >
-                <svg
-                  class="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
+                <button
+                  class="np-btn np-btn-icon opacity-0 group-hover:opacity-100"
+                  onclick={(e) => confirmDelete(note, e)}
+                  title="Delete note"
                 >
-                  <path
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
-        {/each}
+          {/each}
+        </div>
       {/if}
     </div>
 
@@ -199,7 +203,7 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
   <!-- Main Content -->
   <main class="np-main">
     <div
-      class="h-full flex items-center justify-center text-[var(--np-text-muted)]"
+      class="h-full flex items-center justify-center text-[var(--np-text-muted)] animate-fade-in"
     >
       <div class="text-center">
         <svg

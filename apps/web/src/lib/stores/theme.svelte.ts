@@ -72,6 +72,9 @@ function createThemeStore() {
   let currentAccent = $state<AccentColor>(getStoredAccent());
   let systemDark = $state<boolean>(systemPrefersDark());
 
+  // Note: Theme application to document is handled by +layout.svelte
+  // to avoid $effect at module level (Svelte 5 requirement)
+
   // Listen for system theme changes
   if (isBrowser) {
     const win = getWindow();
@@ -88,6 +91,9 @@ function createThemeStore() {
   const isDark = $derived(
     currentTheme === "dark" || (currentTheme === "system" && systemDark),
   );
+
+  // Note: Theme application to document is handled by +layout.svelte
+  // This keeps the store clean and avoids $effect at module level
 
   return {
     get current(): Theme {
