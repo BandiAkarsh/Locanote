@@ -64,6 +64,23 @@ Coming soon! Check the [Releases](https://github.com/BandiAkarsh/Locanote/releas
 
    **Linux (Ubuntu/Debian):**
 
+   **Ubuntu 24.04+ (Newer versions):**
+
+   ```bash
+   sudo apt update
+   sudo apt install libwebkit2gtk-4.1-dev \
+     build-essential \
+     curl \
+     wget \
+     libssl-dev \
+     libgtk-3-dev \
+     libayatana-appindicator3-dev \
+     librsvg2-dev \
+     pkg-config
+   ```
+
+   **Ubuntu 22.04 and older:**
+
    ```bash
    sudo apt update
    sudo apt install libwebkit2gtk-4.0-dev \
@@ -73,7 +90,8 @@ Coming soon! Check the [Releases](https://github.com/BandiAkarsh/Locanote/releas
      libssl-dev \
      libgtk-3-dev \
      libayatana-appindicator3-dev \
-     librsvg2-dev
+     librsvg2-dev \
+     pkg-config
    ```
 
    **Windows:**
