@@ -1,13 +1,12 @@
 <!-- =========================================================================
 SETTINGS PAGE (+page.svelte for /app/settings)
-============================================================================ -->
+======================================================================== -->
 
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { auth, theme, ui } from "$stores";
   import { performanceScout } from "$lib/utils/performance.svelte";
   import { Button, Modal, Toggle } from "$components";
-  import { fly, fade } from "svelte/transition";
   import { isBrowser } from "$utils/browser";
 
   // Local state
@@ -72,7 +71,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
 
 <div class="max-w-5xl mx-auto space-y-12 p-4 sm:p-12 pb-32">
   <!-- Header -->
-  <header class="flex items-center gap-4 sm:gap-6 mb-8" in:fly={{ y: -20 }}>
+  <header class="flex items-center gap-4 sm:gap-6 mb-8 animate-slide-in-top">
     <button
       onclick={goBack}
       class="p-3 glass-2 rounded-2xl text-[var(--ui-text-muted)] hover:text-primary transition-all hover:scale-110 active:scale-95 shrink-0"
@@ -104,7 +103,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
   </header>
 
   <!-- Navigation Tabs -->
-  <div class="glass-2 p-1.5 rounded-2xl flex w-fit" in:fade>
+  <div class="glass-2 p-1.5 rounded-2xl flex w-fit animate-fade-in">
     {#each ["appearance", "neural", "account"] as tab}
       <button
         onclick={() => (activeTab = tab as any)}
@@ -120,7 +119,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
 
   <!-- Content Areas -->
   {#if activeTab === "appearance"}
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8" in:fly={{ y: 20 }}>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-slide-in-bottom">
       <!-- Visual Engine -->
       <section class="space-y-6">
         <h2
@@ -270,8 +269,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
     </div>
   {:else if activeTab === "neural"}
     <div
-      class="glass-2 p-12 rounded-[3rem] text-center space-y-6"
-      in:fly={{ y: 20 }}
+      class="glass-2 p-12 rounded-[3rem] text-center space-y-6 animate-slide-in-bottom"
     >
       <div
         class="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto border border-primary/20 shadow-glow"
@@ -306,7 +304,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
       </div>
     </div>
   {:else}
-    <div class="max-w-2xl mx-auto space-y-8" in:fly={{ y: 20 }}>
+    <div class="max-w-2xl mx-auto space-y-8 animate-slide-in-bottom">
       <section class="glass-2 p-8 rounded-[2.5rem] space-y-6">
         <h3 class="text-lg font-black text-[var(--ui-text)]">
           Neural Identity

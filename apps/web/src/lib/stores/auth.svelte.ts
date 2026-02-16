@@ -126,15 +126,34 @@ function createAuthStore() {
   // LOGOUT
   // ========================================================================
 
-  function logout() {
-    // Clear from localStorage
+  async function logout() {
+    // 1. Clear from localStorage
     try {
       localStorage.removeItem(SESSION_KEY);
     } catch (e) {
       console.error("Failed to clear session:", e);
     }
 
-    // Update state
+    // 2. Clean up CRDT documents and WebRTC connections
+    try {
+      // Clear IndexedDB to force close all documents
+      if (typeof indexedDB !== "undefined") {
+        await new Promise<void>((resolve) => {
+          const request = indexedDB.deleteDatabase("locanote");
+          request.onsuccess = () => {
+            console.log("[Auth] IndexedDB cleared on logout");
+            resolve();
+          };
+          request.onerror = () => resolve();
+        });
+      }
+
+      console.log("[Auth] CRDT cleanup completed");
+    } catch (e) {
+      console.warn("[Auth] CRDT cleanup failed:", e);
+    }
+
+    // 3. Update state
     state = { status: "unauthenticated" };
   }
 

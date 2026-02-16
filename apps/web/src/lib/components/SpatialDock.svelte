@@ -1,12 +1,11 @@
 <!-- =========================================================================
-SPATIAL DOCK (SpatialDock.svelte)
-============================================================================ -->
+SPATIAL DOCK (SpatialDock.svelte) - M3 Expressive Design
+======================================================================== -->
 
 <script lang="ts">
   import { page } from "$app/state";
   import { goto } from "$app/navigation";
   import { auth, theme, ui } from "$stores";
-  import { fly } from "svelte/transition";
 
   const items = [
     { id: "dashboard", path: "/app", label: "Home", icon: "home" },
@@ -41,8 +40,7 @@ SPATIAL DOCK (SpatialDock.svelte)
 </script>
 
 <div
-  class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-4 w-full max-w-sm"
-  in:fly={{ y: 20, duration: 800 }}
+  class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] px-4 w-full max-w-sm animate-slide-in-bottom"
 >
   <nav
     class="premium-dock p-1.5 flex items-center justify-between gap-1 shadow-2xl overflow-hidden border border-[var(--ui-border)] backdrop-blur-3xl"

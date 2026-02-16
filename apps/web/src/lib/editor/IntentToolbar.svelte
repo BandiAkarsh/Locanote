@@ -1,11 +1,10 @@
 <!-- =========================================================================
-INTENT TOOLBAR (IntentToolbar.svelte)
-============================================================================ -->
+INTENT TOOLBAR (IntentToolbar.svelte) - M3 Expressive Design
+======================================================================== -->
 
 <script lang="ts">
   import { intent } from "$lib/services/intent.svelte";
   import { ui } from "$stores";
-  import { fly, fade } from "svelte/transition";
   import type { Editor } from "@tiptap/core";
   import ChefTool from "./tools/ChefTool.svelte";
   import ProjectTool from "./tools/ProjectTool.svelte";
@@ -35,13 +34,7 @@ INTENT TOOLBAR (IntentToolbar.svelte)
 
   {#if intent.currentMode !== "none"}
     <div
-      in:fly={{
-        y: -10,
-        duration: 600,
-        easing: (t) => (t === 1 ? 1 : 1 - Math.pow(2, -10 * t)),
-      }}
-      out:fade
-      class="flex items-center gap-3 px-6 py-2.5 rounded-full glass-2 border-primary/40 shadow-glow w-fit mx-auto sm:mx-0 transition-all duration-700"
+      class="flex items-center gap-3 px-6 py-2.5 rounded-full glass-2 border-primary/40 shadow-glow w-fit mx-auto sm:mx-0 transition-all duration-700 animate-slide-in-top"
     >
       <span class="text-xl drop-shadow-lg"
         >{modeInfo[intent.currentMode].icon}</span
@@ -83,8 +76,7 @@ INTENT TOOLBAR (IntentToolbar.svelte)
     {#if intent.currentMode !== "none" && modeInfo[intent.currentMode].component}
       {@const CustomTool = modeInfo[intent.currentMode].component}
       <div
-        in:fly={{ x: 30, duration: 800 }}
-        class="flex items-center gap-2 pl-4 border-l-2 border-[var(--ui-border)] ml-2"
+        class="flex items-center gap-2 pl-4 border-l-2 border-[var(--ui-border)] ml-2 animate-slide-in-left"
       >
         <CustomTool {editor} />
       </div>

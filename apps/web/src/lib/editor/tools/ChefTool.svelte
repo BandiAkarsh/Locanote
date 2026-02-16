@@ -1,9 +1,8 @@
 <!-- =========================================================================
 CHEF MODE TOOL (ChefTool.svelte)
-============================================================================ -->
+======================================================================== -->
 
 <script lang="ts">
-  import { fade, scale } from "svelte/transition";
   import { onDestroy } from "svelte";
   import type { Editor } from "@tiptap/core";
 
@@ -12,7 +11,7 @@ CHEF MODE TOOL (ChefTool.svelte)
   let showTimer = $state(false);
   let timeLeft = $state(0);
   let isPaused = $state(false);
-  let timerInterval: any;
+  let timerInterval: ReturnType<typeof setInterval> | undefined;
 
   function startTimer(minutes: number) {
     timeLeft = minutes * 60;
@@ -29,7 +28,6 @@ CHEF MODE TOOL (ChefTool.svelte)
           timeLeft--;
         } else {
           stopTimer();
-          // Zero UI: subtle audio cue could go here
           alert("Chef Mode: Timer Finished!");
         }
       }
@@ -54,7 +52,7 @@ CHEF MODE TOOL (ChefTool.svelte)
   });
 </script>
 
-<div class="flex items-center gap-2" in:scale={{ duration: 400, start: 0.8 }}>
+<div class="flex items-center gap-2 animate-scale-in">
   <div
     class="flex items-center gap-1 p-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20"
   >
@@ -74,8 +72,7 @@ CHEF MODE TOOL (ChefTool.svelte)
 
   {#if showTimer}
     <div
-      transition:fade
-      class="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-lg shadow-lg flex items-center gap-2 overflow-hidden"
+      class="px-3 py-1 bg-emerald-500 text-white text-[10px] font-black rounded-lg shadow-lg flex items-center gap-2 overflow-hidden animate-fade-in"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
