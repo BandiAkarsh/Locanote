@@ -46,6 +46,37 @@ check_prerequisites() {
     fi
     print_status "Node.js: $(node --version)"
     
+    # Check system dependencies (Linux)
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        print_status "Checking Linux system dependencies..."
+        
+        # Check for pkg-config
+        if ! command -v pkg-config &> /dev/null; then
+            print_error "pkg-config not found. Install it with:"
+            echo "  sudo apt-get install pkg-config"
+            exit 1
+        fi
+        
+        # Check for OpenSSL
+        if ! pkg-config --exists openssl; then
+            print_error "OpenSSL development libraries not found. Install them with:"
+            echo "  sudo apt-get install libssl-dev"
+            echo ""
+            echo "Or install all dependencies at once:"
+            echo "  sudo apt-get install -y libssl-dev pkg-config libwebkit2gtk-4.0-dev build-essential libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev"
+            exit 1
+        fi
+        
+        # Check for webkit2gtk
+        if ! pkg-config --exists webkit2gtk-4.0; then
+            print_error "WebKit2GTK not found. Install it with:"
+            echo "  sudo apt-get install libwebkit2gtk-4.0-dev"
+            exit 1
+        fi
+        
+        print_status "All system dependencies found"
+    fi
+    
     # Check npm packages
     if [ ! -d "node_modules" ]; then
         print_warning "npm packages not found. Installing..."
