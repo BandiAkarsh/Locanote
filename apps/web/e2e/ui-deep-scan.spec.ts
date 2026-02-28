@@ -42,12 +42,10 @@ test.describe("UI Deep Scan", () => {
     // Toggle Login/Register
     await page.waitForSelector("#switch-to-register", { state: "visible" });
     await page.click("#switch-to-register");
-    await expect(
-      page.locator('h1:has-text("Materialize Identity")'),
-    ).toBeVisible();
+    await expect(page.locator('h1:has-text("Create Account")')).toBeVisible();
 
-    await page.click('button:has-text("Existing Identity?")');
-    await expect(page.locator('h1:has-text("Portal Login")')).toBeVisible();
+    await page.click("#switch-to-login");
+    await expect(page.locator('h1:has-text("Notes")')).toBeVisible();
 
     // Register
     await page.click("#switch-to-register");
@@ -55,7 +53,7 @@ test.describe("UI Deep Scan", () => {
     await page.getByText("Password").click();
     await page.fill("#reg-password", "TestPass123!");
     await page.fill("#reg-confirm", "TestPass123!");
-    await page.click('button:has-text("Initialize Link")');
+    await page.click('button:has-text("Create Account")');
 
     await page.waitForURL("**/app**", { timeout: 30000 });
     await expect(page.locator('h1:has-text("Welcome,")')).toBeVisible();

@@ -91,7 +91,7 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
       </button>
     </div>
 
-    <div class="p-3 border-b border-[var(--np-border)]">
+    <div class="p-3 border-b border-[var(--ui-border)]">
       <div class="np-search">
         <svg
           class="np-search-icon w-4 h-4"
@@ -111,7 +111,7 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
 
     <div class="np-note-list">
       {#if isLoading}
-        <div class="p-4 text-center text-[var(--np-text-muted)] text-sm">
+        <div class="p-4 text-center text-[var(--ui-text-muted)] text-sm">
           Loading...
         </div>
       {:else if filteredNotes.length === 0}
@@ -185,13 +185,13 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
       {/if}
     </div>
 
-    <div class="p-3 border-t border-[var(--np-border)] bg-[var(--np-bg)]">
+    <div class="p-3 border-t border-[var(--ui-border)] bg-[var(--ui-bg)]">
       <div class="flex items-center justify-between">
-        <span class="text-sm text-[var(--np-text-muted)]">
+        <span class="text-sm text-[var(--ui-text-muted)]">
           {notes.length} note{notes.length !== 1 ? "s" : ""}
         </span>
         <button
-          class="text-sm text-[var(--np-accent)] hover:underline"
+          class="text-sm text-[var(--ui-primary)] hover:underline"
           onclick={handleLogout}
         >
           Sign out
@@ -203,7 +203,7 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
   <!-- Main Content -->
   <main class="np-main">
     <div
-      class="h-full flex items-center justify-center text-[var(--np-text-muted)] animate-fade-in"
+      class="h-full flex items-center justify-center text-[var(--ui-text-muted)] animate-fade-in"
     >
       <div class="text-center">
         <svg
@@ -230,7 +230,7 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
 <Modal bind:open={isDeleteModalOpen} title="Delete Note?" type="dialog">
   {#if noteToDelete}
     <div class="space-y-4">
-      <p class="text-[var(--np-text)]">
+      <p class="text-[var(--ui-text)]">
         Are you sure you want to delete <strong>"{noteToDelete.title}"</strong>?
         This action cannot be undone.
       </p>

@@ -65,11 +65,11 @@ test.describe("Comprehensive App Test", () => {
     await page.fill("#reg-password", "TestPass123!");
     await page.fill("#reg-confirm", "TestPass123!");
 
-    await page.getByText("Initialize Link").click();
+    await page.getByText("Create Account").click();
 
     // Wait for Dashboard
     await page.waitForURL("**/app**", { timeout: 40000 });
-    await expect(page.locator('h1:has-text("Welcome,")')).toBeVisible({
+    await expect(page.locator('span:has-text("My Notes")')).toBeVisible({
       timeout: 20000,
     });
 

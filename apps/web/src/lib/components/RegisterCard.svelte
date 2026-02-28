@@ -191,10 +191,11 @@ NOTEPAD REGISTER CARD - Simple Registration
       </div>
     {/if}
 
-    <div class="mt-6 pt-6 border-t border-[var(--np-border)] text-center">
+    <div class="mt-6 pt-6 border-t border-[var(--ui-border)] text-center">
       <button
+        id="switch-to-login"
         onclick={onSwitchToLogin}
-        class="text-sm text-[var(--np-accent)] hover:underline"
+        class="text-sm text-[var(--ui-primary)] hover:underline"
       >
         Already have an account? Sign in
       </button>

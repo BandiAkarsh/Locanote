@@ -141,10 +141,11 @@ NOTEPAD AUTH CARD - Simple Login
       </div>
     </form>
 
-    <div class="mt-6 pt-6 border-t border-[var(--np-border)] text-center">
+    <div class="mt-6 pt-6 border-t border-[var(--ui-border)] text-center">
       <button
+        id="switch-to-register"
         onclick={onSwitchToRegister}
-        class="text-sm text-[var(--np-accent)] hover:underline"
+        class="text-sm text-[var(--ui-primary)] hover:underline"
       >
         Create an account
       </button>

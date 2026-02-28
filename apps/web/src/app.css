@@ -133,18 +133,18 @@
   --m3-state-focus: 0.12;
   --m3-state-pressed: 0.12;
 
-  /* Legacy Colors */
-  --np-bg: #ffffff;
-  --np-bg-secondary: #f5f5f5;
-  --np-border: #d4d4d4;
-  --np-border-light: #e5e5e5;
-  --np-text: #1a1a1a;
-  --np-text-muted: #666666;
-  --np-text-light: #999999;
-  --np-accent: var(--m3-primary);
-  --np-accent-hover: #0052a3;
-  --np-error: var(--m3-error);
-  --np-success: #16a34a;
+  /* Legacy Colors - Mapped to UI tokens for consistency */
+  --np-bg: var(--ui-bg);
+  --np-bg-secondary: var(--ui-surface);
+  --np-border: var(--ui-border);
+  --np-border-light: var(--ui-border);
+  --np-text: var(--ui-text);
+  --np-text-muted: var(--ui-text-muted);
+  --np-text-light: var(--ui-text-muted);
+  --np-accent: var(--ui-primary);
+  --np-accent-hover: var(--primary-hover);
+  --np-error: var(--ui-error);
+  --np-success: var(--ui-success);
 
   /* SIZES */
   --np-sidebar-width: 280px;
@@ -189,6 +189,7 @@
   --m3-secondary: #bec6dc;
   --m3-on-secondary: #283141;
   --m3-secondary-container: #3e4758;
+  --m3-on-secondary-container: #dae2f9;
 
   --m3-tertiary: #ddbce0;
   --m3-on-tertiary: #3f2844;

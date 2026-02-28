@@ -345,7 +345,7 @@ SETTINGS PAGE (+page.svelte for /app/settings)
 
 <Modal bind:open={showDeleteConfirm} title="Delete Account?">
   <div class="space-y-4">
-    <p class="text-[var(--np-text)]">
+    <p class="text-[var(--ui-text)]">
       This will permanently delete your account and all your notes. This action
       cannot be undone.
     </p>
