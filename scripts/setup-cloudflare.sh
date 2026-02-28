@@ -1,15 +1,15 @@
 #!/bin/bash
 # =============================================================================
-# CLOUDFLARE SETUP SCRIPT
+# CLOUDFLARE QUICK SETUP
 # =============================================================================
-# Quick setup for Cloudflare API credentials
+# Gets your Cloudflare credentials for GitHub Actions
 # 
 # Usage:
 #   ./scripts/setup-cloudflare.sh
 # =============================================================================
 
 echo "=============================================="
-echo "  Locanote Cloudflare Setup"
+echo "  Locanote Cloudflare Quick Setup"
 echo "=============================================="
 echo ""
 
@@ -19,55 +19,67 @@ if ! command -v wrangler &> /dev/null; then
     npm install -g wrangler
 fi
 
-# Check if already logged in
-echo "Step 1: Checking Cloudflare login..."
-if wrangler whoami &> /dev/null; then
-    echo "✅ Already logged in!"
-    ACCOUNT_EMAIL=$(wrangler whoami 2>&1 | grep -oE '[^ ]+@[^ ]+' | head -1)
-    ACCOUNT_ID=$(wrangler whoami --json 2>/dev/null | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
-    echo "   Email: $ACCOUNT_EMAIL"
-    echo "   Account ID: $ACCOUNT_ID"
-else
-    echo "❌ Not logged in"
-    echo ""
-    echo "Run: wrangler login"
-    echo "Then run this script again"
-    exit 1
+# Check if logged in
+echo "Checking Cloudflare login..."
+if ! wrangler whoami &> /dev/null; then
+    echo "Not logged in. Running wrangler login..."
+    wrangler login
 fi
 
+# Get account info
+echo "Getting account info..."
+ACCOUNT_INFO=$(wrangler whoami --json 2>/dev/null)
+ACCOUNT_ID=$(echo "$ACCOUNT_INFO" | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)
+ACCOUNT_EMAIL=$(echo "$ACCOUNT_INFO" | grep -o '"email":"[^"]*"' | cut -d'"' -f4)
+
 echo ""
-echo "Step 2: Creating API Token..."
-echo ""
-echo "📋 Please create a token at:"
-echo "   https://dash.cloudflare.com/profile/api-tokens"
-echo ""
-echo "Use this template:"
-echo "   ┌─────────────────────────────────────────┐"
-echo "   │ Template: Custom                        │"
-echo "   │ Name: Locanote Deployment              │"
-echo "   │ Permissions:                           │"
-echo "   │   - Account: Edit                      │"
-echo "   │   - Workers: Edit                      │"
-echo "   │   - Workers KV: Edit                   │"
-echo "   │   - Pages: Edit                        │"
-echo "   │   - Zone: Read                        │"
-echo "   │ Account Resources: $ACCOUNT_ID        │"
-echo "   │ Zone Resources: Include All           │"
-echo "   └─────────────────────────────────────────┘"
+echo "=============================================="
+echo "  Account Details"
+echo "=============================================="
+echo "Email: $ACCOUNT_EMAIL"
+echo "Account ID: $ACCOUNT_ID"
 echo ""
 
-# Save account ID for convenience
+# Save for later
 echo "$ACCOUNT_ID" > .cloudflare-account-id
-echo "✅ Account ID saved to .cloudflare-account-id"
+echo "$ACCOUNT_EMAIL" > .cloudflare-email
 
+echo "=============================================="
+echo "  Next Steps"
+echo "=============================================="
 echo ""
-echo "Step 3: Next Steps"
-echo "   1. Create API token at the URL above"
-echo "   2. Add to GitHub Secrets:"
-echo "      - CF_API_TOKEN: <your-token>"
-echo "      - CF_ACCOUNT_ID: $ACCOUNT_ID"
-echo "   3. Add to GitHub Variables:"
-echo "      - PUBLIC_SIGNALING_URL: wss://locanote-signaling.workers.dev"
-echo "      - ALLOWED_ORIGINS: https://locanote.pages.dev"
+echo "1. Go to: https://dash.cloudflare.com/profile/api-tokens"
+echo ""
+echo "2. Click 'Create Custom Token'"
+echo ""
+echo "3. Use these settings:"
+echo ""
+echo "   ┌────────────────────────────────────────────┐"
+echo "   │ Name: Locanote Deployment                │"
+echo "   ├────────────────────────────────────────────┤"
+echo "   │ Permissions (add these):                  │"
+echo "   │                                            │"
+echo "   │ • Account - Workers - Edit               │"
+echo "   │ • Account - Workers KV - Edit            │"
+echo "   │ • Account - Pages - Edit                 │"
+echo "   │ • Zone - Zone - Read                    │"
+echo "   │                                            │"
+echo "   │ [ + Add more ]                           │"
+echo "   └────────────────────────────────────────────┘"
+echo ""
+echo "4. Set 'Account Resources' to:"
+echo "   ☑ Include: Specific account - $ACCOUNT_ID"
+echo ""
+echo "5. Click 'Continue to summary' then 'Create Token'"
+echo ""
+echo "6. Copy the token and add to GitHub:"
+echo ""
+echo "   Secrets:"
+echo "   • CF_API_TOKEN = <paste your token>"
+echo "   • CF_ACCOUNT_ID = $ACCOUNT_ID"
+echo ""
+echo "   Variables:"
+echo "   • PUBLIC_SIGNALING_URL = wss://locanote-signaling.workers.dev"
+echo "   • ALLOWED_ORIGINS = https://locanote.pages.dev"
 echo ""
 echo "Done! 🎉"
