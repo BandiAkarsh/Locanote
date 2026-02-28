@@ -123,14 +123,14 @@ FEATURES:
 
 {#if viewMode === "login"}
   <AuthCard
-    bind:authState={auth.state}
+    authState={auth.state}
     onPasskeyLogin={handlePasskeyLogin}
     onPasswordLogin={handlePasswordLogin}
     onSwitchToRegister={() => switchMode("register")}
   />
 {:else}
   <RegisterCard
-    bind:authState={auth.state}
+    authState={auth.state}
     onRegisterPasskey={handleRegisterPasskey}
     onRegisterPassword={handleRegisterPassword}
     onSwitchToLogin={() => switchMode("login")}

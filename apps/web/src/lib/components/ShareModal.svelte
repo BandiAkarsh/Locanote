@@ -176,7 +176,6 @@ SHARE MODAL COMPONENT (ShareModal.svelte)
                 placeholder="Set a secret password"
                 bind:value={password}
                 class="flex-1"
-                size="sm"
               />
               <Button
                 size="sm"

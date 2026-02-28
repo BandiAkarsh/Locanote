@@ -1,12 +1,21 @@
 <!-- =========================================================================
-NOTEPAD DASHBOARD - Sidebar + Main Area
-============================================================================ -->
+DASHBOARD - 2026 Neo-Minimalist Design
+========================================================================
+Clean three-panel dashboard layout with sidebar, content, and detail areas.
+
+FEATURES:
+- Three-panel layout (sidebar, list, detail)
+- Search functionality
+- Note creation
+- Clean, minimal design
+- Responsive
+======================================================================== -->
 
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { auth } from "$stores";
-  import { Button, Modal } from "$components";
+  import { Button, Modal, NoteList, Card } from "$components";
   import {
     createNewNote,
     getUserNotes,
@@ -46,12 +55,11 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
     goto(`/app/note/${newNote.id}`);
   }
 
-  function openNote(noteId: string) {
-    goto(`/app/note/${noteId}`);
+  function openNote(note: Note) {
+    goto(`/app/note/${note.id}`);
   }
 
-  function confirmDelete(note: Note, event: MouseEvent) {
-    event.stopPropagation();
+  function confirmDelete(note: Note) {
     noteToDelete = note;
     isDeleteModalOpen = true;
   }
@@ -70,34 +78,54 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
   }
 </script>
 
-<div class="np-container">
+<div class="nm-dashboard">
   <!-- Sidebar -->
-  <aside class="np-sidebar animate-slide-in-left">
-    <div class="np-sidebar-header animate-fade-in">
-      <span class="np-sidebar-title">My Notes</span>
+  <aside class="nm-dashboard-sidebar">
+    <!-- Brand Header -->
+    <div class="sidebar-brand">
+      <div class="brand-logo">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+          />
+        </svg>
+      </div>
+      <span class="brand-name">Locanote</span>
+    </div>
+
+    <!-- Create Button -->
+    <div class="sidebar-actions">
       <button
-        class="np-btn np-btn-primary np-btn-sm"
+        class="nm-btn nm-btn-primary nm-btn-full"
         onclick={handleCreateNote}
-        aria-label="Create new note"
       >
         <svg
           class="w-4 h-4"
-          fill="none"
           viewBox="0 0 24 24"
+          fill="none"
           stroke="currentColor"
+          stroke-width="2"
         >
           <path d="M12 4v16m8-8H4" />
         </svg>
+        New Note
       </button>
     </div>
 
-    <div class="p-3 border-b border-[var(--ui-border)]">
-      <div class="np-search">
+    <!-- Search -->
+    <div class="sidebar-search">
+      <div class="nm-input-wrapper">
         <svg
-          class="np-search-icon w-4 h-4"
-          fill="none"
+          class="nm-input-icon w-4 h-4"
           viewBox="0 0 24 24"
+          fill="none"
           stroke="currentColor"
+          stroke-width="2"
         >
           <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
@@ -105,152 +133,266 @@ NOTEPAD DASHBOARD - Sidebar + Main Area
           type="text"
           placeholder="Search notes..."
           bind:value={searchQuery}
+          class="nm-input nm-input-with-icon"
         />
       </div>
     </div>
 
-    <div class="np-note-list">
-      {#if isLoading}
-        <div class="p-4 text-center text-[var(--ui-text-muted)] text-sm">
-          Loading...
-        </div>
-      {:else if filteredNotes.length === 0}
-        <div class="np-empty">
-          <svg
-            class="np-empty-icon"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <p class="text-sm">
-            {searchQuery ? "No notes found" : "No notes yet"}
-          </p>
-          {#if !searchQuery}
-            <button
-              class="np-btn np-btn-primary mt-4"
-              onclick={handleCreateNote}
-            >
-              Create your first note
-            </button>
-          {/if}
-        </div>
-      {:else}
-        <div class="np-note-list stagger-children">
-          {#each filteredNotes as note}
-            <div
-              class="np-note-item"
-              onclick={() => openNote(note.id)}
-              role="button"
-              tabindex="0"
-              onkeydown={(e) => e.key === "Enter" && openNote(note.id)}
-            >
-              <div class="np-flex np-justify-between np-items-center">
-                <div class="flex-1 min-w-0">
-                  <div class="np-note-title">
-                    {note.title || "Untitled Note"}
-                  </div>
-                  <div class="np-note-date">
-                    {new Date(note.updatedAt).toLocaleDateString()} at {new Date(
-                      note.updatedAt,
-                    ).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                </div>
-                <button
-                  class="np-btn np-btn-icon opacity-0 group-hover:opacity-100"
-                  onclick={(e) => confirmDelete(note, e)}
-                  title="Delete note"
-                >
-                  <svg
-                    class="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          {/each}
-        </div>
-      {/if}
+    <!-- Note List -->
+    <div class="sidebar-list">
+      <NoteList
+        notes={filteredNotes}
+        {isLoading}
+        onSelect={openNote}
+        onDelete={confirmDelete}
+        onCreate={handleCreateNote}
+        emptyTitle="No notes found"
+        emptyDescription={searchQuery
+          ? "Try a different search term"
+          : "Create your first note to get started"}
+      />
     </div>
 
-    <div class="p-3 border-t border-[var(--ui-border)] bg-[var(--ui-bg)]">
-      <div class="flex items-center justify-between">
-        <span class="text-sm text-[var(--ui-text-muted)]">
-          {notes.length} note{notes.length !== 1 ? "s" : ""}
-        </span>
-        <button
-          class="text-sm text-[var(--ui-primary)] hover:underline"
-          onclick={handleLogout}
+    <!-- Footer -->
+    <div class="sidebar-footer">
+      <div class="footer-stats">
+        <span class="stats-count"
+          >{notes.length} note{notes.length !== 1 ? "s" : ""}</span
         >
-          Sign out
-        </button>
       </div>
+      <button class="nm-btn nm-btn-ghost nm-btn-sm" onclick={handleLogout}>
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+          />
+        </svg>
+        Sign out
+      </button>
     </div>
   </aside>
 
-  <!-- Main Content -->
-  <main class="np-main">
-    <div
-      class="h-full flex items-center justify-center text-[var(--ui-text-muted)] animate-fade-in"
-    >
-      <div class="text-center">
+  <!-- Main Content Area -->
+  <main class="nm-dashboard-main">
+    <div class="empty-state">
+      <div class="empty-icon">
         <svg
-          class="w-16 h-16 mx-auto mb-4 opacity-30"
-          fill="none"
           viewBox="0 0 24 24"
+          fill="none"
           stroke="currentColor"
+          stroke-width="1.5"
         >
           <path
             d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
           />
         </svg>
-        <p class="text-lg mb-2">Select a note to view or edit</p>
-        <p class="text-sm">or</p>
-        <button class="np-btn np-btn-primary mt-4" onclick={handleCreateNote}>
-          Create New Note
-        </button>
       </div>
+      <h2 class="empty-title">Select a note to view or edit</h2>
+      <p class="empty-description">
+        Choose a note from the sidebar, or create a new one to get started.
+      </p>
+      <button class="nm-btn nm-btn-primary" onclick={handleCreateNote}>
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path d="M12 4v16m8-8H4" />
+        </svg>
+        Create New Note
+      </button>
     </div>
   </main>
 </div>
 
-<!-- Delete Modal -->
-<Modal bind:open={isDeleteModalOpen} title="Delete Note?" type="dialog">
+<!-- Delete Confirmation Modal -->
+<Modal bind:open={isDeleteModalOpen} title="Delete Note?">
   {#if noteToDelete}
-    <div class="space-y-4">
-      <p class="text-[var(--ui-text)]">
-        Are you sure you want to delete <strong>"{noteToDelete.title}"</strong>?
-        This action cannot be undone.
+    <div class="delete-confirmation">
+      <p class="delete-message">
+        Are you sure you want to delete <strong
+          >"{noteToDelete.title || "Untitled Note"}"</strong
+        >?
       </p>
-      <div class="flex gap-2 justify-end">
-        <button class="np-btn" onclick={() => (isDeleteModalOpen = false)}>
-          Cancel
-        </button>
-        <button
-          class="np-btn np-btn-primary bg-red-600 border-red-600 hover:bg-red-700"
-          onclick={handleDelete}
-        >
-          Delete
-        </button>
-      </div>
+      <p class="delete-warning">This action cannot be undone.</p>
     </div>
+
+    {#snippet footer()}
+      <button
+        class="nm-btn nm-btn-secondary"
+        onclick={() => (isDeleteModalOpen = false)}
+      >
+        Cancel
+      </button>
+      <button
+        class="nm-btn"
+        style="background: var(--nm-error); color: white;"
+        onclick={handleDelete}
+      >
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+        Delete
+      </button>
+    {/snippet}
   {/if}
 </Modal>
 
 <style>
-  .np-note-item:hover .np-btn-icon {
-    opacity: 1;
+  /* Sidebar Styles */
+  .sidebar-brand {
+    height: var(--nm-header-height);
+    display: flex;
+    align-items: center;
+    gap: var(--nm-space-3);
+    padding: 0 var(--nm-space-5);
+    border-bottom: 1px solid var(--nm-border);
+  }
+
+  .brand-logo {
+    width: 32px;
+    height: 32px;
+    color: var(--nm-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-logo svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .brand-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--nm-text-primary);
+  }
+
+  .sidebar-actions {
+    padding: var(--nm-space-4);
+    border-bottom: 1px solid var(--nm-border);
+  }
+
+  .sidebar-search {
+    padding: var(--nm-space-4);
+    border-bottom: 1px solid var(--nm-border);
+  }
+
+  .sidebar-list {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-footer {
+    padding: var(--nm-space-4);
+    border-top: 1px solid var(--nm-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-stats {
+    display: flex;
+    align-items: center;
+    gap: var(--nm-space-2);
+  }
+
+  .stats-count {
+    font-size: 0.875rem;
+    color: var(--nm-text-secondary);
+  }
+
+  /* Empty State */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--nm-space-12);
+    text-align: center;
+  }
+
+  .empty-icon {
+    width: 80px;
+    height: 80px;
+    color: var(--nm-text-tertiary);
+    margin-bottom: var(--nm-space-6);
+    opacity: 0.5;
+  }
+
+  .empty-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--nm-text-primary);
+    margin-bottom: var(--nm-space-2);
+  }
+
+  .empty-description {
+    font-size: 0.9375rem;
+    color: var(--nm-text-secondary);
+    margin-bottom: var(--nm-space-6);
+    max-width: 400px;
+  }
+
+  /* Delete Confirmation */
+  .delete-confirmation {
+    display: flex;
+    flex-direction: column;
+    gap: var(--nm-space-2);
+  }
+
+  .delete-message {
+    font-size: 0.9375rem;
+    color: var(--nm-text-primary);
+    line-height: 1.5;
+  }
+
+  .delete-message strong {
+    font-weight: 600;
+  }
+
+  .delete-warning {
+    font-size: 0.875rem;
+    color: var(--nm-error);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .nm-dashboard-sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform var(--nm-duration-normal) var(--nm-easing-smooth);
+    }
+
+    .nm-dashboard-sidebar.open {
+      transform: translateX(0);
+    }
   }
 </style>

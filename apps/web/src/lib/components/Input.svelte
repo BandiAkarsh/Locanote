@@ -1,5 +1,14 @@
 <!-- =========================================================================
-INPUT COMPONENT (Input.svelte) - M3 Expressive Design
+INPUT COMPONENT - 2026 Neo-Minimalist Design
+========================================================================
+Clean, minimal input with excellent accessibility.
+
+FEATURES:
+- Label support with required indicator
+- Error and hint text
+- Icon support
+- Full accessibility (ARIA labels, describedby)
+- Reduced motion support
 ======================================================================== -->
 
 <script lang="ts">
@@ -12,7 +21,7 @@ INPUT COMPONENT (Input.svelte) - M3 Expressive Design
     hint?: string;
     value?: string;
     icon?: Snippet;
-    size?: "default" | "sm";
+    required?: boolean;
   };
 
   let {
@@ -22,16 +31,17 @@ INPUT COMPONENT (Input.svelte) - M3 Expressive Design
     value = $bindable(""),
     type = "text",
     disabled = false,
+    required = false,
     class: className = "",
     id,
     icon,
-    size = "default",
     ...restProps
   }: Props = $props();
 
   const inputId = $derived(
     id ?? `input-${Math.random().toString(36).slice(2, 9)}`,
   );
+
   let inputElement: HTMLInputElement;
 
   export function focus() {
@@ -41,19 +51,14 @@ INPUT COMPONENT (Input.svelte) - M3 Expressive Design
 
 <div class="flex flex-col gap-2 {className}">
   {#if label}
-    <label
-      for={inputId}
-      class="text-[13px] font-medium text-[var(--m3-on-surface)] ml-1"
-    >
+    <label for={inputId} class="nm-label {required ? 'nm-label-required' : ''}">
       {label}
     </label>
   {/if}
 
-  <div class="relative group">
+  <div class="nm-input-wrapper">
     {#if icon}
-      <div
-        class="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--m3-on-surface-variant)] transition-all duration-200 group-focus-within:text-[var(--m3-primary)] group-focus-within:scale-110"
-      >
+      <div class="nm-input-icon">
         {@render icon()}
       </div>
     {/if}
@@ -64,45 +69,47 @@ INPUT COMPONENT (Input.svelte) - M3 Expressive Design
       id={inputId}
       bind:value
       {disabled}
-      aria-invalid={error ? "true" : undefined}
+      {required}
+      aria-invalid={error ? "true" : "false"}
       aria-describedby={error
         ? `${inputId}-error`
         : hint
           ? `${inputId}-hint`
           : undefined}
       class="
-        w-full rounded-xl
-        text-[var(--m3-on-surface)] placeholder:text-[var(--m3-on-surface-variant)]
-        bg-[var(--m3-surface)]
-        border-2 border-[var(--m3-outline-variant)]
-        transition-all duration-200 ease-out
-        hover:border-[var(--m3-outline)]
-        focus:outline-none focus:border-[var(--m3-primary)] focus:ring-4 focus:ring-[var(--m3-primary-container)]/30
-        disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-[var(--m3-outline-variant)]
-        {error
-        ? 'border-[var(--m3-error)] focus:border-[var(--m3-error)] focus:ring-[var(--m3-error-container)]/30'
-        : ''}
-        {icon ? 'pl-12 pr-4' : 'px-4'}
-        {size === 'sm' ? 'py-2.5 text-sm' : 'py-3.5'}
+        nm-input
+        {error ? 'nm-input-error' : ''}
+        {icon ? 'nm-input-with-icon' : ''}
       "
       {...restProps}
     />
   </div>
 
   {#if error}
-    <p
-      id="{inputId}-error"
-      class="text-xs font-medium text-[var(--m3-error)] ml-1 animate-slide-in-bottom"
-      role="alert"
-    >
+    <p id="{inputId}-error" class="nm-error nm-animate-fade-in" role="alert">
+      <svg
+        class="w-3.5 h-3.5"
+        viewBox="0 0 20 20"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+          clip-rule="evenodd"
+        />
+      </svg>
       {error}
     </p>
   {:else if hint}
-    <p
-      id="{inputId}-hint"
-      class="text-xs text-[var(--m3-on-surface-variant)] ml-1"
-    >
+    <p id="{inputId}-hint" class="nm-hint">
       {hint}
     </p>
   {/if}
 </div>
+
+<style>
+  .nm-input-with-icon {
+    padding-left: var(--nm-space-10);
+  }
+</style>

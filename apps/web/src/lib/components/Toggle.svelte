@@ -51,11 +51,12 @@
       relative inline-flex h-7 w-12 shrink-0 cursor-pointer rounded-full
       border-2 border-transparent
       transition-all duration-200 ease-out
-      focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--m3-primary-container)]/40
+      focus:outline-none focus-visible:ring-4 focus-visible:ring-[var(--nm-accent-subtle)]
       disabled:opacity-40 disabled:cursor-not-allowed
       {checked
-      ? 'bg-[var(--m3-primary)]'
-      : 'bg-[var(--m3-surface-variant)] border-[var(--m3-outline)]'}"
+      ? 'bg-[var(--nm-accent)]'
+      : 'bg-[var(--nm-bg-tertiary)] border-[var(--nm-border)]'}"
+    {...restProps}
   >
     <span class="sr-only">{label || "Toggle switch"}</span>
     <span
@@ -67,7 +68,7 @@
     ></span>
   </button>
   {#if label}
-    <span class="text-sm font-medium text-[var(--m3-on-surface)]">
+    <span class="text-sm font-medium text-[var(--nm-text-primary)]">
       {label}
     </span>
   {/if}
