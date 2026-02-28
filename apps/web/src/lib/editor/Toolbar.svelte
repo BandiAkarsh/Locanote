@@ -105,13 +105,13 @@ TOOLBAR COMPONENT (Toolbar.svelte)
   // Glow helper
   function btnClass(isActive: boolean, color: "primary" | "amber" = "primary") {
     if (!isActive)
-      return "text-[var(--m3-on-surface-variant)] hover:bg-[var(--m3-surface-variant)] hover:text-[var(--m3-on-surface)] border-transparent";
+      return "text-[var(--ui-text-muted)] hover:bg-[var(--ui-primary)]/10 hover:text-[var(--ui-primary)] border-transparent";
 
     if (color === "amber") {
       return "bg-amber-500/20 text-amber-600 border-amber-500/50 scale-[1.05] shadow-sm";
     }
 
-    return "bg-[var(--m3-secondary-container)] text-[var(--m3-on-secondary-container)] font-bold scale-[1.05] shadow-sm";
+    return "bg-[var(--ui-primary)]/20 text-[var(--ui-primary)] font-bold scale-[1.05] shadow-sm";
   }
 </script>
 

@@ -317,11 +317,11 @@ EDITOR COMPONENT (Editor.svelte)
   <div
     bind:this={element}
     class="prose prose-lg max-w-none h-full overflow-y-auto p-4 sm:p-8 focus:outline-none np-editor-content
-           prose-headings:text-[var(--m3-on-surface)]
-           prose-p:text-[var(--m3-on-surface)] opacity-90
-           prose-strong:text-[var(--m3-on-surface)]
-           prose-code:text-[var(--m3-primary)] prose-pre:bg-[var(--m3-surface-variant)]
-           prose-blockquote:border-l-[var(--m3-primary)] prose-blockquote:bg-[var(--m3-primary-container)]/10"
+           prose-headings:text-[var(--ui-text)]
+           prose-p:text-[var(--ui-text)] opacity-90
+           prose-strong:text-[var(--ui-text)]
+           prose-code:text-[var(--ui-primary)] prose-pre:bg-[var(--ui-surface-elevated)]
+           prose-blockquote:border-l-[var(--ui-primary)] prose-blockquote:bg-[var(--ui-primary)]/10"
     class:opacity-50={!isContentLoaded}
   >
     <!-- TipTap mounts here -->
@@ -337,6 +337,31 @@ EDITOR COMPONENT (Editor.svelte)
     background: var(--brand-color);
     border-radius: 10px;
     opacity: 0.3;
+  }
+
+  /* Paragraph spacing - standard editor line-height (1.5-1.6) */
+  :global(.ProseMirror) {
+    line-height: 1.6;
+  }
+
+  :global(.ProseMirror p) {
+    margin-bottom: 0.5em;
+    line-height: 1.6;
+  }
+
+  :global(.ProseMirror h1) {
+    line-height: 1.3;
+    margin-bottom: 0.5em;
+  }
+
+  :global(.ProseMirror h2) {
+    line-height: 1.35;
+    margin-bottom: 0.5em;
+  }
+
+  :global(.ProseMirror h3) {
+    line-height: 1.4;
+    margin-bottom: 0.5em;
   }
 
   /* Cursor visibility - always visible and solid */
