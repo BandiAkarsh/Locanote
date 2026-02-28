@@ -22,9 +22,10 @@ compatibility_flags = ["nodejs_compat"]
 name = "SIGNALING_ROOMS"
 class_name = "SecuredSignalingRoom"
 
-# Migrations
-[[migrations]]
+# Migrations - CRITICAL for Durable Objects
+[[digrations]]
 tag = "v1"
+new_classes = ["SecuredSignalingRoom"]
 
 # =============================================================================
 # ENVIRONMENT VARIABLES
