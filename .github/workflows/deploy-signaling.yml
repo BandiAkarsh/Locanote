@@ -1,4 +1,18 @@
-name: Deploy Signaling Server to Cloudflare Workers
+# =============================================================================
+# LOCANOTE SIGNALING SERVER - GitHub Actions Workflow
+# =============================================================================
+# Deploys WebRTC signaling server to Cloudflare Workers
+#
+# SECRETS REQUIRED:
+#   - CF_API_TOKEN: Cloudflare API token
+#   - CF_ACCOUNT_ID: Cloudflare account ID
+#   - SIGNALING_SECRET: JWT signing secret for WebRTC auth
+#
+# VARIABLES REQUIRED:
+#   - ALLOWED_ORIGINS: CORS allowed origins
+# =============================================================================
+
+name: Deploy Signaling Server
 
 on:
   push:
@@ -6,6 +20,7 @@ on:
     paths:
       - "packages/signaling/**"
       - ".github/workflows/deploy-signaling.yml"
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -13,12 +28,13 @@ concurrency:
 
 jobs:
   deploy:
+    name: Deploy to Cloudflare Workers
     runs-on: ubuntu-latest
     permissions:
       contents: read
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -30,37 +46,41 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
           version: 10
-          run_install: false
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+      - name: Install Wrangler
+        run: npm install -g wrangler
 
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Deploy to Cloudflare Workers
+      - name: Authenticate with Cloudflare
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          workingDirectory: packages/signaling
-          command: deploy
-        env:
-          # These will be bound as secrets in the Worker
-          SIGNALING_SECRET: ${{ secrets.SIGNALING_SECRET }}
-          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
 
-      - name: Output deployment info
+      - name: Create KV Namespaces
+        working-directory: packages/signaling
         run: |
-          echo "Signaling server deployed successfully"
-          echo "Check Cloudflare Dashboard for URL"
+          # Create rate limiting KV
+          RATE_LIMIT_KV=$(wrangler kv:namespace create "locanote-rate-limit" --json 2>/dev/null || echo '{"id":""}')
+          echo "Rate limit KV: $RATE_LIMIT_KV"
+
+          # Create room cache KV  
+          ROOM_CACHE_KV=$(wrangler kv:namespace create "locanote-room-cache" --json 2>/dev/null || echo '{"id":""}')
+          echo "Room cache KV: $ROOM_CACHE_KV"
+
+      - name: Set Secrets
+        working-directory: packages/signaling
+        run: |
+          # Set SIGNALING_SECRET
+          echo "${{ secrets.SIGNALING_SECRET }}" | wrangler secret put SIGNALING_SECRET
+
+          # Set ALLOWED_ORIGINS
+          echo "${{ vars.ALLOWED_ORIGINS }}" | wrangler secret put ALLOWED_ORIGINS
+
+      - name: Deploy Worker
+        working-directory: packages/signaling
+        run: wrangler deploy --env production
+
+      - name: Output Deployment URL
+        run: |
+          echo "Signaling server deployed!"
+          echo "WebSocket URL: wss://locanote-signaling.workers.dev"

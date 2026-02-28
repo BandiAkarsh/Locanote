@@ -1,31 +1,90 @@
-# Cloudflare Worker Configuration
-# This configures the WebRTC signaling server deployment
+# =============================================================================
+# LOCANOTE SIGNALING SERVER - Wrangler Configuration
+# =============================================================================
+# Cloudflare Worker for WebRTC peer-to-peer signaling
+# 
+# USAGE:
+#   wrangler deploy                    # Deploy to production
+#   wrangler deploy --env staging     # Deploy to staging
+#   wrangler dev                       # Local development
+#   wrangler secret put SIGNALING_SECRET  # Set secret
+#
+# SETUP:
+#   1. wrangler login                 # Authenticate with Cloudflare
+#   2. wrangler deploy                # First deployment
+#   3. wrangler secret put SIGNALING_SECRET  # Set your secret
+# =============================================================================
 
 name = "locanote-signaling"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-02-28"
+compatibility_flags = ["nodejs_compat"]
 
-# Use Durable Objects for WebSocket connections
+# Workers AI (optional - for future AI features)
+# [[ai]]
+# binding = "AI"
+
+# =============================================================================
+# DURABLE OBJECTS
+# =============================================================================
+# WebSocket connections are managed via Durable Objects
+# Each room is a separate Durable Object instance
+
 [[durable_objects.bindings]]
 name = "SIGNALING_ROOMS"
-class_name = "SignalingRoom"
+class_name = "SecuredSignalingRoom"
 
-# Migrations for Durable Objects schema
+# Migrations - update tag when schema changes
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["SignalingRoom"]
+new_sqlite_classes = ["SecaledSignalingRoom"]
 
-# KV for storing room metadata (optional, for future features)
-# This namespace was manually created in the Cloudflare dashboard
+# =============================================================================
+# KV NAMESPACES
+# =============================================================================
+# Rate limiting storage
+
 [[kv_namespaces]]
-binding = "ROOM_METADATA"
-id = "40e2054dfffd493ca5237d13bec57d43"
+binding = "RATE_LIMIT_KV"
+id = ""  # Auto-created on first deploy
 
-# Environment variables (set via wrangler secret or dashboard)
+# Room metadata cache (optional)
+[[kv_namespaces]]
+binding = "ROOM_CACHE"
+id = ""  # Auto-created on first deploy
+
+# =============================================================================
+# ENVIRONMENT VARIABLES
+# =============================================================================
+# These can be overridden per environment
+
 [vars]
-# CORS allowed origins - production only (no localhost for security)
-ALLOWED_ORIGINS = "https://locanote.pages.dev,https://locanote.akarshbandi82.pages.dev"
-# Max peers per room
-MAX_PEERS_PER_ROOM = "10"
-# Room timeout in milliseconds (30 minutes)
-ROOM_TIMEOUT_MS = "1800000"
+APP_NAME = "Locanote"
+APP_VERSION = "1.0.0"
+
+# =============================================================================
+# ENVIRONMENTS
+# =============================================================================
+
+[env.production]
+vars = {}
+
+
+# =============================================================================
+# TAIL (Optional - for logging)
+# =============================================================================
+# Uncomment to enable Cloudflare Tail Workers
+# [tail]
+# consumers = [{ queue = "locanote-logs" }]
+
+# =============================================================================
+# LIMITS
+# =============================================================================
+# Free tier limits apply automatically
+# - 100,000 requests/day
+# - 10ms CPU time per request
+# - 1MB worker size
+
+# [limits]
+# cpu_ms = 10
+# memory = 128
