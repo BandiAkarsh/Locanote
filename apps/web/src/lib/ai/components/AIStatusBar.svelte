@@ -5,7 +5,7 @@
   Progressive disclosure: minimal by default, expandable for details
 -->
 <script lang="ts">
-  import { aiState } from "$ai/stores.svelte.js";
+  import { aiState } from "$ai/stores.svelte";
   import {
     Sparkles,
     Cpu,
@@ -79,9 +79,13 @@
     <div class="status-indicators">
       {#if aiState.hardwareCapabilities}
         {#if aiState.hasGPU}
-          <Zap size={14} class="indicator gpu" title="GPU Accelerated" />
+          <span title="GPU Accelerated">
+            <Zap size={14} class="indicator gpu" />
+          </span>
         {:else}
-          <Cpu size={14} class="indicator cpu" title="CPU Mode" />
+          <span title="CPU Mode">
+            <Cpu size={14} class="indicator cpu" />
+          </span>
         {/if}
 
         {#if aiState.batteryStatus}

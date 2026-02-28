@@ -22,7 +22,6 @@ export { default as ShareModal } from "./ShareModal.svelte";
 export { default as SearchBar } from "./SearchBar.svelte";
 export { default as ExportModal } from "./ExportModal.svelte";
 export { default as BackgroundProvider } from "./BackgroundProvider.svelte";
-export { default as SpatialDock } from "./SpatialDock.svelte";
 export { default as Card } from "./Card.svelte";
 export { default as Sidebar } from "./Sidebar.svelte";
 export { default as NoteList } from "./NoteList.svelte";

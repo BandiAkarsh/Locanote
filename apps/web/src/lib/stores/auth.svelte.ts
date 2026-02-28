@@ -1,410 +1,112 @@
 // ============================================================================
-// AUTHENTICATION STATE MANAGEMENT (HARDENED)
+// SIMPLE AUTH STORE
 // ============================================================================
-// This file manages the global authentication state using Svelte 5 Runes.
-// Updated with 2026 security standards.
-//
-// SECURITY FEATURES:
-// - Encrypted session storage
-// - Rate limiting integration
-// - Device fingerprinting
-// - Session timeout handling
-// - Audit logging
-//
-// SVELTE 5 RUNES EXPLAINED:
-// - $state() - Creates reactive state that triggers updates when changed
-// - $effect() - Runs side effects when dependencies change
+// Simplified Svelte 5 Runes auth store for local-only P2P app
 // ============================================================================
 
-import type {
-  AuthState,
-  AuthResult,
-  AuthError,
-  UserSession,
-} from "$auth/types";
-import { DEFAULT_SESSION_CONFIG } from "$auth/types";
-import { logSecurityEvent, getDeviceFingerprint } from "$auth/security-log";
-import {
-  checkRateLimit,
-  recordFailedAttempt,
-  recordSuccess,
-} from "$auth/rate-limit";
-import { encryptWithPassword, decryptWithPassword } from "$crypto/noble-crypto";
+import type { AuthState, UserSession } from "$auth/index";
+
+// Simple reactive auth state
+let currentSession: UserSession | null = $state(null);
+let authState: AuthState = $state({ status: "unauthenticated" });
 
 // ============================================================================
-// SVELTE 5 TYPE DECLARATIONS
+// METHODS
 // ============================================================================
 
-declare const $state: <T>(initial: T) => T;
-
-// ============================================================================
-// SESSION STORAGE
-// ============================================================================
-
-const SESSION_KEY = "locanote_session_encrypted";
-const SESSION_PASSWORD = "session_encryption_key"; // Derived from device fingerprint
-
-/**
- * Get session encryption password (device-bound)
- */
-async function getSessionPassword(): Promise<string> {
-  const fingerprint = await getDeviceFingerprint();
-  return fingerprint + SESSION_PASSWORD;
-}
-
-/**
- * Encrypt and save session
- */
-async function saveSession(session: UserSession): Promise<void> {
-  if (typeof window === "undefined") return;
-
-  try {
-    const password = await getSessionPassword();
-    const encrypted = await encryptWithPassword(
-      JSON.stringify(session),
-      password,
-    );
-    localStorage.setItem(SESSION_KEY, JSON.stringify(encrypted));
-  } catch (e) {
-    console.error("[Auth] Failed to save session:", e);
-  }
-}
-
-/**
- * Load and decrypt session
- */
-async function loadSession(): Promise<UserSession | null> {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (!stored) return null;
-
-    const encrypted = JSON.parse(stored);
-    const password = await getSessionPassword();
-    const decrypted = await decryptWithPassword(encrypted, password);
-
-    if (!decrypted) return null;
-
-    return JSON.parse(decrypted) as UserSession;
-  } catch (e) {
-    console.error("[Auth] Failed to load session:", e);
-    return null;
-  }
-}
-
-/**
- * Clear session
- */
-function clearSession(): void {
-  if (typeof window !== "undefined") {
-    localStorage.removeItem(SESSION_KEY);
-  }
-}
-
-// ============================================================================
-// SESSION VALIDATION
-// ============================================================================
-
-/**
- * Check if session is valid (not expired)
- */
-function isSessionValid(session: UserSession): boolean {
-  const now = Date.now();
-
-  // Check absolute expiration
-  if (session.expiresAt <= now) {
-    return false;
-  }
-
-  // Check inactivity timeout
-  if (DEFAULT_SESSION_CONFIG.slidingWindow) {
-    const inactive = now - session.lastActivityAt;
-    if (inactive > DEFAULT_SESSION_CONFIG.inactivityTimeout) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-/**
- * Update last activity timestamp
- */
-async function updateActivity(): Promise<void> {
-  const session = await loadSession();
-  if (session) {
-    session.lastActivityAt = Date.now();
-    await saveSession(session);
-  }
-}
-
-// ============================================================================
-// AUTH STORE
-// ============================================================================
-
-function createAuthStore() {
-  // ===================================================================
-  // STATE
-  // ===================================================================
-  let state = $state<AuthState>({ status: "idle" });
-
-  // ===================================================================
-  // INITIALIZE
-  // ===================================================================
-  async function initialize() {
-    if (typeof window === "undefined") return;
-
-    try {
-      const session = await loadSession();
-
-      if (session && isSessionValid(session)) {
-        state = { status: "authenticated", session };
-        await logSecurityEvent(session.userId, "login_success", "info", {
-          method: "session_restore",
-        });
-      } else {
-        if (session) {
-          // Session expired
-          clearSession();
-          await logSecurityEvent(session.userId, "session_expired", "info");
+export const auth = {
+  // Initialize - check for existing session
+  initialize() {
+    const stored = localStorage.getItem("locanote_session");
+    if (stored) {
+      try {
+        const session = JSON.parse(stored);
+        if (session.expiresAt > Date.now()) {
+          currentSession = session;
+          authState = { status: "authenticated", session };
+        } else {
+          localStorage.removeItem("locanote_session");
         }
-        state = { status: "unauthenticated" };
+      } catch {
+        localStorage.removeItem("locanote_session");
       }
-    } catch (e) {
-      console.error("[Auth] Failed to restore session:", e);
-      state = { status: "unauthenticated" };
     }
-  }
+    return authState;
+  },
 
-  // ===================================================================
-  // RATE LIMIT CHECK
-  // ===================================================================
-  function checkAuthRateLimit(identifier: string): boolean {
-    const rateLimit = checkRateLimit(identifier);
-
-    if (!rateLimit.allowed) {
-      state = {
-        status: "rate_limited",
-        error: `Too many attempts. Please try again in ${rateLimit.retryAfter} seconds.`,
-        retryAfter: rateLimit.retryAfter,
+  // Login
+  login(username: string): { success: boolean; error?: string } {
+    if (!username || username.trim().length < 2) {
+      return {
+        success: false,
+        error: "Username must be at least 2 characters",
       };
-      return false;
     }
 
-    return true;
-  }
-
-  // ===================================================================
-  // SET LOADING
-  // ===================================================================
-  function setLoading(message: string) {
-    state = { status: "loading", message };
-  }
-
-  // ===================================================================
-  // SET ERROR
-  // ===================================================================
-  function setError(error: string) {
-    state = { status: "error", error };
-  }
-
-  // ===================================================================
-  // HANDLE AUTHENTICATION SUCCESS
-  // ===================================================================
-  async function handleAuthSuccess(result: AuthResult) {
-    // Create session
-    const now = Date.now();
+    const userId = `${username.trim().toLowerCase().replace(/\s+/g, "_")}_${Date.now()}`;
     const session: UserSession = {
-      userId: result.userId,
-      username: result.username,
-      loggedInAt: now,
-      lastActivityAt: now,
-      expiresAt: now + DEFAULT_SESSION_CONFIG.absoluteMaxAge,
-      method: result.method === "recovery" ? "password" : result.method,
-      sessionToken: result.sessionToken,
-      deviceFingerprint: await getDeviceFingerprint(),
+      userId,
+      username: username.trim(),
+      loggedInAt: Date.now(),
+      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
     };
 
-    // Save encrypted session
-    await saveSession(session);
+    localStorage.setItem("locanote_session", JSON.stringify(session));
+    currentSession = session;
+    authState = { status: "authenticated", session };
 
-    // Clear rate limit for this user
-    recordSuccess(result.userId);
+    return { success: true };
+  },
 
-    // Log success
-    await logSecurityEvent(result.userId, "login_success", "info", {
-      method: result.method,
-      credentialId: result.credentialId,
-    });
+  // Register (same as login for MVP)
+  register(username: string): { success: boolean; error?: string } {
+    return this.login(username);
+  },
 
-    // Update state
-    state = { status: "authenticated", session };
-  }
+  // Logout
+  logout() {
+    localStorage.removeItem("locanote_session");
+    currentSession = null;
+    authState = { status: "unauthenticated" };
+  },
 
-  // ===================================================================
-  // HANDLE AUTHENTICATION ERROR
-  // ===================================================================
-  async function handleAuthError(error: AuthError, identifier?: string) {
-    // Record failed attempt for rate limiting
-    if (identifier) {
-      const rateLimit = recordFailedAttempt(identifier);
+  // Set loading state
+  setLoading(message: string) {
+    authState = { status: "loading", message };
+  },
 
-      if (rateLimit.blocked) {
-        state = {
-          status: "rate_limited",
-          error: `Too many failed attempts. Please try again in ${rateLimit.retryAfter} seconds.`,
-          retryAfter: rateLimit.retryAfter,
-        };
+  // Set error state
+  setError(error: string) {
+    authState = { status: "error", error };
+  },
 
-        await logSecurityEvent(identifier, "login_rate_limited", "warning", {
-          attempts: rateLimit.attempts,
-        });
-        return;
-      }
-    }
+  // Get state
+  get state() {
+    return authState;
+  },
 
-    // Log failure
-    if (identifier) {
-      await logSecurityEvent(identifier, "login_failure", "warning", {
-        errorCode: error.code,
-        errorMessage: error.error,
-      });
-    }
+  // Get session
+  get session() {
+    return currentSession;
+  },
 
-    state = { status: "error", error: error.error };
-  }
+  // Check if authenticated
+  get isAuthenticated() {
+    return authState.status === "authenticated";
+  },
 
-  // ===================================================================
-  // LOGOUT
-  // ===================================================================
-  async function logout(reason: "user" | "timeout" | "error" = "user") {
-    const session = await loadSession();
+  // Check if loading
+  get isLoading() {
+    return authState.status === "loading";
+  },
 
-    // Disconnect from sync
-    try {
-      const { closeDocument } = await import("$lib/crdt/doc.svelte");
-      console.log("[Auth] Disconnecting from sync servers...");
-    } catch (e) {
-      console.warn("[Auth] Disconnect failed:", e);
-    }
+  // Get username
+  get username() {
+    return currentSession?.username || "";
+  },
 
-    // Clear session
-    clearSession();
-
-    // Log logout
-    if (session) {
-      await logSecurityEvent(session.userId, "logout", "info", { reason });
-    }
-
-    // Update state
-    state = { status: "unauthenticated" };
-  }
-
-  // ===================================================================
-  // SESSION MANAGEMENT
-  // ===================================================================
-  async function refreshSession() {
-    const session = await loadSession();
-
-    if (!session) {
-      state = { status: "unauthenticated" };
-      return;
-    }
-
-    if (!isSessionValid(session)) {
-      await logout("timeout");
-      return;
-    }
-
-    // Update activity timestamp
-    await updateActivity();
-
-    // Extend session if sliding window
-    if (DEFAULT_SESSION_CONFIG.slidingWindow) {
-      session.expiresAt = Date.now() + DEFAULT_SESSION_CONFIG.absoluteMaxAge;
-      await saveSession(session);
-      state = { status: "authenticated", session };
-    }
-  }
-
-  async function requireReauth(operation: string): Promise<boolean> {
-    const session = await loadSession();
-
-    if (!session) return false;
-
-    // Check if operation requires re-authentication
-    if (DEFAULT_SESSION_CONFIG.requireReauthFor.includes(operation)) {
-      // In a real implementation, we'd prompt for password/passkey again
-      // For now, just check if session is recent
-      const recent = Date.now() - session.loggedInAt < 5 * 60 * 1000; // 5 minutes
-      return recent;
-    }
-
-    return true;
-  }
-
-  // ===================================================================
-  // ACCOUNT LOCKOUT
-  // ===================================================================
-  async function lockAccount(reason: string) {
-    const session = await loadSession();
-
-    if (session) {
-      await logSecurityEvent(session.userId, "account_locked", "critical", {
-        reason,
-      });
-    }
-
-    await logout("error");
-    state = { status: "account_locked", error: `Account locked: ${reason}` };
-  }
-
-  // ===================================================================
-  // RETURN STORE INTERFACE
-  // ===================================================================
-  return {
-    // Main state (reactive)
-    get state() {
-      return state;
-    },
-
-    // Derived values
-    get isAuthenticated() {
-      return state.status === "authenticated";
-    },
-    get isLoading() {
-      return state.status === "loading";
-    },
-    get error() {
-      return state.status === "error" ? state.error : null;
-    },
-    get session() {
-      return state.status === "authenticated" ? state.session : null;
-    },
-    get isRateLimited() {
-      return state.status === "rate_limited";
-    },
-    get retryAfter() {
-      return state.retryAfter;
-    },
-
-    // Methods
-    initialize,
-    checkAuthRateLimit,
-    setLoading,
-    setError,
-    handleAuthSuccess,
-    handleAuthError,
-    logout,
-    refreshSession,
-    requireReauth,
-    lockAccount,
-  };
-}
-
-// ============================================================================
-// CREATE SINGLETON INSTANCE
-// ============================================================================
-
-export const auth = createAuthStore();
+  // Get userId
+  get userId() {
+    return currentSession?.userId || "";
+  },
+};

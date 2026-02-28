@@ -20,7 +20,7 @@ import { x25519 } from "@noble/curves/ed25519";
 import { argon2id } from "@noble/hashes/argon2";
 import { pbkdf2 } from "@noble/hashes/pbkdf2";
 import { sha256 } from "@noble/hashes/sha256";
-import { randomBytes } from "@noble/ciphers/utils";
+import { randomBytes } from "@noble/hashes/utils";
 import { utf8ToBytes, bytesToUtf8 } from "@noble/ciphers/utils";
 import { concatBytes, equalBytes } from "@noble/ciphers/utils";
 
