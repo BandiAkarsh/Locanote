@@ -1,0 +1,66 @@
+name: Deploy Signaling Server to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/signaling/**"
+      - ".github/workflows/deploy-signaling.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: packages/signaling
+          command: deploy
+        env:
+          # These will be bound as secrets in the Worker
+          SIGNALING_SECRET: ${{ secrets.SIGNALING_SECRET }}
+          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
+
+      - name: Output deployment info
+        run: |
+          echo "Signaling server deployed successfully"
+          echo "Check Cloudflare Dashboard for URL"
