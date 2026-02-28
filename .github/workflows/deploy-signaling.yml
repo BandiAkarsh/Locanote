@@ -2,14 +2,6 @@
 # LOCANOTE SIGNALING SERVER - GitHub Actions Workflow
 # =============================================================================
 # Deploys WebRTC signaling server to Cloudflare Workers
-#
-# SECRETS REQUIRED:
-#   - CF_API_TOKEN: Cloudflare API token
-#   - CF_ACCOUNT_ID: Cloudflare account ID
-#   - SIGNALING_SECRET: JWT signing secret for WebRTC auth
-#
-# VARIABLES REQUIRED:
-#   - ALLOWED_ORIGINS: CORS allowed origins
 # =============================================================================
 
 name: Deploy Signaling Server
@@ -42,11 +34,6 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 10
-
       - name: Install Wrangler
         run: npm install -g wrangler
 
@@ -56,31 +43,14 @@ jobs:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
 
-      - name: Create KV Namespaces
-        working-directory: packages/signaling
-        run: |
-          # Create rate limiting KV
-          RATE_LIMIT_KV=$(wrangler kv:namespace create "locanote-rate-limit" --json 2>/dev/null || echo '{"id":""}')
-          echo "Rate limit KV: $RATE_LIMIT_KV"
-
-          # Create room cache KV  
-          ROOM_CACHE_KV=$(wrangler kv:namespace create "locanote-room-cache" --json 2>/dev/null || echo '{"id":""}')
-          echo "Room cache KV: $ROOM_CACHE_KV"
-
-      - name: Set Secrets
-        working-directory: packages/signaling
-        run: |
-          # Set SIGNALING_SECRET
-          echo "${{ secrets.SIGNALING_SECRET }}" | wrangler secret put SIGNALING_SECRET
-
-          # Set ALLOWED_ORIGINS
-          echo "${{ vars.ALLOWED_ORIGINS }}" | wrangler secret put ALLOWED_ORIGINS
-
       - name: Deploy Worker
         working-directory: packages/signaling
-        run: wrangler deploy --env production
+        run: |
+          wrangler secret put SIGNALING_SECRET --secret-string "${{ secrets.SIGNALING_SECRET }}"
+          wrangler secret put ALLOWED_ORIGINS --secret-string "${{ vars.ALLOWED_ORIGINS }}"
+          wrangler deploy --env production
 
       - name: Output Deployment URL
         run: |
-          echo "Signaling server deployed!"
+          echo "✅ Signaling server deployed!"
           echo "WebSocket URL: wss://locanote-signaling.workers.dev"
