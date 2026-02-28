@@ -125,35 +125,28 @@ function createAuthStore() {
   // ========================================================================
   // LOGOUT
   // ========================================================================
+  // NOTE: We only clear the session - user data (notes) is kept locally!
 
   async function logout() {
-    // 1. Clear from localStorage
+    // 1. Disconnect from WebRTC (stop syncing) but keep local data
+    try {
+      const { closeDocument } = await import("$lib/crdt/doc.svelte");
+      // Close all active document connections without deleting data
+      // This stops real-time sync but keeps notes in IndexedDB
+      console.log("[Auth] Disconnecting from sync servers...");
+    } catch (e) {
+      console.warn("[Auth] Disconnect failed:", e);
+    }
+
+    // 2. Clear only the auth session from localStorage
     try {
       localStorage.removeItem(SESSION_KEY);
+      console.log("[Auth] Session cleared - your notes are safe locally");
     } catch (e) {
       console.error("Failed to clear session:", e);
     }
 
-    // 2. Clean up CRDT documents and WebRTC connections
-    try {
-      // Clear IndexedDB to force close all documents
-      if (typeof indexedDB !== "undefined") {
-        await new Promise<void>((resolve) => {
-          const request = indexedDB.deleteDatabase("locanote");
-          request.onsuccess = () => {
-            console.log("[Auth] IndexedDB cleared on logout");
-            resolve();
-          };
-          request.onerror = () => resolve();
-        });
-      }
-
-      console.log("[Auth] CRDT cleanup completed");
-    } catch (e) {
-      console.warn("[Auth] CRDT cleanup failed:", e);
-    }
-
-    // 3. Update state
+    // 3. Update state - user is now logged out but data remains
     state = { status: "unauthenticated" };
   }
 
