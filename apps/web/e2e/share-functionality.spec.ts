@@ -18,7 +18,7 @@ test.describe("Share Functionality Audit", () => {
     // Switch to Register
     const createAccountBtn = page
       .locator("button")
-      .filter({ hasText: "Create a new account" });
+      .filter({ hasText: "Create an account" });
     await createAccountBtn.waitFor({ state: "visible", timeout: 15000 });
     await createAccountBtn.click();
 
@@ -34,7 +34,7 @@ test.describe("Share Functionality Audit", () => {
       .click();
 
     await page.locator("#reg-password").fill("TestPass123");
-    await page.locator("#reg-confirm-password").fill("TestPass123");
+    await page.locator("#reg-confirm").fill("TestPass123");
     await page
       .locator("button")
       .filter({ hasText: /^Create Account$/ })

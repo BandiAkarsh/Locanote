@@ -1,5 +1,14 @@
 <!-- =========================================================================
-NOTEPAD MODAL COMPONENT - M3 Expressive Design
+MODAL COMPONENT - 2026 Neo-Minimalist Design
+========================================================================
+Clean modal overlay with smooth animations.
+
+FEATURES:
+- Backdrop blur effect
+- Smooth scale-in animation
+- Accessible (ESC to close, focus trap)
+- Customizable header, body, footer
+- Backdrop click to close (optional)
 ======================================================================== -->
 
 <script lang="ts">
@@ -54,17 +63,6 @@ NOTEPAD MODAL COMPONENT - M3 Expressive Design
     }
   }
 
-  $effect(() => {
-    if (open && dialogRef) {
-      const focusable = dialogRef.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-      );
-      if (focusable.length > 0) {
-        (focusable[0] as HTMLElement).focus();
-      }
-    }
-  });
-
   function handleClose() {
     open = false;
   }
@@ -97,25 +95,18 @@ NOTEPAD MODAL COMPONENT - M3 Expressive Design
   onclick={handleBackdropClick}
   onclose={handleClose}
   tabindex="-1"
-  class="np-modal animate-scale-in"
+  class="nm-modal"
 >
-  <div class="np-modal-header">
+  <div class="nm-modal-header">
     {#if title}
-      <h2 class="np-modal-title">{title}</h2>
+      <h2 class="nm-modal-title">{title}</h2>
     {:else}
       <div></div>
     {/if}
     <button
       type="button"
       onclick={() => (open = false)}
-      class="
-        p-2 rounded-full
-        text-[var(--m3-on-surface-variant)]
-        hover:text-[var(--m3-on-surface)]
-        hover:bg-[var(--m3-surface-variant)]
-        transition-all duration-200
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--m3-primary)]
-      "
+      class="nm-btn nm-btn-icon nm-btn-ghost"
       aria-label="Close"
     >
       <svg
@@ -134,11 +125,11 @@ NOTEPAD MODAL COMPONENT - M3 Expressive Design
       </svg>
     </button>
   </div>
-  <div class="np-modal-body">
+  <div class="nm-modal-body">
     {@render children()}
   </div>
   {#if footer}
-    <div class="np-modal-footer">
+    <div class="nm-modal-footer">
       {@render footer()}
     </div>
   {/if}
@@ -147,25 +138,57 @@ NOTEPAD MODAL COMPONENT - M3 Expressive Design
 <style>
   dialog {
     border: none;
-    border-radius: var(--ui-radius-xl, 28px);
+    border-radius: var(--nm-radius-xl);
     padding: 0;
-    box-shadow: var(--ui-shadow-xl);
-    max-width: 500px;
+    max-width: 480px;
     width: 90vw;
     max-height: 90vh;
-    background: var(--m3-surface);
-    color: var(--m3-on-surface);
+    background: var(--nm-bg-elevated);
+    color: var(--nm-text-primary);
+    box-shadow: var(--nm-shadow-xl);
   }
 
   dialog::backdrop {
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    animation: m3-fade-in var(--m3-duration-short3) var(--m3-easing-standard)
+    animation: nm-fade-in var(--nm-duration-fast) var(--nm-easing-smooth)
       forwards;
   }
 
   dialog[open] {
-    animation: m3-unfold-in var(--m3-duration-medium3)
-      var(--m3-spring-emphasized) forwards;
+    animation: nm-scale-in var(--nm-duration-normal) var(--nm-easing-bounce)
+      forwards;
+  }
+
+  /* Override base styles */
+  dialog :global(.nm-modal-header) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--nm-space-5) var(--nm-space-6);
+    border-bottom: 1px solid var(--nm-border);
+  }
+
+  dialog :global(.nm-modal-title) {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--nm-text-primary);
+    margin: 0;
+  }
+
+  dialog :global(.nm-modal-body) {
+    padding: var(--nm-space-6);
+    overflow-y: auto;
+    max-height: 60vh;
+  }
+
+  dialog :global(.nm-modal-footer) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--nm-space-3);
+    padding: var(--nm-space-4) var(--nm-space-6);
+    border-top: 1px solid var(--nm-border);
+    background: var(--nm-bg-secondary);
   }
 </style>

@@ -1,233 +1,236 @@
 /* ============================================================================
-   LOCANOTE - Material 3 Expressive Design System
+   LOCANOTE - 2026 Neo-Minimalist Design System
+   ============================================================================
+   
+   Design Philosophy:
+   - Warm, inviting grays (not cold blues)
+   - Generous whitespace and breathing room
+   - Subtle depth through shadows, not borders
+   - Semantic dark mode (not just inversion)
+   - Accessible contrast ratios (WCAG 2.1 AA+)
+   
    ============================================================================ */
 
 @import "tailwindcss";
 
 /* ============================================================================
-   MATERIAL 3 EXPRESSIVE - UI TOKEN ALIASES (M3 Compatibility Layer)
+   NEO-MINIMALIST COLOR SYSTEM
    ============================================================================ */
 
 :root {
-  /* UI Token Aliases - Maps to M3 for compatibility */
-  --ui-text: var(--m3-on-surface);
-  --ui-text-muted: var(--m3-on-surface-variant);
-  --ui-bg: var(--m3-background);
-  --ui-surface: var(--m3-surface);
-  --ui-surface-elevated: var(--m3-surface);
-  --ui-border: var(--m3-outline-variant);
-  --ui-primary: var(--m3-primary);
-  --ui-secondary: var(--m3-secondary);
-  --ui-error: var(--m3-error);
-  --ui-success: #16a34a;
+  /* Core Background Colors - Warm, inviting */
+  --nm-bg-primary: #fafaf8;
+  --nm-bg-secondary: #f5f5f3;
+  --nm-bg-tertiary: #efefed;
+  --nm-bg-elevated: #ffffff;
 
-  /* UI Radius Tokens */
-  --ui-radius-sm: 8px;
-  --ui-radius: 12px;
-  --ui-radius-md: 16px;
-  --ui-radius-lg: 24px;
-  --ui-radius-xl: 28px;
-  --ui-radius-full: 9999px;
+  /* Dark Mode Backgrounds - Soft, not pure black */
+  --nm-bg-dark-primary: #0f0f0f;
+  --nm-bg-dark-secondary: #1a1a1a;
+  --nm-bg-dark-tertiary: #242424;
+  --nm-bg-dark-elevated: #2a2a2a;
 
-  /* UI Shadow Tokens */
-  --ui-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --ui-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  --ui-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
-  --ui-shadow-xl: 0 8px 30px rgba(0, 0, 0, 0.2);
+  /* Text Colors */
+  --nm-text-primary: #1a1a1a;
+  --nm-text-secondary: #6b6b6b;
+  --nm-text-tertiary: #9ca3af;
+  --nm-text-muted: #a1a1a1;
 
-  /* Primary color alias */
-  --primary: var(--m3-primary);
-  --primary-hover: #0052a3;
-  --primary-container: var(--m3-primary-container);
+  --nm-text-dark-primary: #e5e5e5;
+  --nm-text-dark-secondary: #a1a1a1;
+  --nm-text-dark-tertiary: #737373;
+  --nm-text-dark-muted: #525252;
+
+  /* Accent - Soft Blue */
+  --nm-accent: #2563eb;
+  --nm-accent-hover: #1d4ed8;
+  --nm-accent-light: #3b82f6;
+  --nm-accent-subtle: rgba(37, 99, 235, 0.1);
+  --nm-accent-muted: rgba(37, 99, 235, 0.05);
+
+  /* Semantic Colors */
+  --nm-success: #10b981;
+  --nm-success-light: rgba(16, 185, 129, 0.1);
+  --nm-warning: #f59e0b;
+  --nm-warning-light: rgba(245, 158, 11, 0.1);
+  --nm-error: #ef4444;
+  --nm-error-light: rgba(239, 68, 68, 0.1);
+
+  /* Border Colors */
+  --nm-border: #e5e5e5;
+  --nm-border-hover: #d4d4d4;
+  --nm-border-dark: #2a2a2a;
+  --nm-border-dark-hover: #3a3a3a;
+
+  /* UI Token Mapping (for backward compatibility) */
+  --ui-text: var(--nm-text-primary);
+  --ui-text-muted: var(--nm-text-secondary);
+  --ui-bg: var(--nm-bg-primary);
+  --ui-surface: var(--nm-bg-elevated);
+  --ui-surface-elevated: var(--nm-bg-secondary);
+  --ui-border: var(--nm-border);
+  --ui-primary: var(--nm-accent);
+  --ui-secondary: var(--nm-text-secondary);
+  --ui-error: var(--nm-error);
+  --ui-success: var(--nm-success);
+
+  /* Radius Tokens - Consistent rounding */
+  --nm-radius-sm: 6px;
+  --nm-radius: 10px;
+  --nm-radius-md: 14px;
+  --nm-radius-lg: 18px;
+  --nm-radius-xl: 24px;
+  --nm-radius-full: 9999px;
+
+  /* Shadow Tokens - Subtle depth */
+  --nm-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --nm-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --nm-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --nm-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --nm-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
+
+  /* Dark mode shadows */
+  --nm-shadow-dark-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --nm-shadow-dark: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --nm-shadow-dark-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --nm-shadow-dark-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+  --nm-shadow-dark-xl: 0 16px 48px rgba(0, 0, 0, 0.7);
+
+  /* Spacing Grid - 8px base */
+  --nm-space-1: 4px;
+  --nm-space-2: 8px;
+  --nm-space-3: 12px;
+  --nm-space-4: 16px;
+  --nm-space-5: 20px;
+  --nm-space-6: 24px;
+  --nm-space-8: 32px;
+  --nm-space-10: 40px;
+  --nm-space-12: 48px;
+  --nm-space-16: 64px;
+
+  /* Layout */
+  --nm-sidebar-width: 280px;
+  --nm-header-height: 64px;
+  --nm-content-max-width: 720px;
+  --nm-form-max-width: 420px;
+
+  /* Typography */
+  --nm-font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --nm-font-mono: "JetBrains Mono", "SF Mono", Monaco, monospace;
+  --nm-line-height-tight: 1.25;
+  --nm-line-height-normal: 1.6;
+  --nm-line-height-relaxed: 1.75;
+
+  /* Motion - Refined easings */
+  --nm-easing-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --nm-easing-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --nm-easing-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --nm-easing-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --nm-easing-accelerate: cubic-bezier(0.4, 0, 1, 1);
+
+  /* Duration tokens */
+  --nm-duration-fast: 150ms;
+  --nm-duration-normal: 250ms;
+  --nm-duration-slow: 350ms;
+  --nm-duration-slower: 500ms;
+
+  /* Primary aliases for backward compatibility */
+  --primary: var(--nm-accent);
+  --primary-hover: var(--nm-accent-hover);
+  --primary-container: var(--nm-accent-subtle);
 }
 
-/* Dark Theme - UI Token Aliases */
+/* ============================================================================
+   DARK MODE - Semantic tokens (NOT just inversion)
+   ============================================================================ */
+
 [data-theme="dark"],
 :root.dark {
-  --ui-text: var(--m3-on-surface);
-  --ui-text-muted: var(--m3-on-surface-variant);
-  --ui-bg: var(--m3-background);
-  --ui-surface: var(--m3-surface);
-  --ui-surface-elevated: var(--m3-surface-variant);
-  --ui-border: var(--m3-outline-variant);
-  --ui-primary: var(--m3-primary);
-  --ui-error: var(--m3-error);
-  --ui-success: #4ade80;
+  /* Backgrounds */
+  --nm-bg-primary: var(--nm-bg-dark-primary);
+  --nm-bg-secondary: var(--nm-bg-dark-secondary);
+  --nm-bg-tertiary: var(--nm-bg-dark-tertiary);
+  --nm-bg-elevated: var(--nm-bg-dark-elevated);
 
-  --primary: var(--m3-primary);
-  --primary-hover: #7ab3ff;
-  --primary-container: var(--m3-primary-container);
+  /* Text */
+  --nm-text-primary: var(--nm-text-dark-primary);
+  --nm-text-secondary: var(--nm-text-dark-secondary);
+  --nm-text-tertiary: var(--nm-text-dark-tertiary);
+  --nm-text-muted: var(--nm-text-dark-muted);
 
-  --ui-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
-  --ui-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  --ui-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --ui-shadow-xl: 0 8px 30px rgba(0, 0, 0, 0.4);
+  /* Borders */
+  --nm-border: var(--nm-border-dark);
+  --nm-border-hover: var(--nm-border-dark-hover);
+
+  /* Accent - Slightly brighter in dark mode */
+  --nm-accent: #3b82f6;
+  --nm-accent-hover: #60a5fa;
+  --nm-accent-light: #60a5fa;
+  --nm-accent-subtle: rgba(59, 130, 246, 0.15);
+  --nm-accent-muted: rgba(59, 130, 246, 0.08);
+
+  /* Shadows */
+  --nm-shadow-sm: var(--nm-shadow-dark-sm);
+  --nm-shadow: var(--nm-shadow-dark);
+  --nm-shadow-md: var(--nm-shadow-dark-md);
+  --nm-shadow-lg: var(--nm-shadow-dark-lg);
+  --nm-shadow-xl: var(--nm-shadow-dark-xl);
+
+  /* UI Token Mapping */
+  --ui-text: var(--nm-text-primary);
+  --ui-text-muted: var(--nm-text-secondary);
+  --ui-bg: var(--nm-bg-primary);
+  --ui-surface: var(--nm-bg-elevated);
+  --ui-surface-elevated: var(--nm-bg-secondary);
+  --ui-border: var(--nm-border);
+  --ui-primary: var(--nm-accent);
+  --ui-error: #f87171;
+  --ui-success: #34d399;
+
+  /* Legacy mappings */
+  --np-bg: var(--nm-bg-primary);
+  --np-bg-secondary: var(--nm-bg-secondary);
+  --np-border: var(--nm-border);
+  --np-border-light: var(--nm-bg-tertiary);
+  --np-text: var(--nm-text-primary);
+  --np-text-muted: var(--nm-text-secondary);
+  --np-text-light: var(--nm-text-tertiary);
+  --np-accent: var(--nm-accent);
+  --np-accent-hover: var(--nm-accent-hover);
+  --np-error: var(--nm-error);
+  --np-success: var(--nm-success);
 }
 
 /* ============================================================================
-   MATERIAL 3 EXPRESSIVE - MOTION SYSTEM
-   Spring physics and easing curves for smooth, expressive animations
-   ============================================================================ */
-
-:root {
-  /* M3 Motion - Standard Easing Curves */
-  --m3-easing-standard: cubic-bezier(0.2, 0, 0, 1);
-  --m3-easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
-  --m3-easing-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
-  --m3-easing-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
-
-  /* M3 Motion - Legacy Standard (for compatibility) */
-  --m3-easing-linear: linear;
-  --m3-easing-in: cubic-bezier(0.4, 0, 1, 1);
-  --m3-easing-out: cubic-bezier(0, 0, 0.2, 1);
-  --m3-easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* M3 Motion - Spring Physics (Expressive) */
-  --m3-spring-neutral: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --m3-spring-emphasized: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --m3-spring-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --m3-spring-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* M3 Motion - Duration Tokens */
-  --m3-duration-short1: 50ms;
-  --m3-duration-short2: 100ms;
-  --m3-duration-short3: 150ms;
-  --m3-duration-medium1: 200ms;
-  --m3-duration-medium2: 250ms;
-  --m3-duration-medium3: 300ms;
-  --m3-duration-medium4: 350ms;
-  --m3-duration-long1: 400ms;
-  --m3-duration-long2: 500ms;
-  --m3-duration-long3: 600ms;
-
-  /* M3 Color Roles - Light Theme */
-  --m3-primary: #0066cc;
-  --m3-on-primary: #ffffff;
-  --m3-primary-container: #d6e4ff;
-  --m3-on-primary-container: #001b3d;
-
-  --m3-secondary: #565f71;
-  --m3-on-secondary: #ffffff;
-  --m3-secondary-container: #dae2f9;
-  --m3-on-secondary-container: #131c2b;
-
-  --m3-tertiary: #705575;
-  --m3-on-tertiary: #ffffff;
-  --m3-tertiary-container: #fad8fd;
-
-  --m3-error: #ba1a1a;
-  --m3-on-error: #ffffff;
-  --m3-error-container: #ffdad6;
-
-  --m3-background: #fdfbff;
-  --m3-on-background: #1a1c1e;
-  --m3-surface: #fdfbff;
-  --m3-on-surface: #1a1c1e;
-  --m3-surface-variant: #e1e2ec;
-  --m3-on-surface-variant: #44474e;
-  --m3-outline: #74777f;
-  --m3-outline-variant: #c4c6d0;
-
-  /* State Layer Opacity */
-  --m3-state-hover: 0.08;
-  --m3-state-focus: 0.12;
-  --m3-state-pressed: 0.12;
-
-  /* Legacy Colors */
-  --np-bg: #ffffff;
-  --np-bg-secondary: #f5f5f5;
-  --np-border: #d4d4d4;
-  --np-border-light: #e5e5e5;
-  --np-text: #1a1a1a;
-  --np-text-muted: #666666;
-  --np-text-light: #999999;
-  --np-accent: var(--m3-primary);
-  --np-accent-hover: #0052a3;
-  --np-error: var(--m3-error);
-  --np-success: #16a34a;
-
-  /* SIZES */
-  --np-sidebar-width: 280px;
-  --np-header-height: 48px;
-  --np-toolbar-height: 40px;
-}
-
-/* ============================================================================
-   TAILWIND M3 COLOR EXTENSIONS
-   Add M3 colors as Tailwind-compatible utilities
+   TAILWIND THEME EXTENSION
    ============================================================================ */
 
 @theme {
-  /* M3 Colors - accessible via arbitrary values like bg-[var(--m3-primary)] */
-  --color-primary: var(--m3-primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-container: var(--m3-primary-container);
-  --color-secondary: var(--m3-secondary);
-  --color-secondary-container: var(--m3-secondary-container);
-  --color-tertiary: var(--m3-tertiary);
-  --color-tertiary-container: var(--m3-tertiary-container);
-  --color-error: var(--m3-error);
-  --color-error-container: var(--m3-error-container);
-  --color-background: var(--m3-background);
-  --color-surface: var(--m3-surface);
-  --color-surface-variant: var(--m3-surface-variant);
-  --color-on-primary: var(--m3-on-primary);
-  --color-on-surface: var(--m3-on-surface);
-  --color-on-surface-variant: var(--m3-on-surface-variant);
-  --color-outline: var(--m3-outline);
-  --color-outline-variant: var(--m3-outline-variant);
-}
+  /* Colors */
+  --color-nm-bg: var(--nm-bg-primary);
+  --color-nm-bg-secondary: var(--nm-bg-secondary);
+  --color-nm-bg-tertiary: var(--nm-bg-tertiary);
+  --color-nm-bg-elevated: var(--nm-bg-elevated);
+  --color-nm-text: var(--nm-text-primary);
+  --color-nm-text-secondary: var(--nm-text-secondary);
+  --color-nm-text-tertiary: var(--nm-text-tertiary);
+  --color-nm-text-muted: var(--nm-text-muted);
+  --color-nm-accent: var(--nm-accent);
+  --color-nm-accent-hover: var(--nm-accent-hover);
+  --color-nm-border: var(--nm-border);
+  --color-nm-error: var(--nm-error);
+  --color-nm-success: var(--nm-success);
 
-/* Dark Theme */
-[data-theme="dark"],
-:root.dark {
-  --m3-primary: #a8c8ff;
-  --m3-on-primary: #00315e;
-  --m3-primary-container: #004884;
-  --m3-on-primary-container: #d6e4ff;
+  /* Shadows */
+  --shadow-nm-sm: var(--nm-shadow-sm);
+  --shadow-nm: var(--nm-shadow);
+  --shadow-nm-md: var(--nm-shadow-md);
+  --shadow-nm-lg: var(--nm-shadow-lg);
+  --shadow-nm-xl: var(--nm-shadow-xl);
 
-  --m3-secondary: #bec6dc;
-  --m3-on-secondary: #283141;
-  --m3-secondary-container: #3e4758;
-
-  --m3-tertiary: #ddbce0;
-  --m3-on-tertiary: #3f2844;
-  --m3-tertiary-container: #573e5c;
-
-  --m3-error: #ffb4ab;
-  --m3-on-error: #690005;
-  --m3-error-container: #93000a;
-
-  --m3-background: #1a1c1e;
-  --m3-on-background: #e3e2e6;
-  --m3-surface: #1a1c1e;
-  --m3-on-surface: #e3e2e6;
-  --m3-surface-variant: #44474e;
-  --m3-on-surface-variant: #c4c6d0;
-  --m3-outline: #8e9099;
-  --m3-outline-variant: #44474e;
-
-  --np-bg: #1a1c1e;
-  --np-bg-secondary: #2a2c2e;
-  --np-border: #3a3c3e;
-  --np-border-light: #2a2c2e;
-  --np-text: #e3e2e6;
-  --np-text-muted: #a0a0a0;
-  --np-text-light: #707070;
-  --np-accent: var(--m3-primary);
-  --np-accent-hover: #7ab3ff;
-
-  /* Dark mode M3 elevation shadows */
-  --m3-shadow-elevation-1:
-    0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.15);
-  --m3-shadow-elevation-2:
-    0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --m3-shadow-elevation-3:
-    0 4px 8px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
-  --m3-shadow-elevation-4:
-    0 6px 10px rgba(0, 0, 0, 0.4), 0 3px 6px rgba(0, 0, 0, 0.2);
-  --m3-shadow-elevation-5:
-    0 8px 12px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.25);
+  /* Font family */
+  --font-nm-sans: var(--nm-font-sans);
 }
 
 /* ============================================================================
@@ -235,33 +238,83 @@
    ============================================================================ */
 
 html {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
-    Arial, sans-serif;
+  font-family: var(--nm-font-sans);
   font-size: 16px;
-  background: var(--m3-background);
-  color: var(--m3-on-background);
-  scroll-behavior: smooth;
+  line-height: var(--nm-line-height-normal);
+  background-color: var(--nm-bg-primary);
+  color: var(--nm-text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
+/* Responsive typography */
 @media (min-width: 1200px) {
+  html {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 1600px) {
   html {
     font-size: 18px;
   }
 }
-@media (min-width: 1600px) {
-  html {
-    font-size: 20px;
-  }
+
+body {
+  min-height: 100vh;
+  background-color: var(--nm-bg-primary);
+  color: var(--nm-text-primary);
+  transition:
+    background-color var(--nm-duration-slow) var(--nm-easing-smooth),
+    color var(--nm-duration-slow) var(--nm-easing-smooth);
 }
 
 /* ============================================================================
-   M3 EXPRESSIVE ANIMATIONS - ENHANCED SPRING PHYSICS
+   TYPOGRAPHY
    ============================================================================ */
 
-/* Standard fade in */
-@keyframes m3-fade-in {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+  line-height: var(--nm-line-height-tight);
+  color: var(--nm-text-primary);
+  letter-spacing: -0.02em;
+}
+
+h1 {
+  font-size: 2rem;
+}
+h2 {
+  font-size: 1.5rem;
+}
+h3 {
+  font-size: 1.25rem;
+}
+h4 {
+  font-size: 1.125rem;
+}
+h5 {
+  font-size: 1rem;
+}
+h6 {
+  font-size: 0.875rem;
+}
+
+p {
+  line-height: var(--nm-line-height-normal);
+  color: var(--nm-text-secondary);
+}
+
+/* ============================================================================
+   ANIMATIONS - Micro-interactions
+   ============================================================================ */
+
+@keyframes nm-fade-in {
   from {
     opacity: 0;
   }
@@ -270,23 +323,10 @@ html {
   }
 }
 
-/* Slide in from bottom with spring */
-@keyframes m3-slide-in-bottom {
+@keyframes nm-fade-up {
   from {
     opacity: 0;
-    transform: translateY(20px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Slide in from top */
-@keyframes m3-slide-in-top {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -294,8 +334,18 @@ html {
   }
 }
 
-/* Slide in from left */
-@keyframes m3-slide-in-left {
+@keyframes nm-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes nm-slide-in-right {
   from {
     opacity: 0;
     transform: translateX(-20px);
@@ -306,663 +356,330 @@ html {
   }
 }
 
-/* Scale in with spring */
-@keyframes m3-scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Unfold animation (3D rotation) */
-@keyframes m3-unfold-in {
-  from {
-    opacity: 0;
-    transform: rotateX(-15deg) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: rotateX(0) scale(1);
-  }
-}
-
-/* Shake animation */
-@keyframes m3-shake {
+@keyframes nm-shake {
   0%,
   100% {
     transform: translateX(0);
   }
-  10%,
-  30%,
-  50%,
-  70%,
-  90% {
+  25% {
     transform: translateX(-4px);
   }
-  20%,
-  40%,
-  60%,
-  80% {
+  75% {
     transform: translateX(4px);
   }
 }
 
-/* Expressive pulse */
-@keyframes m3-pulse-expressive {
+@keyframes nm-pulse-subtle {
   0%,
   100% {
-    transform: scale(1);
     opacity: 1;
   }
   50% {
-    transform: scale(1.05);
-    opacity: 0.8;
+    opacity: 0.7;
   }
 }
 
-/* Wiggle animation */
-@keyframes m3-wiggle {
-  0%,
-  100% {
-    transform: rotate(-3deg);
-  }
-  50% {
-    transform: rotate(3deg);
-  }
-}
-
-/* Spring bounce in from bottom */
-@keyframes m3-spring-in-bottom {
-  0% {
-    opacity: 0;
-    transform: translateY(30px) scale(0.9);
-  }
-  60% {
-    transform: translateY(-5px) scale(1.02);
-  }
-  80% {
-    transform: translateY(3px) scale(0.99);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Expressive scale bounce */
-@keyframes m3-scale-bounce {
-  0% {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  50% {
-    transform: scale(1.05);
-  }
-  70% {
-    transform: scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Slide up fade */
-@keyframes m3-slide-up-fade {
+@keyframes nm-spin {
   from {
-    opacity: 0;
-    transform: translateY(16px);
+    transform: rotate(0deg);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotate(360deg);
   }
 }
 
-/* Expressive Animation Classes */
-.animate-fade-in {
-  animation: m3-fade-in var(--m3-duration-medium2)
-    var(--m3-easing-emphasized-decelerate) forwards;
-}
-.animate-slide-in-bottom {
-  animation: m3-slide-in-bottom var(--m3-duration-medium3)
-    var(--m3-spring-emphasized) forwards;
-}
-.animate-slide-in-top {
-  animation: m3-slide-in-top var(--m3-duration-medium3)
-    var(--m3-easing-emphasized-decelerate) forwards;
-}
-.animate-slide-in-left {
-  animation: m3-slide-in-left var(--m3-duration-medium3)
-    var(--m3-easing-emphasized-decelerate) forwards;
-}
-.animate-scale-in {
-  animation: m3-scale-in var(--m3-duration-medium2) var(--m3-spring-emphasized)
-    forwards;
-}
-.animate-unfold-in {
-  animation: m3-unfold-in var(--m3-duration-medium3) var(--m3-spring-emphasized)
-    forwards;
-}
-.animate-shake {
-  animation: m3-shake var(--m3-duration-medium2) var(--m3-easing-standard)
-    forwards;
-}
-.animate-pulse-expressive {
-  animation: m3-pulse-expressive 1.5s var(--m3-easing-standard) infinite;
-}
-.animate-wiggle {
-  animation: m3-wiggle 0.8s var(--m3-easing-standard) infinite;
-}
-.animate-spring-in {
-  animation: m3-spring-in-bottom var(--m3-duration-long1)
-    var(--m3-spring-emphasized) forwards;
-}
-.animate-scale-bounce {
-  animation: m3-scale-bounce var(--m3-duration-long1) var(--m3-spring-bounce)
-    forwards;
-}
-.animate-slide-up-fade {
-  animation: m3-slide-up-fade var(--m3-duration-medium3) var(--m3-easing-out)
+/* Animation utility classes */
+.nm-animate-fade-in {
+  animation: nm-fade-in var(--nm-duration-normal) var(--nm-easing-smooth)
     forwards;
 }
 
-/* Stagger children animation */
-.stagger-children > * {
-  opacity: 0;
-  animation: m3-slide-in-bottom var(--m3-duration-medium3)
-    var(--m3-easing-emphasized-decelerate) forwards;
+.nm-animate-fade-up {
+  animation: nm-fade-up var(--nm-duration-normal) var(--nm-easing-decelerate)
+    forwards;
 }
-.stagger-children > *:nth-child(1) {
+
+.nm-animate-scale-in {
+  animation: nm-scale-in var(--nm-duration-normal) var(--nm-easing-bounce)
+    forwards;
+}
+
+.nm-animate-shake {
+  animation: nm-shake 0.4s var(--nm-easing-smooth);
+}
+
+.nm-animate-spin {
+  animation: nm-spin 1s linear infinite;
+}
+
+/* Stagger children animations */
+.nm-stagger > * {
+  opacity: 0;
+  animation: nm-fade-up var(--nm-duration-normal) var(--nm-easing-decelerate)
+    forwards;
+}
+
+.nm-stagger > *:nth-child(1) {
   animation-delay: 0ms;
 }
-.stagger-children > *:nth-child(2) {
+.nm-stagger > *:nth-child(2) {
   animation-delay: 50ms;
 }
-.stagger-children > *:nth-child(3) {
+.nm-stagger > *:nth-child(3) {
   animation-delay: 100ms;
 }
-.stagger-children > *:nth-child(4) {
+.nm-stagger > *:nth-child(4) {
   animation-delay: 150ms;
 }
-.stagger-children > *:nth-child(5) {
+.nm-stagger > *:nth-child(5) {
   animation-delay: 200ms;
 }
-.stagger-children > *:nth-child(6) {
+.nm-stagger > *:nth-child(6) {
   animation-delay: 250ms;
 }
-.stagger-children > *:nth-child(7) {
-  animation-delay: 300ms;
-}
-.stagger-children > *:nth-child(8) {
-  animation-delay: 350ms;
-}
-.stagger-children > *:nth-child(9) {
-  animation-delay: 400ms;
-}
-.stagger-children > *:nth-child(10) {
-  animation-delay: 450ms;
-}
 
 /* ============================================================================
-   M3 ELEVATION
+   BUTTONS - Neo-minimalist style
    ============================================================================ */
 
-.m3-elevation-0 {
-  box-shadow: none;
-}
-.m3-elevation-1 {
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    0 1px 3px rgba(0, 0, 0, 0.03);
-}
-.m3-elevation-2 {
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.02);
-}
-.m3-elevation-3 {
-  box-shadow:
-    0 4px 8px rgba(0, 0, 0, 0.04),
-    0 2px 4px rgba(0, 0, 0, 0.02);
-}
-.m3-elevation-4 {
-  box-shadow:
-    0 6px 10px rgba(0, 0, 0, 0.05),
-    0 3px 6px rgba(0, 0, 0, 0.02);
-}
-.m3-elevation-5 {
-  box-shadow:
-    0 8px 12px rgba(0, 0, 0, 0.06),
-    0 4px 8px rgba(0, 0, 0, 0.03);
-}
-
-/* ============================================================================
-   NOTEPAD LAYOUT
-   ============================================================================ */
-
-.np-container {
-  display: flex;
-  height: 100vh;
-  background: var(--m3-background);
-}
-
-.np-sidebar {
-  width: var(--np-sidebar-width);
-  background: var(--m3-surface);
-  border-right: 1px solid var(--m3-outline-variant);
-  display: flex;
-  flex-direction: column;
-}
-
-.np-sidebar-header {
-  height: var(--np-header-height);
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--m3-outline-variant);
-  background: var(--m3-surface);
-}
-
-.np-sidebar-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--m3-on-surface);
-}
-
-.np-note-list {
-  flex: 1;
-  overflow-y: auto;
-}
-
-.np-note-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  border-bottom: 1px solid var(--m3-outline-variant);
-  transition:
-    background var(--m3-duration-short2) var(--m3-easing-standard),
-    transform var(--m3-duration-short2) var(--m3-easing-standard);
-}
-
-.np-note-item:hover {
-  background: var(--m3-surface-variant);
-  transform: translateX(2px);
-}
-.np-note-item.active {
-  background: var(--m3-primary-container);
-  color: var(--m3-on-primary-container);
-}
-.np-note-item.active .np-note-date {
-  color: var(--m3-on-primary-container);
-  opacity: 0.7;
-}
-
-.np-note-title {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.np-note-date {
-  font-size: 12px;
-  color: var(--m3-on-surface-variant);
-}
-
-/* ============================================================================
-   MAIN CONTENT
-   ============================================================================ */
-
-.np-main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--m3-background);
-}
-
-.np-header {
-  height: var(--np-header-height);
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--m3-outline-variant);
-  background: var(--m3-surface);
-}
-
-.np-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.np-header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* ============================================================================
-   TOOLBAR - M3 Expressive
-   ============================================================================ */
-
-.np-toolbar {
-  height: var(--np-toolbar-height);
-  padding: 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border-bottom: 1px solid var(--m3-outline-variant);
-  background: var(--m3-surface);
-  transition: background var(--m3-duration-short2) var(--m3-easing-standard);
-}
-
-.np-toolbar-separator {
-  width: 1px;
-  height: 24px;
-  background: var(--m3-outline-variant);
-  margin: 0 8px;
-}
-
-/* ============================================================================
-   BUTTONS - M3 Expressive
-   ============================================================================ */
-
-.np-btn {
+.nm-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
+  gap: var(--nm-space-2);
+  padding: var(--nm-space-3) var(--nm-space-5);
+  font-size: 0.9375rem;
   font-weight: 500;
-  border-radius: 20px;
+  line-height: 1.5;
+  border-radius: var(--nm-radius);
   border: none;
   background: transparent;
-  color: var(--m3-on-surface);
+  color: var(--nm-text-primary);
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition:
-    background var(--m3-duration-short2) var(--m3-easing-standard),
-    transform var(--m3-duration-short1) var(--m3-easing-emphasized-decelerate),
-    box-shadow var(--m3-duration-short2) var(--m3-easing-standard);
+  transition: all var(--nm-duration-fast) var(--nm-easing-smooth);
 }
 
-.np-btn:hover {
-  background: var(--m3-surface-variant);
-}
-.np-btn:active {
-  transform: scale(0.98);
-}
-.np-btn:focus-visible {
-  outline: 2px solid var(--m3-primary);
+.nm-btn:focus-visible {
+  outline: 2px solid var(--nm-accent);
   outline-offset: 2px;
 }
 
-.np-btn-primary {
-  background: var(--m3-primary);
-  color: var(--m3-on-primary);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
-.np-btn-primary:hover {
-  background: var(--m3-primary-container);
-  color: var(--m3-on-primary-container);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-.np-btn-primary:active {
-  transform: scale(0.98);
-  box-shadow: none;
+.nm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-.np-btn-tonal {
-  background: var(--m3-secondary-container);
-  color: var(--m3-on-secondary-container);
-}
-.np-btn-tonal:hover {
-  background: var(--m3-tertiary-container);
-  color: var(--m3-on-tertiary-container);
+/* Button variants */
+.nm-btn-primary {
+  background: var(--nm-accent);
+  color: white;
+  box-shadow: var(--nm-shadow-sm);
 }
 
-.np-btn-icon {
-  padding: 8px;
-  min-width: 36px;
-  min-height: 36px;
-  border-radius: 12px;
-}
-.np-btn-icon:hover {
-  background: var(--m3-surface-variant);
-  transform: scale(1.05);
-}
-.np-btn-icon:active {
-  transform: scale(0.95);
+.nm-btn-primary:hover:not(:disabled) {
+  background: var(--nm-accent-hover);
+  box-shadow: var(--nm-shadow);
+  transform: translateY(-1px);
 }
 
-.np-btn-active {
-  background: var(--m3-primary-container);
-  color: var(--m3-on-primary-container);
-  box-shadow: inset 0 0 0 1px var(--m3-primary);
-}
-.np-btn-active:hover {
-  background: var(--m3-primary-container);
-  opacity: 0.9;
+.nm-btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--nm-shadow-sm);
 }
 
-.np-btn-sm {
-  padding: 6px 12px;
-  font-size: 13px;
-  border-radius: 18px;
+.nm-btn-secondary {
+  background: var(--nm-bg-secondary);
+  color: var(--nm-text-primary);
+  border: 1px solid var(--nm-border);
 }
 
-/* ============================================================================
-   EDITOR
-   ============================================================================ */
-
-.np-editor-container {
-  flex: 1;
-  padding: 30px 40px;
-  overflow-y: auto;
-  background: var(--m3-background);
+.nm-btn-secondary:hover:not(:disabled) {
+  background: var(--nm-bg-tertiary);
+  border-color: var(--nm-border-hover);
+  transform: translateY(-1px);
 }
 
-.np-editor {
-  max-width: 900px;
-  margin: 0 auto;
-  min-height: 100%;
-  padding: 0 20px;
-}
-
-.np-editor-title {
-  width: 100%;
-  font-size: 32px;
-  font-weight: 600;
-  border: none;
-  outline: none;
+.nm-btn-ghost {
   background: transparent;
-  color: var(--m3-on-background);
-  margin-bottom: 24px;
-  padding: 0;
-  transition: color var(--m3-duration-short2) var(--m3-easing-standard);
+  color: var(--nm-text-secondary);
 }
 
-.np-editor-title::placeholder {
-  color: var(--m3-on-surface-variant);
-  opacity: 0.6;
-}
-.np-editor-title:focus {
-  color: var(--m3-primary);
+.nm-btn-ghost:hover:not(:disabled) {
+  background: var(--nm-accent-muted);
+  color: var(--nm-accent);
 }
 
-.np-editor-content {
-  font-size: 20px;
-  line-height: 1.8;
-}
-.np-editor-content p {
-  margin-bottom: 20px;
-}
-.np-editor-content h1 {
-  font-size: 28px;
-  font-weight: 600;
-  margin: 32px 0 16px;
-  color: var(--m3-on-background);
-}
-.np-editor-content h2 {
-  font-size: 24px;
-  font-weight: 600;
-  margin: 28px 0 14px;
-  color: var(--m3-on-background);
-}
-.np-editor-content ul,
-.np-editor-content ol {
-  margin: 20px 0;
-  padding-left: 32px;
-}
-.np-editor-content li {
-  margin: 8px 0;
+.nm-btn-text {
+  background: transparent;
+  color: var(--nm-accent);
+  padding: var(--nm-space-2) var(--nm-space-3);
 }
 
-.np-editor-content blockquote {
-  border-left: 4px solid var(--m3-primary);
-  padding-left: 20px;
-  margin: 24px 0;
-  color: var(--m3-on-surface-variant);
-  font-size: 18px;
-  font-style: italic;
-  background: var(--m3-surface-variant);
-  padding: 16px 20px;
-  border-radius: 0 8px 8px 0;
+.nm-btn-text:hover:not(:disabled) {
+  background: var(--nm-accent-muted);
 }
 
-.np-editor-content code {
-  background: var(--m3-surface-variant);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-family: "SF Mono", Monaco, monospace;
-  font-size: 16px;
-}
-.np-editor-content pre {
-  background: var(--m3-surface-variant);
-  padding: 20px;
-  border-radius: 12px;
-  overflow-x: auto;
-  margin: 24px 0;
-  font-size: 16px;
-}
-.np-editor-content pre code {
-  background: none;
-  padding: 0;
-  font-size: 16px;
+/* Button sizes */
+.nm-btn-sm {
+  padding: var(--nm-space-2) var(--nm-space-3);
+  font-size: 0.875rem;
+  border-radius: var(--nm-radius-sm);
 }
 
-.np-editor-content p.is-editor-empty:first-child::before {
-  color: var(--m3-on-surface-variant);
-  content: attr(data-placeholder);
-  float: left;
-  height: 0;
-  pointer-events: none;
-  opacity: 0.4;
-  font-style: italic;
+.nm-btn-lg {
+  padding: var(--nm-space-4) var(--nm-space-6);
+  font-size: 1rem;
+  border-radius: var(--nm-radius-md);
 }
 
-/* Collaborative Cursors */
-.collaboration-cursor__caret {
-  border-left: 2px solid #0d0d0d;
-  border-right: 2px solid #0d0d0d;
-  margin-left: -2px;
-  margin-right: -2px;
-  pointer-events: none;
-  position: relative;
-  word-break: normal;
-}
-
-.collaboration-cursor__label {
-  border-radius: 4px 4px 4px 0;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
-  left: -2px;
-  line-height: normal;
-  padding: 2px 6px;
-  position: absolute;
-  top: -1.5em;
-  user-select: none;
-  white-space: nowrap;
-  animation: m3-scale-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-/* Editor default cursor fix */
-.ProseMirror {
-  caret-color: var(--m3-primary);
-}
-
-.ProseMirror:focus {
-  outline: none;
-}
-
-/* ============================================================================
-   INPUTS - M3 Expressive
-   ============================================================================ */
-
-.np-input {
+.nm-btn-full {
   width: 100%;
-  padding: 12px 16px;
-  font-size: 14px;
-  border: 1px solid var(--m3-outline);
-  border-radius: 4px;
-  background: var(--m3-surface);
-  color: var(--m3-on-surface);
-  outline: none;
-  transition:
-    border-color var(--m3-duration-short2) var(--m3-easing-standard),
-    box-shadow var(--m3-duration-short2) var(--m3-easing-standard);
 }
 
-.np-input:focus {
-  border-color: var(--m3-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.np-input::placeholder {
-  color: var(--m3-on-surface-variant);
-  opacity: 0.6;
-}
-
-.np-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--m3-on-surface);
-  margin-bottom: 8px;
+/* Icon button */
+.nm-btn-icon {
+  padding: var(--nm-space-2);
+  border-radius: var(--nm-radius);
 }
 
 /* ============================================================================
-   CARDS - M3 Expressive
+   INPUTS - Clean, minimal style
    ============================================================================ */
 
-.np-card {
-  background: var(--m3-surface);
-  border: 1px solid var(--m3-outline-variant);
-  border-radius: 12px;
-  padding: 24px;
-  transition:
-    box-shadow var(--m3-duration-short3) var(--m3-easing-standard),
-    transform var(--m3-duration-short2) var(--m3-easing-standard);
+.nm-input {
+  width: 100%;
+  padding: var(--nm-space-3) var(--nm-space-4);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--nm-text-primary);
+  background: var(--nm-bg-elevated);
+  border: 1px solid var(--nm-border);
+  border-radius: var(--nm-radius);
+  outline: none;
+  transition: all var(--nm-duration-fast) var(--nm-easing-smooth);
 }
 
-.np-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+.nm-input::placeholder {
+  color: var(--nm-text-muted);
+}
+
+.nm-input:hover {
+  border-color: var(--nm-border-hover);
+}
+
+.nm-input:focus {
+  border-color: var(--nm-accent);
+  box-shadow: 0 0 0 3px var(--nm-accent-muted);
+}
+
+.nm-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--nm-bg-secondary);
+}
+
+.nm-input-error {
+  border-color: var(--nm-error);
+}
+
+.nm-input-error:focus {
+  border-color: var(--nm-error);
+  box-shadow: 0 0 0 3px var(--nm-error-light);
+}
+
+/* Input with icon */
+.nm-input-wrapper {
+  position: relative;
+}
+
+.nm-input-icon {
+  position: absolute;
+  left: var(--nm-space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nm-text-tertiary);
+  pointer-events: none;
+  transition: color var(--nm-duration-fast) var(--nm-easing-smooth);
+}
+
+.nm-input-wrapper:focus-within .nm-input-icon {
+  color: var(--nm-accent);
+}
+
+.nm-input-wrapper .nm-input {
+  padding-left: var(--nm-space-10);
+}
+
+/* Label */
+.nm-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nm-text-primary);
+  margin-bottom: var(--nm-space-2);
+}
+
+.nm-label-required::after {
+  content: "*";
+  color: var(--nm-error);
+  margin-left: 2px;
+}
+
+/* Hint text */
+.nm-hint {
+  font-size: 0.8125rem;
+  color: var(--nm-text-tertiary);
+  margin-top: var(--nm-space-1);
+}
+
+/* Error text */
+.nm-error {
+  font-size: 0.8125rem;
+  color: var(--nm-error);
+  margin-top: var(--nm-space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--nm-space-1);
+}
+
+/* ============================================================================
+   CARDS - Subtle elevation
+   ============================================================================ */
+
+.nm-card {
+  background: var(--nm-bg-elevated);
+  border: 1px solid var(--nm-border);
+  border-radius: var(--nm-radius-lg);
+  box-shadow: var(--nm-shadow-sm);
+  transition: all var(--nm-duration-normal) var(--nm-easing-smooth);
+}
+
+.nm-card:hover {
+  box-shadow: var(--nm-shadow);
   transform: translateY(-2px);
 }
 
+.nm-card-flat {
+  background: var(--nm-bg-secondary);
+  border: none;
+  box-shadow: none;
+}
+
+.nm-card-elevated {
+  box-shadow: var(--nm-shadow-md);
+}
+
+.nm-card-elevated:hover {
+  box-shadow: var(--nm-shadow-lg);
+}
+
 /* ============================================================================
-   MODALS - M3 Expressive
+   MODALS - Clean overlay
    ============================================================================ */
 
-.np-modal-overlay {
+.nm-modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
@@ -971,426 +688,568 @@ html {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: m3-fade-in var(--m3-duration-short3) var(--m3-easing-standard)
-    forwards;
+  padding: var(--nm-space-4);
+  animation: nm-fade-in var(--nm-duration-fast) var(--nm-easing-smooth);
 }
 
-.np-modal {
-  background: var(--m3-surface);
-  border-radius: 28px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
-  min-width: 400px;
-  max-width: 90vw;
+.nm-modal {
+  background: var(--nm-bg-elevated);
+  border: 1px solid var(--nm-border);
+  border-radius: var(--nm-radius-xl);
+  box-shadow: var(--nm-shadow-xl);
+  width: 100%;
+  max-width: 480px;
   max-height: 90vh;
-  overflow-y: auto;
-  animation: m3-unfold-in var(--m3-duration-medium3) var(--m3-easing-emphasized)
-    forwards;
+  overflow: hidden;
+  animation: nm-scale-in var(--nm-duration-normal) var(--nm-easing-bounce);
 }
 
-.np-modal-header {
-  padding: 24px 28px 16px;
-  border-bottom: 1px solid var(--m3-outline-variant);
+.nm-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: var(--nm-space-5) var(--nm-space-6);
+  border-bottom: 1px solid var(--nm-border);
 }
-.np-modal-title {
-  font-size: 24px;
-  font-weight: 500;
-  color: var(--m3-on-surface);
+
+.nm-modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--nm-text-primary);
 }
-.np-modal-body {
-  padding: 20px;
+
+.nm-modal-body {
+  padding: var(--nm-space-6);
+  overflow-y: auto;
 }
-.np-modal-footer {
-  padding: 16px 20px;
-  border-top: 1px solid var(--m3-outline-variant);
+
+.nm-modal-footer {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--nm-space-3);
+  padding: var(--nm-space-4) var(--nm-space-6);
+  border-top: 1px solid var(--nm-border);
+  background: var(--nm-bg-secondary);
 }
 
 /* ============================================================================
-   SEARCH & REST
+   SIDEBAR - Clean navigation
    ============================================================================ */
 
-.np-search {
-  position: relative;
-  width: 100%;
-}
-.np-search input {
-  width: 100%;
-  padding: 8px 12px 8px 36px;
-  font-size: 14px;
-  border: 1px solid var(--m3-outline);
-  border-radius: 4px;
-  background: var(--m3-surface);
-  outline: none;
-}
-.np-search input:focus {
-  border-color: var(--m3-primary);
-}
-.np-search-icon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--m3-on-surface-variant);
-}
-
-.np-empty {
+.nm-sidebar {
+  width: var(--nm-sidebar-width);
+  height: 100vh;
+  background: var(--nm-bg-secondary);
+  border-right: 1px solid var(--nm-border);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: var(--m3-on-surface-variant);
-  text-align: center;
-}
-.np-empty-icon {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 16px;
-  color: var(--m3-outline);
+  transition: all var(--nm-duration-normal) var(--nm-easing-smooth);
 }
 
-.np-statusbar {
-  height: 24px;
-  padding: 0 16px;
+.nm-sidebar-header {
+  height: var(--nm-header-height);
+  padding: 0 var(--nm-space-5);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--m3-surface-variant);
-  border-top: 1px solid var(--m3-outline-variant);
-  font-size: 12px;
-  color: var(--m3-on-surface-variant);
+  border-bottom: 1px solid var(--nm-border);
 }
 
-.np-auth-page {
+.nm-sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--nm-space-3);
+  font-weight: 600;
+  font-size: 1.125rem;
+  color: var(--nm-text-primary);
+}
+
+.nm-sidebar-nav {
+  flex: 1;
+  padding: var(--nm-space-4);
+  overflow-y: auto;
+}
+
+.nm-sidebar-section {
+  margin-bottom: var(--nm-space-6);
+}
+
+.nm-sidebar-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nm-text-muted);
+  padding: 0 var(--nm-space-3);
+  margin-bottom: var(--nm-space-2);
+}
+
+.nm-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--nm-space-3);
+  padding: var(--nm-space-2) var(--nm-space-3);
+  border-radius: var(--nm-radius);
+  color: var(--nm-text-secondary);
+  font-size: 0.9375rem;
+  cursor: pointer;
+  transition: all var(--nm-duration-fast) var(--nm-easing-smooth);
+}
+
+.nm-sidebar-item:hover {
+  background: var(--nm-accent-muted);
+  color: var(--nm-accent);
+}
+
+.nm-sidebar-item.active {
+  background: var(--nm-accent-subtle);
+  color: var(--nm-accent);
+  font-weight: 500;
+}
+
+.nm-sidebar-footer {
+  padding: var(--nm-space-4);
+  border-top: 1px solid var(--nm-border);
+}
+
+/* ============================================================================
+   AUTH LAYOUT
+   ============================================================================ */
+
+.nm-auth-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--m3-background);
-  padding: 20px;
+  padding: var(--nm-space-6);
+  background: var(--nm-bg-primary);
 }
-.np-auth-card {
-  background: var(--m3-surface);
-  border: 1px solid var(--m3-outline-variant);
-  border-radius: 16px;
-  padding: 40px;
+
+.nm-auth-card {
   width: 100%;
-  max-width: 400px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  max-width: var(--nm-form-max-width);
+  background: var(--nm-bg-elevated);
+  border: 1px solid var(--nm-border);
+  border-radius: var(--nm-radius-xl);
+  box-shadow: var(--nm-shadow-lg);
+  padding: var(--nm-space-8);
+  animation: nm-fade-up var(--nm-duration-normal) var(--nm-easing-decelerate);
 }
-.np-auth-logo {
+
+.nm-auth-header {
   text-align: center;
-  margin-bottom: 32px;
+  margin-bottom: var(--nm-space-8);
 }
-.np-auth-logo-icon {
+
+.nm-auth-logo {
   width: 48px;
   height: 48px;
-  margin: 0 auto 16px;
-  color: var(--m3-primary);
-}
-.np-auth-title {
-  font-size: 24px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: var(--m3-on-surface);
-}
-.np-auth-subtitle {
-  font-size: 14px;
-  color: var(--m3-on-surface-variant);
+  margin: 0 auto var(--nm-space-4);
+  color: var(--nm-accent);
 }
 
-.np-menu {
+.nm-auth-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--nm-text-primary);
+  margin-bottom: var(--nm-space-2);
+}
+
+.nm-auth-subtitle {
+  font-size: 0.9375rem;
+  color: var(--nm-text-secondary);
+}
+
+.nm-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nm-space-5);
+}
+
+.nm-auth-divider {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 8px;
-}
-.np-menu-item {
-  padding: 4px 12px;
-  font-size: 13px;
-  color: var(--m3-on-surface);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background var(--m3-duration-short2) var(--m3-easing-standard);
-}
-.np-menu-item:hover {
-  background: var(--m3-surface-variant);
+  gap: var(--nm-space-3);
+  margin: var(--nm-space-4) 0;
+  color: var(--nm-text-muted);
+  font-size: 0.875rem;
 }
 
-.np-toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 12px 16px;
-  background: var(--m3-on-surface);
-  color: var(--m3-surface);
-  border-radius: 8px;
-  font-size: 14px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1001;
+.nm-auth-divider::before,
+.nm-auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--nm-border);
 }
 
-/* SCROLLBAR */
+.nm-auth-footer {
+  text-align: center;
+  margin-top: var(--nm-space-6);
+  padding-top: var(--nm-space-6);
+  border-top: 1px solid var(--nm-border);
+  font-size: 0.9375rem;
+  color: var(--nm-text-secondary);
+}
+
+/* ============================================================================
+   SCROLLBAR - Minimal style
+   ============================================================================ */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--m3-outline-variant);
+  background: var(--nm-border);
   border-radius: 4px;
-  transition: background var(--m3-duration-short2) var(--m3-easing-standard);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--m3-on-surface-variant);
+  background: var(--nm-border-hover);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nm-border) transparent;
 }
 
 /* ============================================================================
-   BEAUTIFUL UI ENHANCEMENTS - Micro-interactions & Smooth Effects
+   FOCUS STATES - Accessibility
    ============================================================================ */
 
-/* Smooth scrolling */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Enhanced focus states with spring animation */
-*:focus-visible {
-  outline: 2px solid var(--m3-primary);
+:focus-visible {
+  outline: 2px solid var(--nm-accent);
   outline-offset: 2px;
-  transition: outline-offset var(--m3-duration-short2)
-    var(--m3-spring-emphasized);
 }
 
-/* Button press effect with spring */
-.np-btn,
-button:not(.np-btn) {
-  transition:
-    transform var(--m3-duration-short2) var(--m3-spring-emphasized),
-    box-shadow var(--m3-duration-short2) var(--m3-easing-standard),
-    background-color var(--m3-duration-short2) var(--m3-easing-standard);
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
 
-.np-btn:active,
-button:not(.np-btn):active {
-  transform: scale(0.96);
+/* ============================================================================
+   REDUCED MOTION - Respect user preferences
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
 }
 
-/* Card hover lift with shadow */
-.np-card,
-.np-note-item {
-  transition:
-    transform var(--m3-duration-medium2) var(--m3-spring-emphasized),
-    box-shadow var(--m3-duration-medium2) var(--m3-easing-standard),
-    background-color var(--m3-duration-short2) var(--m3-easing-standard);
+/* ============================================================================
+   SELECTION - Consistent text selection
+   ============================================================================ */
+
+::selection {
+  background: var(--nm-accent-subtle);
+  color: var(--nm-accent);
 }
 
-.np-card:hover,
-.np-note-item:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--m3-elevation-2);
+/* ============================================================================
+   LEGACY M3 COMPATIBILITY - Preserve old classes
+   ============================================================================ */
+
+.np-container {
+  display: flex;
+  height: 100vh;
+  background: var(--nm-bg-primary);
 }
 
-/* Input focus glow effect */
+.np-sidebar {
+  width: var(--nm-sidebar-width);
+  background: var(--nm-bg-secondary);
+  border-right: 1px solid var(--nm-border);
+}
+
+.np-btn {
+  composes: nm-btn;
+}
+
+.np-btn-primary {
+  composes: nm-btn nm-btn-primary;
+}
+
 .np-input {
-  transition:
-    border-color var(--m3-duration-short2) var(--m3-easing-standard),
-    box-shadow var(--m3-duration-short2) var(--m3-easing-standard),
-    transform var(--m3-duration-short2) var(--m3-spring-emphasized);
+  composes: nm-input;
 }
 
-.np-input:focus {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.15);
+.np-card {
+  composes: nm-card;
 }
 
-/* Link hover underline animation */
-a {
-  position: relative;
-  text-decoration: none;
+.np-modal {
+  composes: nm-modal;
 }
 
-a::after {
-  content: "";
+.np-modal-overlay {
+  composes: nm-modal-overlay;
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.nm-sr-only {
   position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--m3-primary);
-  transition: width var(--m3-duration-medium2) var(--m3-spring-emphasized);
-}
-
-a:hover::after {
-  width: 100%;
-}
-
-/* Page content fade in */
-.page-content {
-  animation: m3-fade-in var(--m3-duration-medium3)
-    var(--m3-easing-emphasized-decelerate) forwards;
-}
-
-/* Loading shimmer effect */
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-.loading-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--m3-surface-variant) 25%,
-    var(--m3-surface) 50%,
-    var(--m3-surface-variant) 75%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-/* Hover scale for interactive elements */
-.hover-lift {
-  transition: transform var(--m3-duration-short2) var(--m3-spring-emphasized);
-}
-
-.hover-lift:hover {
-  transform: translateY(-2px) scale(1.02);
-}
-
-/* Ripple effect base */
-.ripple {
-  position: relative;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
   overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.ripple::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition:
-    width 0.6s ease-out,
-    height 0.6s ease-out,
-    opacity 0.6s ease-out;
-  opacity: 0;
+.nm-text-balance {
+  text-wrap: balance;
 }
 
-.ripple:active::before {
-  width: 300px;
-  height: 300px;
-  opacity: 1;
-  transition: 0s;
+.nm-container {
+  width: 100%;
+  max-width: var(--nm-content-max-width);
+  margin: 0 auto;
+  padding: 0 var(--nm-space-4);
 }
 
-/* Glass morphism enhancement */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+/* ============================================================================
+   CARD OVERRIDES & UTILITIES
+   ============================================================================ */
+
+.nm-card-outlined {
+  background: transparent;
+  border: 1px solid var(--nm-border);
+  border-radius: var(--nm-radius-lg);
+  box-shadow: none;
 }
 
-[data-theme="dark"] .glass {
-  background: rgba(30, 30, 30, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.nm-card-clickable {
+  cursor: pointer;
 }
 
-/* Magnetic button effect preparation */
-.magnetic {
-  transition: transform var(--m3-duration-short1) linear;
+.nm-card-clickable:focus-visible {
+  outline: 2px solid var(--nm-accent);
+  outline-offset: 2px;
 }
 
-/* Stagger animation for lists */
-.stagger-list > * {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: stagger-item 0.5s var(--m3-spring-emphasized) forwards;
+/* ============================================================================
+   LAYOUT UTILITIES
+   ============================================================================ */
+
+.nm-flex {
+  display: flex;
 }
 
-@keyframes stagger-item {
-  to {
-    opacity: 1;
-    transform: translateY(0);
+.nm-flex-col {
+  flex-direction: column;
+}
+
+.nm-items-center {
+  align-items: center;
+}
+
+.nm-justify-between {
+  justify-content: space-between;
+}
+
+.nm-gap-2 {
+  gap: var(--nm-space-2);
+}
+
+.nm-gap-3 {
+  gap: var(--nm-space-3);
+}
+
+.nm-gap-4 {
+  gap: var(--nm-space-4);
+}
+
+/* ============================================================================
+   VISIBILITY UTILITIES
+   ============================================================================ */
+
+.nm-hidden {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .nm-md-block {
+    display: block;
+  }
+
+  .nm-md-flex {
+    display: flex;
   }
 }
 
-.stagger-list > *:nth-child(1) {
-  animation-delay: 0ms;
-}
-.stagger-list > *:nth-child(2) {
-  animation-delay: 50ms;
-}
-.stagger-list > *:nth-child(3) {
-  animation-delay: 100ms;
-}
-.stagger-list > *:nth-child(4) {
-  animation-delay: 150ms;
-}
-.stagger-list > *:nth-child(5) {
-  animation-delay: 200ms;
-}
-.stagger-list > *:nth-child(6) {
-  animation-delay: 250ms;
-}
-.stagger-list > *:nth-child(7) {
-  animation-delay: 300ms;
-}
-.stagger-list > *:nth-child(8) {
-  animation-delay: 350ms;
+/* ============================================================================
+   TEXT UTILITIES
+   ============================================================================ */
+
+.nm-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* Pulse glow effect */
-.pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
+.nm-text-center {
+  text-align: center;
 }
 
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 5px var(--m3-primary-container);
-  }
-  50% {
-    box-shadow:
-      0 0 20px var(--m3-primary-container),
-      0 0 40px var(--m3-primary);
-  }
+.nm-text-sm {
+  font-size: 0.875rem;
 }
 
-/* Smooth page transitions */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(20px);
+.nm-text-xs {
+  font-size: 0.75rem;
 }
 
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity var(--m3-duration-medium3) var(--m3-easing-emphasized-decelerate),
-    transform var(--m3-duration-medium3) var(--m3-spring-emphasized);
+.nm-font-medium {
+  font-weight: 500;
 }
 
-.page-transition-exit {
-  opacity: 1;
+.nm-font-semibold {
+  font-weight: 600;
 }
 
-.page-transition-exit-active {
-  opacity: 0;
-  transition: opacity var(--m3-duration-short3) var(--m3-easing-standard);
+.nm-uppercase {
+  text-transform: uppercase;
+}
+
+.nm-tracking-wide {
+  letter-spacing: 0.025em;
+}
+
+/* ============================================================================
+   SPACING UTILITIES
+   ============================================================================ */
+
+.nm-p-4 {
+  padding: var(--nm-space-4);
+}
+
+.nm-p-6 {
+  padding: var(--nm-space-6);
+}
+
+.nm-py-2 {
+  padding-top: var(--nm-space-2);
+  padding-bottom: var(--nm-space-2);
+}
+
+.nm-px-3 {
+  padding-left: var(--nm-space-3);
+  padding-right: var(--nm-space-3);
+}
+
+.nm-mb-2 {
+  margin-bottom: var(--nm-space-2);
+}
+
+.nm-mb-4 {
+  margin-bottom: var(--nm-space-4);
+}
+
+.nm-mt-4 {
+  margin-top: var(--nm-space-4);
+}
+
+/* ============================================================================
+   BACKGROUND UTILITIES
+   ============================================================================ */
+
+.nm-bg-primary {
+  background-color: var(--nm-bg-primary);
+}
+
+.nm-bg-secondary {
+  background-color: var(--nm-bg-secondary);
+}
+
+.nm-bg-elevated {
+  background-color: var(--nm-bg-elevated);
+}
+
+/* ============================================================================
+   BORDER UTILITIES
+   ============================================================================ */
+
+.nm-border {
+  border: 1px solid var(--nm-border);
+}
+
+.nm-border-b {
+  border-bottom: 1px solid var(--nm-border);
+}
+
+.nm-border-t {
+  border-top: 1px solid var(--nm-border);
+}
+
+.nm-rounded {
+  border-radius: var(--nm-radius);
+}
+
+.nm-rounded-lg {
+  border-radius: var(--nm-radius-lg);
+}
+
+/* ============================================================================
+   DASHBOARD LAYOUT
+   ============================================================================ */
+
+.nm-dashboard {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--nm-bg-primary);
+}
+
+.nm-dashboard-sidebar {
+  width: var(--nm-sidebar-width);
+  display: flex;
+  flex-direction: column;
+  background: var(--nm-bg-secondary);
+  border-right: 1px solid var(--nm-border);
+}
+
+.nm-dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--nm-bg-primary);
+}
+
+.nm-dashboard-header {
+  height: var(--nm-header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--nm-space-6);
+  border-bottom: 1px solid var(--nm-border);
+  background: var(--nm-bg-elevated);
+}
+
+.nm-dashboard-content {
+  flex: 1;
+  overflow: auto;
+  padding: var(--nm-space-6);
 }

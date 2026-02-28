@@ -60,9 +60,7 @@ async function registerUser(
   await page.goto(BASE_URL);
   await page.waitForLoadState("networkidle");
 
-  const createAccountBtn = page.locator(
-    'button:has-text("Create a new account")',
-  );
+  const createAccountBtn = page.locator('button:has-text("Create an account")');
   await createAccountBtn.waitFor({ state: "visible", timeout: 15000 });
   await createAccountBtn.click();
 
@@ -82,7 +80,7 @@ async function registerUser(
   await passwordInput.waitFor({ state: "visible", timeout: 5000 });
   await passwordInput.fill(password);
 
-  const confirmInput = page.locator("#reg-confirm-password");
+  const confirmInput = page.locator("#reg-confirm");
   await confirmInput.fill(password);
 
   const submitBtn = page

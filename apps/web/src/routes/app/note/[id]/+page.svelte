@@ -203,7 +203,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
 
     <div class="flex-1 overflow-y-auto p-3">
       {#if note}
-        <div class="text-sm text-[var(--np-text-muted)] mb-2">Current Note</div>
+        <div class="text-sm text-[var(--ui-text-muted)] mb-2">Current Note</div>
         <div class="np-note-item active mb-2">
           <div class="np-note-title">{note.title || "Untitled Note"}</div>
           <div class="np-note-date">
@@ -212,7 +212,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
         </div>
 
         <div
-          class="mt-4 text-xs text-[var(--np-text-muted)] space-y-1 border-t border-[var(--np-border)] pt-3"
+          class="mt-4 text-xs text-[var(--ui-text-muted)] space-y-1 border-t border-[var(--ui-border)] pt-3"
         >
           <div>Status: {networkStatus.isOnline ? "Online" : "Offline"}</div>
           {#if networkStatus.peerCount > 0}
@@ -229,14 +229,14 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
   <main class="np-main">
     {#if isLoading}
       <div
-        class="h-full flex items-center justify-center text-[var(--np-text-muted)]"
+        class="h-full flex items-center justify-center text-[var(--ui-text-muted)]"
       >
         Loading...
       </div>
     {:else if error}
       <div class="h-full flex items-center justify-center">
         <div class="text-center">
-          <p class="text-[var(--np-error)] mb-4">{error}</p>
+          <p class="text-[var(--ui-error)] mb-4">{error}</p>
           <button class="np-btn np-btn-primary" onclick={() => goto("/app")}>
             Back to Notes
           </button>
@@ -587,7 +587,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
         handleProtectNote();
       }}
     >
-      <p class="text-sm text-[var(--np-text-muted)]">
+      <p class="text-sm text-[var(--ui-text-muted)]">
         Add a password to protect this note. The password is stored only on your
         device.
       </p>
@@ -612,7 +612,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
         />
       </div>
       {#if protectError}
-        <div class="text-sm text-[var(--np-error)]">{protectError}</div>
+        <div class="text-sm text-[var(--ui-error)]">{protectError}</div>
       {/if}
       <div class="flex gap-2 justify-end">
         <button
@@ -644,7 +644,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     }}
     class="space-y-4"
   >
-    <p class="text-[var(--np-text-muted)]">
+    <p class="text-[var(--ui-text-muted)]">
       This note is password protected. Please enter the password to view it.
     </p>
     <label class="sr-only" for="password-attempt">Password</label>
@@ -656,7 +656,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
       placeholder="Enter password"
     />
     {#if passwordError}
-      <div class="text-sm text-[var(--np-error)]">{passwordError}</div>
+      <div class="text-sm text-[var(--ui-error)]">{passwordError}</div>
     {/if}
     <div class="flex gap-2 justify-end">
       <button class="np-btn" onclick={() => goto("/app")}>Cancel</button>
@@ -672,8 +672,8 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     align-items: center;
     gap: 4px;
     padding: 4px 12px;
-    background: var(--np-bg-secondary);
-    border-bottom: 1px solid var(--np-border);
+    background: var(--ui-surface);
+    border-bottom: 1px solid var(--ui-border);
   }
 
   .np-menu-group {
@@ -684,7 +684,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     padding: 6px 12px;
     font-size: 14px;
     font-weight: 500;
-    color: var(--np-text);
+    color: var(--ui-text);
     background: transparent;
     border: none;
     cursor: pointer;
@@ -692,7 +692,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
   }
 
   .np-menu-item:hover {
-    background: var(--np-bg);
+    background: var(--ui-bg);
   }
 
   .np-menu-group:hover .np-menu-dropdown {
@@ -705,8 +705,8 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     top: 100%;
     left: 0;
     min-width: 180px;
-    background: var(--np-bg);
-    border: 1px solid var(--np-border);
+    background: var(--ui-surface);
+    border: 1px solid var(--ui-border);
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     z-index: 100;
@@ -723,24 +723,24 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     border: none;
     cursor: pointer;
     border-radius: 4px;
-    color: var(--np-text);
+    color: var(--ui-text);
   }
 
   .np-menu-dropdown-item:hover {
-    background: var(--np-bg-secondary);
+    background: var(--ui-surface-elevated);
   }
 
   .np-menu-separator {
     height: 1px;
-    background: var(--np-border);
+    background: var(--ui-border);
     margin: 4px 0;
   }
 
   /* Title Bar */
   .np-title-bar {
     padding: 16px 24px 8px;
-    background: var(--np-bg);
-    border-bottom: 1px solid var(--np-border-light);
+    background: var(--ui-bg);
+    border-bottom: 1px solid var(--ui-border);
   }
 
   .np-title-input {
@@ -750,12 +750,12 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     border: none;
     outline: none;
     background: transparent;
-    color: var(--np-text);
+    color: var(--ui-text);
     padding: 0;
   }
 
   .np-title-input::placeholder {
-    color: var(--np-text-light);
+    color: var(--ui-text-muted);
   }
 
   /* Toolbar Improvements */
@@ -764,8 +764,8 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: var(--np-bg);
-    border-bottom: 1px solid var(--np-border);
+    background: var(--ui-bg);
+    border-bottom: 1px solid var(--ui-border);
   }
 
   .np-toolbar-group {

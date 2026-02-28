@@ -19,7 +19,7 @@ test.describe("Password Protection Audit", () => {
     // Switch to Register
     const createBtn = page
       .locator("button")
-      .filter({ hasText: "Create a new account" });
+      .filter({ hasText: "Create an account" });
     await createBtn.waitFor({ state: "visible", timeout: 15000 });
     await createBtn.click();
 
@@ -34,7 +34,7 @@ test.describe("Password Protection Audit", () => {
       .click();
 
     await page.locator("#reg-password").fill("TestPass123");
-    await page.locator("#reg-confirm-password").fill("TestPass123");
+    await page.locator("#reg-confirm").fill("TestPass123");
     await page
       .locator("button")
       .filter({ hasText: /^Create Account$/ })
@@ -104,7 +104,7 @@ test.describe("Password Protection Audit", () => {
 
     await pageB
       .locator("button")
-      .filter({ hasText: "Create a new account" })
+      .filter({ hasText: "Create an account" })
       .click();
     await pageB.locator("#reg-username").waitFor({ state: "visible" });
     await pageB.locator("#reg-username").fill("user_b_" + Date.now());
@@ -114,7 +114,7 @@ test.describe("Password Protection Audit", () => {
       .filter({ hasText: "Create a secure password" })
       .click();
     await pageB.locator("#reg-password").fill("TestPass123");
-    await pageB.locator("#reg-confirm-password").fill("TestPass123");
+    await pageB.locator("#reg-confirm").fill("TestPass123");
     await pageB
       .locator("button")
       .filter({ hasText: /^Create Account$/ })

@@ -23,9 +23,7 @@ NOTEPAD APP LAYOUT
 {#if auth.isAuthenticated}
   {@render children()}
 {:else}
-  <div
-    class="h-screen flex items-center justify-center bg-[var(--np-bg-secondary)]"
-  >
-    <div class="text-[var(--np-text-muted)]">Loading...</div>
+  <div class="h-screen flex items-center justify-center bg-[var(--ui-surface)]">
+    <div class="text-[var(--ui-text-muted)]">Loading...</div>
   </div>
 {/if}

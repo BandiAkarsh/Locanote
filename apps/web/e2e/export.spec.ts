@@ -19,7 +19,7 @@ test.describe("Note Export", () => {
 
     // Register
     const createAccountBtn = page.locator(
-      'button:has-text("Create a new account")',
+      'button:has-text("Create an account")',
     );
     await createAccountBtn.click();
     await page.locator("#reg-username").fill("export_user_" + Date.now());
@@ -29,7 +29,7 @@ test.describe("Note Export", () => {
       .first()
       .click();
     await page.locator("#reg-password").fill("TestPass123!");
-    await page.locator("#reg-confirm-password").fill("TestPass123!");
+    await page.locator("#reg-confirm").fill("TestPass123!");
     await page
       .locator("button")
       .filter({ hasText: /^Create Account$/ })
