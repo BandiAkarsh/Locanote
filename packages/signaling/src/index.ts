@@ -23,7 +23,7 @@ export interface Env {
   SIGNALING_ROOMS: DurableObjectNamespace;
   ALLOWED_ORIGINS: string;
   SIGNALING_SECRET: string;
-  RATE_LIMIT_KV: KVNamespace;
+  RATE_LIMIT_KV?: KVNamespace;
 }
 
 // ============================================================================
@@ -233,14 +233,18 @@ async function validateRequest(
     userId = auth.userId;
   }
 
-  // Rate limit by IP
+  // Rate limit by IP (optional - skip if KV not configured)
   const clientIP = request.headers.get("CF-Connecting-IP") ?? "unknown";
-  const ipLimit = await checkRateLimit(
-    env.RATE_LIMIT_KV,
-    `ip:${clientIP}`,
-    "connections",
-    SECURITY_CONFIG.maxConnectionsPerIP,
-  );
+  let ipLimit = { allowed: true, remaining: 999 };
+
+  if (env.RATE_LIMIT_KV) {
+    ipLimit = await checkRateLimit(
+      env.RATE_LIMIT_KV,
+      `ip:${clientIP}`,
+      "connections",
+      SECURITY_CONFIG.maxConnectionsPerIP,
+    );
+  }
 
   if (!ipLimit.allowed) {
     return { valid: false, error: "Rate limit exceeded" };

@@ -5,14 +5,7 @@
 # 
 # USAGE:
 #   wrangler deploy                    # Deploy to production
-#   wrangler deploy --env staging     # Deploy to staging
 #   wrangler dev                       # Local development
-#   wrangler secret put SIGNALING_SECRET  # Set secret
-#
-# SETUP:
-#   1. wrangler login                 # Authenticate with Cloudflare
-#   2. wrangler deploy                # First deployment
-#   3. wrangler secret put SIGNALING_SECRET  # Set your secret
 # =============================================================================
 
 name = "locanote-signaling"
@@ -20,71 +13,23 @@ main = "src/index.ts"
 compatibility_date = "2026-02-28"
 compatibility_flags = ["nodejs_compat"]
 
-# Workers AI (optional - for future AI features)
-# [[ai]]
-# binding = "AI"
-
 # =============================================================================
 # DURABLE OBJECTS
 # =============================================================================
 # WebSocket connections are managed via Durable Objects
-# Each room is a separate Durable Object instance
 
 [[durable_objects.bindings]]
 name = "SIGNALING_ROOMS"
 class_name = "SecuredSignalingRoom"
 
-# Migrations - update tag when schema changes
+# Migrations
 [[migrations]]
 tag = "v1"
-new_sqlite_classes = ["SecaledSignalingRoom"]
-
-# =============================================================================
-# KV NAMESPACES
-# =============================================================================
-# Rate limiting storage
-
-[[kv_namespaces]]
-binding = "RATE_LIMIT_KV"
-id = ""  # Auto-created on first deploy
-
-# Room metadata cache (optional)
-[[kv_namespaces]]
-binding = "ROOM_CACHE"
-id = ""  # Auto-created on first deploy
 
 # =============================================================================
 # ENVIRONMENT VARIABLES
 # =============================================================================
-# These can be overridden per environment
 
 [vars]
 APP_NAME = "Locanote"
 APP_VERSION = "1.0.0"
-
-# =============================================================================
-# ENVIRONMENTS
-# =============================================================================
-
-[env.production]
-vars = {}
-
-
-# =============================================================================
-# TAIL (Optional - for logging)
-# =============================================================================
-# Uncomment to enable Cloudflare Tail Workers
-# [tail]
-# consumers = [{ queue = "locanote-logs" }]
-
-# =============================================================================
-# LIMITS
-# =============================================================================
-# Free tier limits apply automatically
-# - 100,000 requests/day
-# - 10ms CPU time per request
-# - 1MB worker size
-
-# [limits]
-# cpu_ms = 10
-# memory = 128
