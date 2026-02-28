@@ -289,9 +289,10 @@ EDITOR COMPONENT (Editor.svelte)
   });
 </script>
 
-<div
-  class="relative w-full h-full bg-[var(--ui-surface)] backdrop-blur-[var(--ui-blur)] rounded-2xl overflow-hidden transition-all duration-500"
->
+<div class="relative w-full h-full glass-editor overflow-hidden">
+  <!-- Toolbar -->
+  <Toolbar {editor} />
+
   <!-- Loading State - Shows while syncing content -->
   {#if !isContentLoaded}
     <div
