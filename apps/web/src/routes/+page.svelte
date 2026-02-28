@@ -462,4 +462,107 @@ FEATURES:
     height: 18px;
     flex-shrink: 0;
   }
+
+  /* Responsive Styles */
+  @media (max-width: 768px) {
+    .content {
+      padding: 1.5rem;
+    }
+
+    .logo h1 {
+      font-size: 2rem;
+    }
+
+    .tagline {
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-card {
+      padding: 1.5rem;
+      margin: 0 1rem;
+    }
+
+    .auth-card h2 {
+      font-size: 1.25rem;
+    }
+
+    .gradient-orb {
+      width: 250px;
+      height: 250px;
+    }
+
+    .orb-1 {
+      width: 200px;
+      height: 200px;
+      top: -50px;
+      left: -50px;
+    }
+
+    .orb-2 {
+      width: 150px;
+      height: 150px;
+      bottom: -25px;
+      right: -25px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .content {
+      padding: 1rem;
+    }
+
+    .logo {
+      gap: 0.5rem;
+    }
+
+    .logo svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    .logo h1 {
+      font-size: 1.75rem;
+    }
+
+    .tagline {
+      font-size: 0.875rem;
+    }
+
+    .auth-card {
+      padding: 1.25rem;
+      margin: 0 0.5rem;
+      border-radius: 0.75rem;
+    }
+
+    .auth-card h2 {
+      font-size: 1.125rem;
+      margin-bottom: 1rem;
+    }
+
+    .input-group input {
+      padding: 0.625rem 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    .primary-btn {
+      padding: 0.625rem 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    .features {
+      margin-top: 1.5rem;
+      gap: 0.5rem;
+    }
+
+    .feature {
+      font-size: 0.8125rem;
+    }
+
+    .gradient-orb {
+      width: 150px;
+      height: 150px;
+      filter: blur(60px);
+    }
+  }
 </style>
