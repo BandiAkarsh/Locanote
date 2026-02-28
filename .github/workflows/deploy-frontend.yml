@@ -57,8 +57,6 @@ jobs:
       - name: Build web only
         run: pnpm --filter @locanote/web build
         env:
-          SIGNALING_SECRET: ${{ secrets.SIGNALING_SECRET }}
-          PUBLIC_SIGNALING_URL: ${{ vars.PUBLIC_SIGNALING_URL }}
           NODE_ENV: production
 
       - name: Deploy to Cloudflare Pages

@@ -1,0 +1,23 @@
+# =============================================================================
+# TEST GITHub SECRETS - Simple version
+# =============================================================================
+
+name: Test Secrets
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug secrets
+        run: |
+          echo "=== Checking Secrets ==="
+          echo "CLOUDFLARE_API_TOKEN length: ${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          echo "CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
+          echo "SIGNALING_SECRET: ${{ secrets.SIGNALING_SECRET }}"
+          echo ""
+          echo "=== Checking Variables ==="
+          echo "PUBLIC_SIGNALING_URL: ${{ vars.PUBLIC_SIGNALING_URL }}"
+          echo "ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}"
