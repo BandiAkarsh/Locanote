@@ -1,5 +1,5 @@
 <!-- =========================================================================
-NOTEPAD BUTTON COMPONENT - M3 Expressive Design
+BUTTON COMPONENT - M3 Expressive Design with Beautiful Micro-interactions
 ======================================================================== -->
 
 <script lang="ts">
@@ -11,6 +11,7 @@ NOTEPAD BUTTON COMPONENT - M3 Expressive Design
     size?: "sm" | "md" | "lg";
     loading?: boolean;
     fullWidth?: boolean;
+    ripple?: boolean;
     children: Snippet;
   };
 
@@ -20,38 +21,73 @@ NOTEPAD BUTTON COMPONENT - M3 Expressive Design
     loading = false,
     fullWidth = false,
     disabled = false,
+    ripple = true,
     type = "button",
     children,
     class: className = "",
     ...restProps
   }: Props = $props();
 
+  let buttonRef: HTMLButtonElement;
+
+  function handleClick(event: MouseEvent) {
+    if (!ripple || disabled || loading) return;
+
+    const button = event.currentTarget as HTMLButtonElement;
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    const circle = document.createElement("span");
+    const diameter = Math.max(rect.width, rect.height);
+    const radius = diameter / 2;
+
+    circle.style.width = circle.style.height = `${diameter}px`;
+    circle.style.left = `${x - radius}px`;
+    circle.style.top = `${y - radius}px`;
+    circle.classList.add("ripple-effect");
+
+    const existingRipple = button.querySelector(".ripple-effect");
+    if (existingRipple) {
+      existingRipple.remove();
+    }
+
+    button.appendChild(circle);
+
+    setTimeout(() => {
+      circle.remove();
+    }, 600);
+  }
+
   const variantClasses = {
     primary: `
       bg-[var(--m3-primary)] text-[var(--m3-on-primary)]
       hover:bg-[var(--m3-primary-container)] hover:text-[var(--m3-on-primary-container)]
-      active:scale-[0.98]
-      shadow-sm hover:shadow-md
+      shadow-sm hover:shadow-lg hover:shadow-[var(--m3-primary)]/20
+      hover:-translate-y-0.5
     `,
     secondary: `
       bg-transparent text-[var(--m3-on-surface)]
       hover:bg-[var(--m3-surface-variant)]
       border-2 border-[var(--m3-outline)]
+      hover:border-[var(--m3-primary)]
+      hover:-translate-y-0.5
     `,
     danger: `
       bg-[var(--m3-error)] text-[var(--m3-on-error)]
       hover:bg-[var(--m3-error-container)] hover:text-[var(--m3-on-error)]
-      active:scale-[0.98]
-      shadow-sm
+      shadow-sm hover:shadow-lg hover:shadow-[var(--m3-error)]/20
+      hover:-translate-y-0.5
     `,
     ghost: `
       bg-transparent text-[var(--m3-on-surface)]
       hover:bg-[var(--m3-surface-variant)]
+      hover:-translate-y-0.5
     `,
     tonal: `
       bg-[var(--m3-secondary-container)] text-[var(--m3-on-secondary-container)]
       hover:bg-[var(--m3-tertiary-container)] hover:text-[var(--m3-on-tertiary-container)]
-      active:scale-[0.98]
+      hover:-translate-y-0.5
     `,
   };
 
@@ -63,15 +99,20 @@ NOTEPAD BUTTON COMPONENT - M3 Expressive Design
 </script>
 
 <button
+  bind:this={buttonRef}
   {type}
   disabled={disabled || loading}
   aria-busy={loading}
+  onclick={handleClick}
   class="
+    relative overflow-hidden
     inline-flex items-center justify-center
     font-medium select-none
     transition-all duration-200 ease-out
+    active:scale-[0.96]
     focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--m3-primary-container)]/40
     disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none
+    disabled:hover:transform-none disabled:hover:shadow-none
     {variantClasses[variant]}
     {sizeClasses[size]}
     {fullWidth ? 'w-full' : ''}
@@ -103,3 +144,25 @@ NOTEPAD BUTTON COMPONENT - M3 Expressive Design
   {/if}
   {@render children()}
 </button>
+
+<style>
+  button {
+    transform-style: preserve-3d;
+  }
+
+  :global(.ripple-effect) {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+  }
+
+  @keyframes ripple-animation {
+    to {
+      transform: scale(4);
+      opacity: 0;
+    }
+  }
+</style>
