@@ -12,17 +12,34 @@ LANDING PAGE - Beautiful Glass Design
   let isRegister = $state(false);
   let mounted = $state(false);
 
-  onMount(() => {
-    mounted = true;
-    // Check if already logged in
-    const stored = localStorage.getItem("locanote_session");
-    if (stored) {
-      try {
+  // Check session BEFORE mount to prevent flash
+  function checkSession() {
+    if (typeof window === "undefined") return false;
+
+    try {
+      const stored = localStorage.getItem("locanote_session");
+      if (stored) {
         const session = JSON.parse(stored);
         if (session.expiresAt > Date.now()) {
-          goto("/app");
+          return true;
         }
-      } catch {}
+      }
+    } catch {
+      // Invalid session
+    }
+    return false;
+  }
+
+  // Run session check immediately (before render)
+  if (typeof window !== "undefined" && checkSession()) {
+    // Will redirect in onMount to avoid SSR issues
+  }
+
+  onMount(() => {
+    mounted = true;
+    // Double-check session after mount (handles edge cases)
+    if (checkSession()) {
+      goto("/app", { replaceState: true });
     }
   });
 
