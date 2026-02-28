@@ -22,6 +22,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
+      pages: write
 
     steps:
       - name: Checkout repository
@@ -58,6 +59,13 @@ jobs:
         run: pnpm --filter @locanote/web build
         env:
           NODE_ENV: production
+
+      - name: Debug secrets
+        run: |
+          echo "API Token exists: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}"
+          echo "Account ID exists: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}"
+          echo "API Token value: ${{ secrets.CLOUDFLARE_API_TOKEN }}"
+          echo "Account ID value: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
 
       - name: Deploy to Cloudflare Pages
         id: deploy
