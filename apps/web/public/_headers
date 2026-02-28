@@ -1,0 +1,19 @@
+# Cloudflare Pages Headers Configuration
+# Enables SPA routing for single-page app
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Cache static assets
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Service worker
+/service-worker.js
+  Cache-Control: no-cache
+
+# HTML files - SPA fallback
+*.html
+  Cache-Control: no-cache
