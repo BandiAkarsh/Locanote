@@ -64,6 +64,7 @@ const config = {
       $db: "src/lib/db", // $db → src/lib/db
       $services: "src/lib/services", // $services → src/lib/services
       $utils: "src/lib/utils", // $utils → src/lib/utils
+      $ai: "src/lib/ai", // $ai → src/lib/ai
     },
   },
 };

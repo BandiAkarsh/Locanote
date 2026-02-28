@@ -32,6 +32,9 @@
     "typescript": "^5.7.0"
   },
   "dependencies": {
+    "@noble/ciphers": "^1.0.0",
+    "@noble/curves": "^1.6.0",
+    "@noble/hashes": "^1.6.1",
     "@simplewebauthn/browser": "^13.2.2",
     "@tiptap/core": "^2.27.2",
     "@tiptap/extension-collaboration": "^2.27.2",
@@ -45,8 +48,6 @@
     "@tiptap/starter-kit": "^2.27.2",
     "@xenova/transformers": "^2.17.2",
     "idb": "^8.0.3",
-    "tweetnacl": "^1.0.3",
-    "tweetnacl-util": "^0.15.1",
     "y-indexeddb": "^9.0.12",
     "y-webrtc": "^10.3.0",
     "yjs": "^13.6.29"
