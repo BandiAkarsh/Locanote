@@ -859,6 +859,51 @@ html {
   font-size: 16px;
 }
 
+.np-editor-content p.is-editor-empty:first-child::before {
+  color: var(--m3-on-surface-variant);
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  font-style: italic;
+}
+
+/* Collaborative Cursors */
+.collaboration-cursor__caret {
+  border-left: 2px solid #0d0d0d;
+  border-right: 2px solid #0d0d0d;
+  margin-left: -2px;
+  margin-right: -2px;
+  pointer-events: none;
+  position: relative;
+  word-break: normal;
+}
+
+.collaboration-cursor__label {
+  border-radius: 4px 4px 4px 0;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  left: -2px;
+  line-height: normal;
+  padding: 2px 6px;
+  position: absolute;
+  top: -1.5em;
+  user-select: none;
+  white-space: nowrap;
+  animation: m3-scale-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Editor default cursor fix */
+.ProseMirror {
+  caret-color: var(--m3-primary);
+}
+
+.ProseMirror:focus {
+  outline: none;
+}
+
 /* ============================================================================
    INPUTS - M3 Expressive
    ============================================================================ */

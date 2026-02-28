@@ -316,16 +316,12 @@ EDITOR COMPONENT (Editor.svelte)
   <!-- Editor Content Area -->
   <div
     bind:this={element}
-    class="prose prose-lg max-w-none h-full overflow-y-auto p-4 sm:p-8 focus:outline-none
-           prose-headings:text-[var(--ui-text)]
-           prose-p:text-[var(--ui-text)] opacity-90
-           prose-strong:text-[var(--ui-text)]
-           prose-code:text-primary prose-pre:bg-[var(--ui-bg)]
-           prose-blockquote:border-l-primary prose-blockquote:bg-primary/5
-           [&_.is-empty]:before:content-[attr(data-placeholder)]
-           [&_.is-empty]:before:text-[var(--ui-text-muted)]
-           [&_.is-empty]:before:float-left
-           [&_.is-empty]:before:pointer-events-none"
+    class="prose prose-lg max-w-none h-full overflow-y-auto p-4 sm:p-8 focus:outline-none np-editor-content
+           prose-headings:text-[var(--m3-on-surface)]
+           prose-p:text-[var(--m3-on-surface)] opacity-90
+           prose-strong:text-[var(--m3-on-surface)]
+           prose-code:text-[var(--m3-primary)] prose-pre:bg-[var(--m3-surface-variant)]
+           prose-blockquote:border-l-[var(--m3-primary)] prose-blockquote:bg-[var(--m3-primary-container)]/10"
     class:opacity-50={!isContentLoaded}
   >
     <!-- TipTap mounts here -->
