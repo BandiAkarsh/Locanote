@@ -56,6 +56,39 @@ function getUser(username: string): StoredUser | undefined {
 }
 
 // ============================================================================
+// MIGRATION: Check if user needs to set password (existing user from old version)
+// ============================================================================
+
+export interface MigrationStatus {
+  needsMigration: boolean;
+  username: string | null;
+}
+
+function checkMigrationStatus(): MigrationStatus {
+  if (typeof window === "undefined")
+    return { needsMigration: false, username: null };
+
+  // Check if there's an existing session from old version (without password system)
+  const stored = localStorage.getItem("locanote_session");
+  if (!stored) return { needsMigration: false, username: null };
+
+  try {
+    const session = JSON.parse(stored);
+    // Check if this user has a password set
+    const users = getStoredUsers();
+    const hasPassword = users[session.username?.toLowerCase()] !== undefined;
+
+    if (!hasPassword && session.username) {
+      return { needsMigration: true, username: session.username };
+    }
+  } catch {
+    // Invalid session
+  }
+
+  return { needsMigration: false, username: null };
+}
+
+// ============================================================================
 // METHODS
 // ============================================================================
 
@@ -80,6 +113,38 @@ export const auth = {
       }
     }
     return authState;
+  },
+
+  // Check if user needs to migrate (set password for existing account)
+  checkMigration(): MigrationStatus {
+    return checkMigrationStatus();
+  },
+
+  // Migrate existing user to password system
+  async migrateUser(
+    username: string,
+    password: string,
+    confirmPassword: string,
+  ): Promise<{ success: boolean; error?: string }> {
+    if (!password || password.length < 6) {
+      return {
+        success: false,
+        error: "Password must be at least 6 characters",
+      };
+    }
+
+    if (password !== confirmPassword) {
+      return {
+        success: false,
+        error: "Passwords do not match",
+      };
+    }
+
+    // Hash and store password
+    const passwordHash = await hashPassword(password);
+    saveUser(username, passwordHash);
+
+    return { success: true };
   },
 
   // Login with password
