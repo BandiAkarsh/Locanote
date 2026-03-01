@@ -223,21 +223,18 @@ FEATURES:
       </p>
       <p class="delete-warning">This action cannot be undone.</p>
     </div>
+  {/if}
 
-    {#snippet footer()}
+  {#snippet footer()}
+    <div class="delete-modal-footer">
       <button
-        class="nm-btn nm-btn-secondary"
+        class="delete-btn-cancel"
         onclick={() => (isDeleteModalOpen = false)}
       >
         Cancel
       </button>
-      <button
-        class="nm-btn"
-        style="background: var(--nm-error); color: white;"
-        onclick={handleDelete}
-      >
+      <button class="delete-btn-confirm" onclick={handleDelete}>
         <svg
-          class="w-4 h-4"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -249,8 +246,8 @@ FEATURES:
         </svg>
         Delete
       </button>
-    {/snippet}
-  {/if}
+    </div>
+  {/snippet}
 </Modal>
 
 <style>
@@ -378,6 +375,56 @@ FEATURES:
   .delete-warning {
     font-size: 0.875rem;
     color: var(--nm-error);
+  }
+
+  /* Delete Modal Footer */
+  .delete-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--nm-border);
+    background: var(--nm-bg-secondary);
+  }
+
+  .delete-btn-cancel {
+    padding: 8px 16px;
+    border: 1px solid var(--nm-border);
+    border-radius: var(--nm-radius-md);
+    background: var(--nm-bg-primary);
+    color: var(--nm-text-primary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .delete-btn-cancel:hover {
+    background: var(--nm-bg-secondary);
+  }
+
+  .delete-btn-confirm {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: var(--nm-radius-md);
+    background: #ef4444;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .delete-btn-confirm:hover {
+    background: #dc2626;
+  }
+
+  .delete-btn-confirm svg {
+    width: 16px;
+    height: 16px;
   }
 
   /* Responsive */
