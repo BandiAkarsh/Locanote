@@ -17,6 +17,9 @@ let authState: AuthState = $state({ status: "unauthenticated" });
 export const auth = {
   // Initialize - check for existing session
   initialize() {
+    // Only run on client-side
+    if (typeof window === "undefined") return authState;
+
     const stored = localStorage.getItem("locanote_session");
     if (stored) {
       try {

@@ -67,36 +67,58 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     }
   });
 
+  // Abort controller for cancelling async operations
+  let abortController: AbortController | null = null;
+
   $effect(() => {
     const currentId = page.params.id;
-    if (currentId) {
-      loadNoteData(currentId);
+    if (!currentId) return;
 
-      const docInfo = openDocument(currentId);
-      const handleTitleUpdate = () => {
-        const newTitle = docInfo.title.toString();
-        if (newTitle && note && note.title !== newTitle) {
-          updateNoteTitle(currentId, newTitle).then((updated) => {
-            if (updated) note = updated;
-          });
-        }
-      };
-
-      docInfo.title.observe(handleTitleUpdate);
-
-      return () => {
-        docInfo.title.unobserve(handleTitleUpdate);
-        docInfo.destroy();
-      };
+    // Cancel any pending request
+    if (abortController) {
+      abortController.abort();
     }
+    abortController = new AbortController();
+
+    loadNoteData(currentId, abortController.signal);
+
+    // Set up document observer
+    const docInfo = openDocument(currentId);
+    const handleTitleUpdate = () => {
+      const newTitle = docInfo.title.toString();
+      if (newTitle && note && note.title !== newTitle) {
+        updateNoteTitle(currentId, newTitle).then((updated) => {
+          if (updated) note = updated;
+        });
+      }
+    };
+
+    docInfo.title.observe(handleTitleUpdate);
+
+    return () => {
+      // Cleanup when effect re-runs or component unmounts
+      docInfo.title.unobserve(handleTitleUpdate);
+      docInfo.destroy();
+      if (abortController) {
+        abortController.abort();
+      }
+    };
   });
 
-  async function loadNoteData(id: string) {
+  async function loadNoteData(id: string, signal?: AbortSignal) {
     if (!id) return;
+
+    // Check if already aborted
+    if (signal?.aborted) return;
+
     try {
       isLoading = true;
+      error = null;
+
       const loadedNote = await getNoteForCollaboration(id);
 
+      // Check if still on same note (handles navigation away)
+      if (signal?.aborted) return;
       if (page.params.id !== id) return;
 
       if (!loadedNote) {
@@ -109,10 +131,15 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
           showPasswordPrompt = true;
         }
       }
-    } catch (err) {
+    } catch (err: any) {
+      // Ignore abort errors
+      if (err.name === "AbortError") return;
       error = "Failed to load note.";
     } finally {
-      isLoading = false;
+      // Only set loading false if not aborted
+      if (!signal?.aborted) {
+        isLoading = false;
+      }
     }
   }
 

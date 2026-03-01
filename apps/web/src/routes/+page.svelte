@@ -60,12 +60,12 @@ LANDING PAGE - Beautiful Glass Design
     const session = {
       userId: username.toLowerCase().replace(/\s+/g, "_") + "_" + Date.now(),
       username: username.trim(),
-      loggedAt: Date.now(),
+      loggedInAt: Date.now(),
       expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
     };
 
     localStorage.setItem("locanote_session", JSON.stringify(session));
-    goto("/app");
+    goto("/app", { replaceState: true });
   }
 
   function handleKeydown(e: KeyboardEvent) {
