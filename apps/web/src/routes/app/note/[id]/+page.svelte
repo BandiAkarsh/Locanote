@@ -852,16 +852,18 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
   .glass-content {
     position: relative;
     z-index: 1;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.75);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 16px;
-    margin: 16px;
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.02),
-      0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    box-shadow: none;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 
   :global(.dark) .glass-content {
@@ -913,19 +915,47 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     min-height: 0;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    width: 100%;
   }
 
   :global(.np-editor-container > div) {
     flex: 1;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    width: 100%;
   }
 
   :global(.ProseMirror) {
     flex: 1;
-    min-height: 400px;
-    padding: 24px 32px;
+    min-height: calc(100vh - 200px);
+    padding: 32px 48px;
     font-size: 16px;
     line-height: 1.7;
+    width: 100%;
+    max-width: none;
+    outline: none;
+  }
+
+  /* Responsive adjustments for different screen sizes */
+  @media (max-width: 1200px) {
+    :global(.ProseMirror) {
+      padding: 24px 32px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    :global(.ProseMirror) {
+      padding: 16px 20px;
+      min-height: calc(100vh - 180px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    :global(.ProseMirror) {
+      padding: 12px 16px;
+      font-size: 15px;
+    }
   }
 </style>

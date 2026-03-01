@@ -287,13 +287,13 @@ FEATURES:
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     color: var(--nm-text-tertiary);
-    background: transparent;
-    border: none;
-    border-radius: var(--nm-radius-sm);
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--nm-radius-md);
     cursor: pointer;
     opacity: 0;
     transition: all var(--nm-duration-fast) var(--nm-easing-smooth);
@@ -306,11 +306,13 @@ FEATURES:
   .note-delete:hover {
     color: var(--nm-error);
     background: var(--nm-error-light);
+    transform: scale(1.1);
+    border-color: var(--nm-error);
   }
 
   .note-delete svg {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
   }
 
   /* Reduced motion */
