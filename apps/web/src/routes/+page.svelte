@@ -5,8 +5,11 @@ LANDING PAGE - Beautiful Glass Design
 <script lang="ts">
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
+  import { auth } from "$stores/auth.svelte";
 
   let username = $state("");
+  let password = $state("");
+  let confirmPassword = $state("");
   let isLoading = $state(false);
   let error = $state("");
   let isRegister = $state(false);
@@ -43,7 +46,7 @@ LANDING PAGE - Beautiful Glass Design
     }
   });
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!username.trim()) {
       error = "Please enter a username";
       return;
@@ -54,18 +57,28 @@ LANDING PAGE - Beautiful Glass Design
       return;
     }
 
+    if (!password || password.length < 6) {
+      error = "Password must be at least 6 characters";
+      return;
+    }
+
     isLoading = true;
     error = "";
 
-    const session = {
-      userId: username.toLowerCase().replace(/\s+/g, "_") + "_" + Date.now(),
-      username: username.trim(),
-      loggedInAt: Date.now(),
-      expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    };
+    let result;
+    if (isRegister) {
+      result = await auth.register(username.trim(), password, confirmPassword);
+    } else {
+      result = await auth.login(username.trim(), password);
+    }
 
-    localStorage.setItem("locanote_session", JSON.stringify(session));
-    goto("/app", { replaceState: true });
+    isLoading = false;
+
+    if (result.success) {
+      goto("/app", { replaceState: true });
+    } else {
+      error = result.error || "Authentication failed";
+    }
   }
 
   function handleKeydown(e: KeyboardEvent) {
@@ -128,11 +141,35 @@ LANDING PAGE - Beautiful Glass Design
             type="text"
             bind:value={username}
             onkeydown={handleKeydown}
-            placeholder="Choose a username"
+            placeholder="Username"
             class="input"
-            autocomplete="off"
+            autocomplete="username"
           />
         </div>
+
+        <div class="input-group">
+          <input
+            type="password"
+            bind:value={password}
+            onkeydown={handleKeydown}
+            placeholder="Password"
+            class="input"
+            autocomplete={isRegister ? "new-password" : "current-password"}
+          />
+        </div>
+
+        {#if isRegister}
+          <div class="input-group">
+            <input
+              type="password"
+              bind:value={confirmPassword}
+              onkeydown={handleKeydown}
+              placeholder="Confirm Password"
+              class="input"
+              autocomplete="new-password"
+            />
+          </div>
+        {/if}
 
         {#if error}
           <div class="error">{error}</div>
@@ -142,7 +179,7 @@ LANDING PAGE - Beautiful Glass Design
           {#if isLoading}
             <span class="spinner"></span>
           {:else}
-            {isRegister ? "Create Account" : "Continue"}
+            {isRegister ? "Create Account" : "Sign In"}
           {/if}
         </button>
       </div>
