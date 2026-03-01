@@ -14,6 +14,25 @@ export interface ExportOptions {
   title?: string;
 }
 
+// ============================================================================
+// XSS PROTECTION
+// ============================================================================
+
+/**
+ * Sanitize user input to prevent XSS attacks
+ * Escape HTML special characters
+ */
+function sanitizeHTML(str: string): string {
+  const htmlEscapes: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+  return str.replace(/[&<>"']/g, (char) => htmlEscapes[char] || char);
+}
+
 /**
  * Export note content to specified format
  */
@@ -183,12 +202,15 @@ function convertNodeToMarkdown(node: JSONContent): string {
  * Convert TipTap JSON to HTML
  */
 function convertToHTML(content: JSONContent, options: ExportOptions): string {
+  // Sanitize user-provided title to prevent XSS
+  const safeTitle = sanitizeHTML(options.title || "Exported Note");
+
   let html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${options.title || "Exported Note"}</title>
+  <title>${safeTitle}</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;

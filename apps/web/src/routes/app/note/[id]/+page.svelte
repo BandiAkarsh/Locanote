@@ -35,6 +35,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
   let isShareModalOpen = $state(false);
   let isExportModalOpen = $state(false);
   let isProtectModalOpen = $state(false);
+  let openMenu = $state<string | null>(null);
 
   let protectPassword = $state("");
   let protectConfirmPassword = $state("");
@@ -175,7 +176,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     if (!currentSalt || !currentId) return;
     try {
       const saltBuffer = base64UrlToUint8Array(currentSalt);
-      const { key } = deriveKeyFromPassword(passwordAttempt, saltBuffer);
+      const { key } = await deriveKeyFromPassword(passwordAttempt, saltBuffer);
       storeRoomKey(currentId, key);
       window.location.reload();
     } catch (err) {
@@ -274,65 +275,116 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
         <!-- Top Menu Bar -->
         <div class="np-menu-bar">
           <div class="np-menu-group">
-            <button class="np-menu-item" onclick={() => goto("/app")}
-              >File</button
+            <button
+              class="np-menu-item"
+              onclick={() => (openMenu = openMenu === "file" ? null : "file")}
             >
-            <div class="np-menu-dropdown">
-              <button class="np-menu-dropdown-item" onclick={() => goto("/app")}
-                >New Note</button
-              >
-              <button class="np-menu-dropdown-item" onclick={() => goto("/app")}
-                >Open...</button
-              >
-              <div class="np-menu-separator"></div>
-              <button
-                class="np-menu-dropdown-item"
-                onclick={() => (isExportModalOpen = true)}>Export...</button
-              >
-              <div class="np-menu-separator"></div>
-              <button class="np-menu-dropdown-item" onclick={() => goto("/app")}
-                >Close</button
-              >
-            </div>
+              File
+            </button>
+            {#if openMenu === "file"}
+              <div class="np-menu-dropdown">
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    goto("/app");
+                    openMenu = null;
+                  }}
+                >
+                  New Note
+                </button>
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    goto("/app");
+                    openMenu = null;
+                  }}
+                >
+                  Open...
+                </button>
+                <div class="np-menu-separator"></div>
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    isExportModalOpen = true;
+                    openMenu = null;
+                  }}>Export...</button
+                >
+                <div class="np-menu-separator"></div>
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    goto("/app");
+                    openMenu = null;
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            {/if}
           </div>
 
           <div class="np-menu-group">
-            <button class="np-menu-item">Edit</button>
-            <div class="np-menu-dropdown">
-              <button
-                class="np-menu-dropdown-item"
-                onclick={() => editorInstance?.chain().focus().undo().run()}
-                >Undo</button
-              >
-              <button
-                class="np-menu-dropdown-item"
-                onclick={() => editorInstance?.chain().focus().redo().run()}
-                >Redo</button
-              >
-              <div class="np-menu-separator"></div>
-              <button
-                class="np-menu-dropdown-item"
-                onclick={() =>
-                  editorInstance?.chain().focus().selectAll().run()}
-                >Select All</button
-              >
-            </div>
+            <button
+              class="np-menu-item"
+              onclick={() => (openMenu = openMenu === "edit" ? null : "edit")}
+            >
+              Edit
+            </button>
+            {#if openMenu === "edit"}
+              <div class="np-menu-dropdown">
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    editorInstance?.chain().focus().undo().run();
+                    openMenu = null;
+                  }}>Undo</button
+                >
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    editorInstance?.chain().focus().redo().run();
+                    openMenu = null;
+                  }}>Redo</button
+                >
+                <div class="np-menu-separator"></div>
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    editorInstance?.chain().focus().selectAll().run();
+                    openMenu = null;
+                  }}>Select All</button
+                >
+              </div>
+            {/if}
           </div>
 
           <div class="np-menu-group">
-            <button class="np-menu-item">Share</button>
-            <div class="np-menu-dropdown">
-              <button
-                class="np-menu-dropdown-item"
-                onclick={() => (isShareModalOpen = true)}>Share Note...</button
-              >
-              <button
-                class="np-menu-dropdown-item"
-                onclick={() => (isProtectModalOpen = true)}
-              >
-                {note.isProtected ? "Change Password" : "Add Password"}
-              </button>
-            </div>
+            <button
+              class="np-menu-item"
+              onclick={() => (openMenu = openMenu === "share" ? null : "share")}
+            >
+              Share
+            </button>
+            {#if openMenu === "share"}
+              <div class="np-menu-dropdown">
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    isShareModalOpen = true;
+                    openMenu = null;
+                  }}>Share Note...</button
+                >
+                <button
+                  class="np-menu-dropdown-item"
+                  onclick={() => {
+                    isProtectModalOpen = true;
+                    openMenu = null;
+                  }}
+                >
+                  {note.isProtected ? "Change Password" : "Add Password"}
+                </button>
+              </div>
+            {/if}
           </div>
         </div>
 
@@ -722,12 +774,8 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     background: var(--ui-bg);
   }
 
-  .np-menu-group:hover .np-menu-dropdown {
-    display: block;
-  }
-
   .np-menu-dropdown {
-    display: none;
+    display: block;
     position: absolute;
     top: 100%;
     left: 0;

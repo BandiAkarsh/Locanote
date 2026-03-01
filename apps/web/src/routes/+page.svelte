@@ -188,36 +188,47 @@ LANDING PAGE - Beautiful Glass Design
 
       <div class="form">
         <div class="input-group">
+          <label for="username" class="sr-only">Username</label>
           <input
+            id="username"
             type="text"
             bind:value={username}
             onkeydown={handleKeydown}
             placeholder="Username"
             class="input"
             autocomplete="username"
+            aria-label="Username"
           />
         </div>
 
         <div class="input-group">
+          <label for="password" class="sr-only">Password</label>
           <input
+            id="password"
             type="password"
             bind:value={password}
             onkeydown={handleKeydown}
             placeholder="Password"
             class="input"
             autocomplete={isRegister ? "new-password" : "current-password"}
+            aria-label="Password"
           />
         </div>
 
         {#if isRegister}
           <div class="input-group">
+            <label for="confirm-password" class="sr-only"
+              >Confirm Password</label
+            >
             <input
+              id="confirm-password"
               type="password"
               bind:value={confirmPassword}
               onkeydown={handleKeydown}
               placeholder="Confirm Password"
               class="input"
               autocomplete="new-password"
+              aria-label="Confirm Password"
             />
           </div>
         {/if}
@@ -234,24 +245,6 @@ LANDING PAGE - Beautiful Glass Design
           {/if}
         </button>
       </div>
-
-      <div class="divider">
-        <span>or</span>
-      </div>
-
-      <button class="passkey-btn">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
-          />
-        </svg>
-        Continue with Passkey
-      </button>
     </div>
 
     <!-- Features -->

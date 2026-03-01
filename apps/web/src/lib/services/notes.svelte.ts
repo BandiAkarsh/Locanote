@@ -170,7 +170,7 @@ export async function protectNote(
     if (!note) return undefined;
 
     if (password) {
-      const { key, salt } = deriveKeyFromPassword(password);
+      const { key, salt } = await deriveKeyFromPassword(password);
       note.isProtected = true;
       note.passwordSalt = uint8ArrayToBase64(salt);
       storeRoomKey(noteId, key);
