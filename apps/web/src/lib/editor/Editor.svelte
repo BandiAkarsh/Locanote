@@ -59,25 +59,15 @@ EDITOR COMPONENT (Editor.svelte)
   onMount(() => {
     let isDestroyed = false;
 
-    // console.log("[DEBUG] Editor onMount starting for noteId:", noteId);
-
     try {
       docInfo = openDocument(noteId);
-      // console.log("[DEBUG] Document opened for noteId:", noteId);
 
       try {
-        console.log(
-          "[DEBUG] Creating WebRTC provider with noteId:",
-          noteId,
-          "user:",
-          user.name,
-        );
+        
         // FIX: No roomPassword needed - provider now uses noteId as password internally
         // All users with same noteId will join same WebRTC room
         provider = createWebRTCProvider(noteId, docInfo.document, user);
-        // console.log("[DEBUG] WebRTC provider created successfully");
       } catch (webrtcError) {
-        // console.warn("[Editor] WebRTC provider failed:", webrtcError);
         provider = null;
       }
 
@@ -91,13 +81,6 @@ EDITOR COMPONENT (Editor.svelte)
             connectionStatus.peerCount,
             connectionStatus.signalingConnected,
           );
-
-          // console.log("[DEBUG] WebRTC Status Update:", {
-            connected: connectionStatus.connected,
-            peerCount: connectionStatus.peerCount,
-            signalingConnected: connectionStatus.signalingConnected,
-            noteId: noteId,
-          });
         }
 
         onConnectionStatusChange?.({
@@ -113,38 +96,21 @@ EDITOR COMPONENT (Editor.svelte)
       };
 
       if (provider) {
-        // console.log("[DEBUG] Attaching WebRTC event listeners");
-
         provider.on("status", (event: { connected: boolean }) => {
-          console.log(
-            "[DEBUG] WebRTC status event:",
-            event,
-            "for noteId:",
-            noteId,
-          );
+          
           updateStatus();
         });
 
         provider.on(
           "peers",
           (event: { webrtcPeers: string[]; bcPeers: string[] }) => {
-            console.log(
-              "[DEBUG] WebRTC peers event:",
-              event,
-              "for noteId:",
-              noteId,
-            );
+            
             updateStatus();
           },
         );
 
         provider.on("synced", (event: { synced: boolean }) => {
-          console.log(
-            "[DEBUG] WebRTC synced event:",
-            event,
-            "for noteId:",
-            noteId,
-          );
+          
           handleSync(event.synced);
         });
       }

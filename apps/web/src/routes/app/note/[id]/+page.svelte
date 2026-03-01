@@ -175,7 +175,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     if (!currentSalt || !currentId) return;
     try {
       const saltBuffer = base64UrlToUint8Array(currentSalt);
-      const { key } = deriveKeyFromPassword(passwordAttempt, saltBuffer);
+      const { key } = await deriveKeyFromPassword(passwordAttempt, saltBuffer);
       storeRoomKey(currentId, key);
       window.location.reload();
     } catch (err) {
