@@ -182,7 +182,7 @@ FEATURES:
     max-height: 60vh;
   }
 
-  dialog :global(.nm-modal-footer) {
+  dialog .nm-modal-footer {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -190,5 +190,9 @@ FEATURES:
     padding: var(--nm-space-4) var(--nm-space-6);
     border-top: 1px solid var(--nm-border);
     background: var(--nm-bg-secondary);
+  }
+
+  dialog .nm-modal-footer:empty {
+    display: none;
   }
 </style>
