@@ -252,8 +252,8 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     </div>
   </aside>
 
-  <!-- Main Editor Area -->
-  <main class="np-main">
+  <!-- Main Editor Area - Full Screen Glass Background -->
+  <main class="np-main glass-editor-full">
     {#if isLoading}
       <div
         class="h-full flex items-center justify-center text-[var(--ui-text-muted)]"
@@ -270,7 +270,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
         </div>
       </div>
     {:else if note && noteId && (!note.isProtected || hasRoomKey(noteId))}
-      <div class="h-full flex flex-col">
+      <div class="h-full flex flex-col glass-content">
         <!-- Top Menu Bar -->
         <div class="np-menu-bar">
           <div class="np-menu-group">
@@ -536,9 +536,9 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
             </button>
           </div>
 
-          <div class="np-toolbar-group">
+          <div class="np-toolbar-group np-toolbar-actions">
             <button
-              class="np-btn np-btn-sm"
+              class="np-btn np-btn-sm glass-button"
               onclick={() => (isShareModalOpen = true)}
             >
               <svg
@@ -554,7 +554,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
               Share
             </button>
             <button
-              class="np-btn np-btn-sm"
+              class="np-btn np-btn-sm glass-button"
               onclick={() => (isExportModalOpen = true)}
             >
               <svg
@@ -799,5 +799,133 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     display: flex;
     align-items: center;
     gap: 4px;
+  }
+
+  /* Full-screen glass editor background */
+  .glass-editor-full {
+    background: linear-gradient(
+      135deg,
+      rgba(99, 102, 241, 0.05) 0%,
+      rgba(139, 92, 246, 0.05) 50%,
+      rgba(6, 182, 212, 0.05) 100%
+    );
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glass-editor-full::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        circle at 20% 80%,
+        rgba(99, 102, 241, 0.08) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 20%,
+        rgba(139, 92, 246, 0.08) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        rgba(6, 182, 212, 0.05) 0%,
+        transparent 60%
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass-editor-full::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(99, 102, 241, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99, 102, 241, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glass-content {
+    position: relative;
+    z-index: 1;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 16px;
+    margin: 16px;
+    box-shadow:
+      0 4px 6px -1px rgba(0, 0, 0, 0.02),
+      0 20px 40px -10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+  }
+
+  :global(.dark) .glass-content {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  /* Share/Export buttons with better spacing */
+  .np-toolbar-actions {
+    gap: 12px;
+    margin-left: auto;
+    padding-left: 16px;
+    border-left: 1px solid var(--ui-border);
+  }
+
+  .np-toolbar-actions .np-btn {
+    min-width: 90px;
+    justify-content: center;
+    padding: 6px 16px;
+  }
+
+  /* Glass button enhancement */
+  .glass-button {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(12px) saturate(150%);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+  }
+
+  .glass-button:hover {
+    background: rgba(255, 255, 255, 0.85);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.dark) .glass-button {
+    background: rgba(51, 65, 85, 0.6);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  :global(.dark) .glass-button:hover {
+    background: rgba(71, 85, 105, 0.8);
+  }
+
+  /* Editor container fills available space */
+  :global(.np-editor-container) {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global(.np-editor-container > div) {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  :global(.ProseMirror) {
+    flex: 1;
+    min-height: 400px;
+    padding: 24px 32px;
+    font-size: 16px;
+    line-height: 1.7;
   }
 </style>

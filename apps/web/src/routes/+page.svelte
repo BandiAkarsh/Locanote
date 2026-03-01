@@ -15,6 +15,13 @@ LANDING PAGE - Beautiful Glass Design
   let isRegister = $state(false);
   let mounted = $state(false);
 
+  // Migration state for existing users
+  let showMigrationModal = $state(false);
+  let migrationUsername = $state("");
+  let migrationPassword = $state("");
+  let migrationConfirmPassword = $state("");
+  let migrationError = $state("");
+
   // Check session BEFORE mount to prevent flash
   function checkSession() {
     if (typeof window === "undefined") return false;
@@ -40,11 +47,55 @@ LANDING PAGE - Beautiful Glass Design
 
   onMount(() => {
     mounted = true;
+    // Check if user needs to migrate from old version
+    const migration = auth.checkMigration();
+    if (migration.needsMigration && migration.username) {
+      showMigrationModal = true;
+      migrationUsername = migration.username;
+      return; // Don't redirect, show migration modal instead
+    }
     // Double-check session after mount (handles edge cases)
     if (checkSession()) {
       goto("/app", { replaceState: true });
     }
   });
+
+  // Handle migration submission
+  async function handleMigration() {
+    if (!migrationPassword || migrationPassword.length < 6) {
+      migrationError = "Password must be at least 6 characters";
+      return;
+    }
+    if (migrationPassword !== migrationConfirmPassword) {
+      migrationError = "Passwords do not match";
+      return;
+    }
+
+    isLoading = true;
+    migrationError = "";
+
+    const result = await auth.migrateUser(
+      migrationUsername,
+      migrationPassword,
+      migrationConfirmPassword,
+    );
+
+    isLoading = false;
+
+    if (result.success) {
+      showMigrationModal = false;
+      // After migration, try to auto-login
+      const loginResult = await auth.login(
+        migrationUsername,
+        migrationPassword,
+      );
+      if (loginResult.success) {
+        goto("/app", { replaceState: true });
+      }
+    } else {
+      migrationError = result.error || "Migration failed";
+    }
+  }
 
   async function handleSubmit() {
     if (!username.trim()) {
@@ -222,6 +273,54 @@ LANDING PAGE - Beautiful Glass Design
     <p class="footer">By continuing, you agree to our Terms of Service</p>
   </div>
 </div>
+
+<!-- Migration Modal for Existing Users -->
+{#if showMigrationModal}
+  <div class="migration-overlay">
+    <div class="migration-modal glass-card">
+      <h2 class="migration-title">Welcome Back!</h2>
+      <p class="migration-text">
+        We've upgraded our security. Please set a password for your account <strong
+          >{migrationUsername}</strong
+        > to continue.
+      </p>
+      <p class="migration-text migration-note">
+        Your notes and data are safe - you just need to add password protection.
+      </p>
+
+      <div class="migration-form">
+        <input
+          type="password"
+          bind:value={migrationPassword}
+          placeholder="Create password"
+          class="input"
+        />
+        <input
+          type="password"
+          bind:value={migrationConfirmPassword}
+          placeholder="Confirm password"
+          class="input"
+        />
+
+        {#if migrationError}
+          <div class="error">{migrationError}</div>
+        {/if}
+
+        <button
+          onclick={handleMigration}
+          disabled={isLoading}
+          class="submit-btn"
+        >
+          {#if isLoading}
+            <span class="spinner"></span>
+          {:else}
+            Set Password & Continue
+          {/if}
+        </button>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .landing {
@@ -645,6 +744,74 @@ LANDING PAGE - Beautiful Glass Design
     .features {
       flex-direction: column;
       gap: 0.75rem;
+    }
+  }
+
+  /* Migration Modal Styles */
+  .migration-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+  }
+
+  .migration-modal {
+    max-width: 420px;
+    width: 100%;
+    padding: 2rem;
+    text-align: center;
+  }
+
+  .migration-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0 0 1rem;
+    color: #1e293b;
+  }
+
+  .migration-text {
+    color: #64748b;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0 0 0.75rem;
+  }
+
+  .migration-text strong {
+    color: #6366f1;
+  }
+
+  .migration-note {
+    font-size: 0.875rem;
+    color: #94a3b8;
+    margin-bottom: 1.5rem;
+  }
+
+  .migration-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .migration-title {
+      color: #f1f5f9;
+    }
+
+    .migration-text {
+      color: #94a3b8;
+    }
+
+    .migration-text strong {
+      color: #818cf8;
+    }
+
+    .migration-note {
+      color: #64748b;
     }
   }
 </style>
