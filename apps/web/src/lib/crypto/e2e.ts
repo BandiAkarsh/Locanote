@@ -16,34 +16,52 @@ export function hasRoomKey(roomId: string): boolean {
   return roomKeys.has(roomId);
 }
 
-export function deriveKeyFromPassword(
+export async function deriveKeyFromPassword(
   password: string,
   salt?: Uint8Array,
-): { key: Uint8Array; salt: Uint8Array } {
-  // Simple implementation - in production, use proper key derivation
-  const encoder = new TextEncoder();
-  const passwordBytes = encoder.encode(password);
-
-  // Use provided salt or generate new one
+): Promise<{ key: Uint8Array; salt: Uint8Array }> {
+  // Use provided salt or generate new one (16 bytes = 128 bits)
   const usedSalt = salt || crypto.getRandomValues(new Uint8Array(16));
 
-  // Combine password and salt (simplified)
-  const combined = new Uint8Array(passwordBytes.length + usedSalt.length);
-  combined.set(passwordBytes);
-  combined.set(usedSalt, passwordBytes.length);
+  // Import password as key material
+  const encoder = new TextEncoder();
+  const passwordData = encoder.encode(password);
 
-  // Return a key derived from the combination (simplified)
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    passwordData,
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"],
+  );
+
+  // Derive 256-bit key using PBKDF2 with 100,000 iterations
+  // This is computationally expensive to prevent brute-force attacks
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: usedSalt.buffer.slice(
+        usedSalt.byteOffset,
+        usedSalt.byteOffset + usedSalt.byteLength,
+      ) as ArrayBuffer,
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    keyMaterial,
+    256, // 256 bits = 32 bytes
+  );
+
   return {
-    key: combined.slice(0, 32),
+    key: new Uint8Array(derivedBits),
     salt: usedSalt,
   };
 }
 
-export function protectRoomWithPassword(
+export async function protectRoomWithPassword(
   roomId: string,
   password: string,
-): void {
-  const { key, salt } = deriveKeyFromPassword(password);
+): Promise<void> {
+  const { key } = await deriveKeyFromPassword(password);
   storeRoomKey(roomId, key);
   // In a real implementation, you'd also store the salt with the room
 }

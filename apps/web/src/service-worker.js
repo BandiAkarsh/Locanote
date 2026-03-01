@@ -40,11 +40,11 @@ self.addEventListener("install", (event) => {
       })
       .then(() => {
         // Skip waiting to activate immediately
-        console.log("[SW] Installation complete, skipping wait");
+        // console.log("[SW] Installation complete, skipping wait");
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error("[SW] Failed to cache assets:", error);
+        // console.error("[SW] Failed to cache assets:", error);
       }),
   );
 });
@@ -70,7 +70,7 @@ self.addEventListener("activate", (event) => {
       })
       .then(() => {
         // Take control of all clients immediately
-        console.log("[SW] Claiming clients");
+        // console.log("[SW] Claiming clients");
         return self.clients.claim();
       })
       .then(() => {
@@ -132,7 +132,7 @@ async function routeRequest(request, url) {
       }
       return networkResponse;
     } catch (error) {
-      console.error("[SW] Failed to fetch immutable asset:", pathname);
+      // console.error("[SW] Failed to fetch immutable asset:", pathname);
       return new Response("Asset not available offline", { status: 503 });
     }
   }
@@ -163,12 +163,12 @@ async function routeRequest(request, url) {
       // Network failed, try cache as fallback
       const cached = await caches.match(request);
       if (cached) {
-        console.log("[SW] Serving cached HTML (offline):", pathname);
+        // console.log("[SW] Serving cached HTML (offline):", pathname);
         return cached;
       }
 
       // Complete offline - serve root app shell for SPA routing
-      console.log("[SW] Serving app shell for offline SPA routing");
+      // console.log("[SW] Serving app shell for offline SPA routing");
       const rootCache = await caches.match("/");
       if (rootCache) {
         return rootCache;
@@ -230,7 +230,7 @@ async function routeRequest(request, url) {
 // ============================================================================
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") {
-    console.log("[SW] Skip waiting message received");
+    // console.log("[SW] Skip waiting message received");
     self.skipWaiting();
   }
 

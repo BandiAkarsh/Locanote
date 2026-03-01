@@ -59,11 +59,11 @@ EDITOR COMPONENT (Editor.svelte)
   onMount(() => {
     let isDestroyed = false;
 
-    console.log("[DEBUG] Editor onMount starting for noteId:", noteId);
+    // console.log("[DEBUG] Editor onMount starting for noteId:", noteId);
 
     try {
       docInfo = openDocument(noteId);
-      console.log("[DEBUG] Document opened for noteId:", noteId);
+      // console.log("[DEBUG] Document opened for noteId:", noteId);
 
       try {
         console.log(
@@ -75,9 +75,9 @@ EDITOR COMPONENT (Editor.svelte)
         // FIX: No roomPassword needed - provider now uses noteId as password internally
         // All users with same noteId will join same WebRTC room
         provider = createWebRTCProvider(noteId, docInfo.document, user);
-        console.log("[DEBUG] WebRTC provider created successfully");
+        // console.log("[DEBUG] WebRTC provider created successfully");
       } catch (webrtcError) {
-        console.warn("[Editor] WebRTC provider failed:", webrtcError);
+        // console.warn("[Editor] WebRTC provider failed:", webrtcError);
         provider = null;
       }
 
@@ -92,7 +92,7 @@ EDITOR COMPONENT (Editor.svelte)
             connectionStatus.signalingConnected,
           );
 
-          console.log("[DEBUG] WebRTC Status Update:", {
+          // console.log("[DEBUG] WebRTC Status Update:", {
             connected: connectionStatus.connected,
             peerCount: connectionStatus.peerCount,
             signalingConnected: connectionStatus.signalingConnected,
@@ -113,7 +113,7 @@ EDITOR COMPONENT (Editor.svelte)
       };
 
       if (provider) {
-        console.log("[DEBUG] Attaching WebRTC event listeners");
+        // console.log("[DEBUG] Attaching WebRTC event listeners");
 
         provider.on("status", (event: { connected: boolean }) => {
           console.log(

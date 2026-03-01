@@ -194,7 +194,7 @@ export function destroyWebRTCProvider(provider: WebrtcProvider): void {
   // Destroy the provider (removes event listeners, etc.)
   provider.destroy();
 
-  console.log("[WebRTC] Provider destroyed");
+  // console.log("[WebRTC] Provider destroyed");
 }
 
 // ============================================================================

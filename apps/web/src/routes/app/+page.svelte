@@ -15,7 +15,7 @@ FEATURES:
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import { auth } from "$stores";
-  import { Button, Modal, NoteList, Card } from "$components";
+  import { Modal, NoteList } from "$components";
   import {
     createNewNote,
     getUserNotes,
