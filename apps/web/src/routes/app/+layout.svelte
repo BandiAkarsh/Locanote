@@ -1,21 +1,36 @@
 <!-- =========================================================================
 NOTEPAD APP LAYOUT
-============================================================================ -->
+ ============================================================================ -->
 
 <script lang="ts">
   import { auth } from "$stores/auth.svelte";
   import { goto } from "$app/navigation";
+  import { onMount } from "svelte";
   import type { Snippet } from "svelte";
 
   let { children }: { children: Snippet } = $props();
 
-  $effect(() => {
+  let initialized = $state(false);
+
+  // Track auth status explicitly for reactivity
+  let authStatus = $state(auth.state.status);
+
+  onMount(() => {
+    // Initialize auth once on mount
     auth.initialize();
+    initialized = true;
+    // Update status after init
+    authStatus = auth.state.status;
   });
 
+  // Redirect to landing if not authenticated
   $effect(() => {
-    if (auth.state.status === "unauthenticated") {
-      goto("/");
+    // Track auth status changes
+    const status = auth.state.status;
+    authStatus = status;
+
+    if (initialized && status === "unauthenticated") {
+      goto("/", { replaceState: true });
     }
   });
 </script>

@@ -52,20 +52,16 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Clean and install dependencies
+        run: |
+          rm -rf apps/web/.svelte-kit
+          rm -rf apps/web/build
+          pnpm install --frozen-lockfile
 
       - name: Build web only
         run: pnpm --filter @locanote/web build
         env:
           NODE_ENV: production
-
-      - name: Debug secrets
-        run: |
-          echo "API Token exists: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}"
-          echo "Account ID exists: ${{ secrets.CLOUDFLARE_ACCOUNT_ID != '' }}"
-          echo "API Token value: ${{ secrets.CLOUDFLARE_API_TOKEN }}"
-          echo "Account ID value: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}"
 
       - name: Deploy to Cloudflare Pages
         id: deploy
@@ -81,3 +77,11 @@ jobs:
       - name: Output deployment URL
         run: |
           echo "Deployed to: ${{ steps.deploy.outputs.url }}"
+
+      - name: Purge Cloudflare Cache
+        if: success()
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}' || echo "Cache purge failed (non-critical)"
