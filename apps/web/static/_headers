@@ -1,0 +1,73 @@
+# =============================================================================
+# Cloudflare Pages Headers Configuration
+# =============================================================================
+# CRITICAL: This file MUST be in the static/ folder to be copied to build output
+# This configuration ensures proper cache busting and prevents stale UI issues
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Global Security Headers (Applied to all routes)
+# -----------------------------------------------------------------------------
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+# -----------------------------------------------------------------------------
+# Immutable Assets (Hashed files - cached forever)
+# SvelteKit outputs hashed assets to /_app/immutable/
+# These files have content hashes in filenames (e.g., app.DCpK5Z8N.js)
+# -----------------------------------------------------------------------------
+/_app/immutable/*
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff
+
+# -----------------------------------------------------------------------------
+# Service Worker (Never cache - must always check for updates)
+# This is critical: browser checks for SW updates on every load
+# -----------------------------------------------------------------------------
+/service-worker.js
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# -----------------------------------------------------------------------------
+# HTML Files (Never cache - ensures fresh app shell)
+# Prevents stale HTML that references old hashed assets
+# -----------------------------------------------------------------------------
+*.html
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# Root path specifically
+/
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# -----------------------------------------------------------------------------
+# Version JSON (Never cache - used for update detection)
+# -----------------------------------------------------------------------------
+/_app/version.json
+  Cache-Control: public, max-age=0, must-revalidate
+  X-Content-Type-Options: nosniff
+
+# -----------------------------------------------------------------------------
+# Static Assets (favicon, manifest - short cache)
+# These don't have hashes but change infrequently
+# -----------------------------------------------------------------------------
+/favicon.svg
+  Cache-Control: public, max-age=3600
+
+/manifest.json
+  Cache-Control: public, max-age=3600
+
+# -----------------------------------------------------------------------------
+# Compressed assets (brotli/gzip)
+# -----------------------------------------------------------------------------
+/_app/immutable/*.br
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Encoding: br
+
+/_app/immutable/*.gz
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Encoding: gzip
