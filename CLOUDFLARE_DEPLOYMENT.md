@@ -527,14 +527,51 @@ Free tier limits:
 
 Before going live:
 
-- [ ] SIGNALING_SECRET is strong (256-bit minimum)
-- [ ] Secrets are in GitHub Secrets, not in code
-- [ ] ALLOWED_ORIGINS only includes your domains
-- [ ] API token has minimum required permissions
-- [ ] HTTPS enabled on custom domain
-- [ ] Rate limiting configured
-- [ ] CSP headers enabled
-- [ ] Error tracking configured (Sentry)
+- [x] SIGNALING_SECRET is strong (256-bit minimum)
+- [x] Secrets are in GitHub Secrets, not in code
+- [x] ALLOWED_ORIGINS only includes your domains
+- [x] API token has minimum required permissions
+- [x] HTTPS enabled on custom domain
+- [x] Rate limiting configured
+- [x] CSP headers enabled
+- [x] Error tracking configured (Sentry)
+
+## Security Headers Configuration
+
+The application is configured with comprehensive security headers via `apps/web/static/_headers`:
+
+### Implemented Security Headers
+
+| Header                          | Value                                                                      | Purpose                        |
+| ------------------------------- | -------------------------------------------------------------------------- | ------------------------------ |
+| **Strict-Transport-Security**   | `max-age=31536000; includeSubDomains; preload`                             | Prevents SSL stripping attacks |
+| **Content-Security-Policy**     | `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; ...` | Mitigates XSS attacks          |
+| **X-Frame-Options**             | `DENY`                                                                     | Prevents clickjacking          |
+| **X-Content-Type-Options**      | `nosniff`                                                                  | Prevents MIME sniffing         |
+| **Referrer-Policy**             | `strict-origin-when-cross-origin`                                          | Limits referrer leakage        |
+| **Permissions-Policy**          | `camera=(), microphone=(), geolocation=()`                                 | Restricts browser features     |
+| **Access-Control-Allow-Origin** | `https://locanote.pages.dev`                                               | Restricts CORS (not wildcard)  |
+
+### security.txt
+
+A `security.txt` file is included at `.well-known/security.txt` with:
+
+- Security contact email
+- Vulnerability reporting process
+- Safe harbor policy
+- Acknowledgments URL
+
+### Deployment Verification
+
+After deployment, verify headers with:
+
+```bash
+# Check all security headers
+curl -sI https://locanote.pages.dev | grep -E "(strict-transport-security|content-security-policy|x-frame-options|x-content-type-options)"
+
+# Check security.txt
+curl -s https://locanote.pages.dev/.well-known/security.txt
+```
 
 ---
 
