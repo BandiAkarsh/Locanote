@@ -859,6 +859,17 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     );
     position: relative;
     overflow: hidden;
+    height: 100%;
+    min-height: 100dvh;
+    width: 100%;
+  }
+
+  /* Ensure main takes full viewport */
+  :global(.np-container > main) {
+    flex: 1;
+    height: 100%;
+    min-height: 100dvh;
+    width: 100%;
   }
 
   .glass-editor-full::before {

@@ -1,8 +1,19 @@
 # =============================================================================
-# Cloudflare Pages Headers Configuration
+# Cloudflare Pages Headers Configuration - SECURITY HARDENED
 # =============================================================================
 # CRITICAL: This file MUST be in the static/ folder to be copied to build output
 # This configuration ensures proper cache busting and prevents stale UI issues
+#
+# SECURITY FIXES APPLIED (2026-03-02):
+# - HSTS: max-age=31536000; includeSubDomains; preload (Prevents SSL stripping)
+# - CSP: Comprehensive policy with SvelteKit compatibility (Mitigates XSS)
+# - CORS: Restricted to locanote.pages.dev only (Replaces wildcard policy)
+# - X-Frame-Options: DENY (Prevents clickjacking)
+# - X-Content-Type-Options: nosniff (Prevents MIME sniffing)
+# - Referrer-Policy: strict-origin-when-cross-origin (Limits referrer leakage)
+# - Permissions-Policy: Restricts camera, microphone, geolocation
+#
+# See: security.txt in .well-known/ for vulnerability reporting
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -13,6 +24,17 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  # SECURITY FIX 1: HSTS - Prevent SSL stripping attacks
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  # SECURITY FIX 2: CSP - Mitigate XSS attacks
+  # Note: 'unsafe-inline' and 'unsafe-eval' are required for SvelteKit to function
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss: https:; worker-src 'self'; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  # SECURITY FIX 3: Restrict CORS - Prevent cross-origin resource sharing with arbitrary domains
+  # This replaces the wildcard '*' policy with same-origin only
+  Access-Control-Allow-Origin: https://locanote.pages.dev
+  Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+  Access-Control-Allow-Headers: Content-Type, Authorization
+  Access-Control-Max-Age: 86400
 
 # -----------------------------------------------------------------------------
 # Immutable Assets (Hashed files - cached forever)
