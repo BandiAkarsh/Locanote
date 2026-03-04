@@ -234,9 +234,10 @@
 }
 
 /* ============================================================================
-   BASE STYLES
+   BASE STYLES - 2026 Modern Responsive
    ============================================================================ */
 
+/* Modern viewport units - works correctly on mobile browsers with dynamic UI */
 html {
   font-family: var(--nm-font-sans);
   font-size: 16px;
@@ -246,12 +247,35 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+
+  /* Container query support - enable for component-level responsiveness */
+  container-type: inline-size;
 }
 
-/* Responsive typography */
-@media (min-width: 1200px) {
+/* Custom media queries for modern breakpoints (2026) */
+@custom-media --viewport-xs (width >= 0px);
+@custom-media --viewport-sm (width >= 640px);
+@custom-media --viewport-md (width >= 768px);
+@custom-media --viewport-lg (width >= 1024px);
+@custom-media --viewport-xl (width >= 1280px);
+@custom-media --viewport-2xl (width >= 1536px);
+
+/* Responsive typography - fluid scaling */
+@media (min-width: 640px) {
+  html {
+    font-size: 16.5px;
+  }
+}
+
+@media (min-width: 768px) {
   html {
     font-size: 17px;
+  }
+}
+
+@media (min-width: 1200px) {
+  html {
+    font-size: 17.5px;
   }
 }
 
@@ -262,7 +286,8 @@ html {
 }
 
 body {
-  min-height: 100vh;
+  min-height: 100svh; /* Uses smallest viewport - accounts for mobile browser chrome */
+  min-height: 100dvh; /* Dynamically adjusts as browser UI appears/disappears */
   background-color: var(--nm-bg-primary);
   color: var(--nm-text-primary);
   transition:

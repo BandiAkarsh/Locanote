@@ -45,6 +45,7 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
   let passwordAttempt = $state("");
   let passwordError = $state<string | null>(null);
   let currentSalt = $state<string | null>(null);
+  let sidebarOpen = $state(false); // Mobile sidebar toggle
 
   const currentUser = $derived({
     name: auth.session?.username || "Anonymous",
@@ -209,8 +210,54 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
 </script>
 
 <div class="np-container">
+  <!-- Mobile Header - Shows on tablet and mobile -->
+  <header class="np-mobile-header">
+    <button
+      class="np-btn np-btn-icon"
+      onclick={() => (sidebarOpen = !sidebarOpen)}
+      title="Toggle notes"
+    >
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          d="M4 6h16M4 12h16M4 18h16"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+    <span class="np-mobile-title">{note?.title || "Note"}</span>
+    <button
+      class="np-btn np-btn-icon"
+      onclick={() => goto("/app")}
+      title="Back to dashboard"
+    >
+      <svg
+        class="w-5 h-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          d="M10 19l-7-7m0 0l7-7m-7 7h18"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </button>
+  </header>
+
+  <!-- Mobile Sidebar Overlay -->
+  {#if sidebarOpen}
+    <div class="np-sidebar-overlay" onclick={() => (sidebarOpen = false)}></div>
+  {/if}
+
   <!-- Left Sidebar - Notes List Only -->
-  <aside class="np-sidebar">
+  <aside class="np-sidebar" class:mobile-open={sidebarOpen}>
     <div class="np-sidebar-header">
       <button
         class="np-btn np-btn-icon"
@@ -239,14 +286,70 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
           </div>
         </div>
 
+        <!-- Enhanced Sync Status Indicator -->
         <div
-          class="mt-4 text-xs text-[var(--ui-text-muted)] space-y-1 border-t border-[var(--ui-border)] pt-3"
+          class="mt-4 text-xs text-[var(--ui-text-muted)] space-y-2 border-t border-[var(--ui-border)] pt-3"
         >
-          <div>Status: {networkStatus.isOnline ? "Online" : "Offline"}</div>
+          <!-- Connection Status -->
+          <div class="flex items-center gap-2">
+            <span
+              class="w-2 h-2 rounded-full {networkStatus.isOnline
+                ? networkStatus.peerCount > 0
+                  ? 'bg-green-500'
+                  : 'bg-blue-500'
+                : 'bg-amber-500'}"
+            ></span>
+            <span>
+              {#if !networkStatus.isOnline}
+                Offline (local)
+              {:else if networkStatus.peerCount > 0}
+                Synced ({networkStatus.peerCount} peer{networkStatus.peerCount >
+                1
+                  ? "s"
+                  : ""})
+              {:else if networkStatus.signalingConnected}
+                Searching...
+              {:else}
+                Ready (private)
+              {/if}
+            </span>
+          </div>
+
+          <!-- Peer count visualization -->
           {#if networkStatus.peerCount > 0}
-            <div>{networkStatus.peerCount} person(s) editing</div>
-          {:else}
-            <div>Only you</div>
+            <div class="flex items-center gap-1">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
+                />
+              </svg>
+              <span
+                >{networkStatus.peerCount} collaborator{networkStatus.peerCount >
+                1
+                  ? "s"
+                  : ""} online</span
+              >
+            </div>
+          {/if}
+
+          <!-- Signaling status for debugging -->
+          {#if networkStatus.signalingConnected}
+            <div class="flex items-center gap-1 text-[var(--ui-text-muted)]">
+              <svg
+                class="w-3 h-3"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+                />
+              </svg>
+              <span>Signaling connected</span>
+            </div>
           {/if}
         </div>
       {/if}
@@ -988,7 +1091,8 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
 
   :global(.ProseMirror) {
     flex: 1;
-    min-height: calc(100vh - 200px);
+    min-height: calc(100svh - 200px);
+    min-height: calc(100dvh - 200px);
     padding: 32px 48px;
     font-size: 16px;
     line-height: 1.7;
@@ -997,24 +1101,170 @@ NOTEPAD EDITOR PAGE - Notepad++ Style Layout
     outline: none;
   }
 
-  /* Responsive adjustments for different screen sizes */
+  /* Responsive adjustments - 2026 modern breakpoints */
+
+  /* Large Desktop */
+  @media (max-width: 1400px) {
+    :global(.ProseMirror) {
+      padding: 28px 40px;
+    }
+  }
+
+  /* Desktop */
   @media (max-width: 1200px) {
     :global(.ProseMirror) {
       padding: 24px 32px;
     }
   }
 
-  @media (max-width: 768px) {
+  /* Tablet landscape */
+  @media (max-width: 1024px) {
     :global(.ProseMirror) {
-      padding: 16px 20px;
-      min-height: calc(100vh - 180px);
+      padding: 20px 28px;
+      min-height: calc(100svh - 200px);
+      min-height: calc(100dvh - 200px);
     }
   }
 
+  /* Tablet portrait / Large phone */
+  @media (max-width: 768px) {
+    :global(.ProseMirror) {
+      padding: 16px 20px;
+      min-height: calc(100svh - 180px);
+      min-height: calc(100dvh - 180px);
+      font-size: 16px;
+    }
+
+    /* Hide sidebar on mobile - show toggle instead */
+    .np-sidebar {
+      display: none;
+    }
+
+    .np-main {
+      width: 100% !important;
+      min-width: 100% !important;
+    }
+
+    /* Larger touch targets for toolbar */
+    .np-toolbar {
+      padding: 8px 12px;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .np-toolbar-group {
+      gap: 2px;
+    }
+
+    .np-toolbar-actions {
+      width: 100%;
+      justify-content: flex-end;
+      margin-top: 4px;
+      padding-top: 4px;
+      border-top: 1px solid var(--ui-border);
+    }
+  }
+
+  /* Small Mobile */
   @media (max-width: 480px) {
     :global(.ProseMirror) {
       padding: 12px 16px;
       font-size: 15px;
+      line-height: 1.6;
+      min-height: calc(100svh - 160px);
+      min-height: calc(100dvh - 160px);
+    }
+
+    /* Larger touch targets on mobile */
+    .np-btn {
+      min-height: 48px;
+      min-width: 48px;
+    }
+
+    .np-title-input {
+      font-size: 22px;
+    }
+  }
+
+  /* Container query support */
+  @supports (container-type: inline-size) {
+    .np-container {
+      container-type: inline-size;
+    }
+  }
+
+  /* Mobile Header */
+  .np-mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--ui-surface);
+    border-bottom: 1px solid var(--ui-border);
+    padding: 0 12px;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+    gap: 8px;
+  }
+
+  .np-mobile-title {
+    flex: 1;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ui-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .np-sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+  }
+
+  /* Show mobile header on tablet and below */
+  @media (max-width: 1024px) {
+    .np-mobile-header {
+      display: flex;
+    }
+
+    .np-sidebar-overlay {
+      display: block;
+    }
+
+    .np-container {
+      padding-top: 56px;
+    }
+
+    .np-sidebar {
+      position: fixed;
+      left: 0;
+      top: 56px;
+      bottom: 0;
+      width: 280px;
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      background: var(--ui-surface);
+      border-right: 1px solid var(--ui-border);
+    }
+
+    .np-sidebar.mobile-open {
+      transform: translateX(0);
+    }
+  }
+
+  @media (max-width: 480px) {
+    .np-sidebar {
+      width: 100%;
+      max-width: 100%;
     }
   }
 </style>
