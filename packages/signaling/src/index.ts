@@ -1,22 +1,17 @@
 // ============================================================================
-// SIMPLE SIGNALING SERVER (No Durable Objects)
+// SIGNALING SERVER FOR CLOUDFLARE WORKERS
 // ============================================================================
-// WebSocket signaling for WebRTC - works on free tier
+// Simple WebSocket signaling - works on free tier with in-memory storage
 // ============================================================================
 
 export interface Env {
   ALLOWED_ORIGINS: string;
-  SIGNALING_SECRET: string;
 }
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    // Handle WebSocket upgrade
     const url = new URL(request.url);
-
-    if (url.pathname === "/ws" || url.pathname.startsWith("/ws/")) {
-      return handleWebSocket(request, env, url.pathname);
-    }
+    const upgrade = request.headers.get("Upgrade");
 
     // Health check
     if (url.pathname === "/health") {
@@ -25,59 +20,69 @@ export default {
       });
     }
 
-    return new Response("Locanote Signaling Server", { status: 200 });
+    // Handle WebSocket upgrade
+    if (upgrade === "websocket") {
+      const roomId = url.searchParams.get("room") || "default";
+
+      // Create WebSocket pair
+      const pair = new WebSocketPair();
+      const client = pair[0];
+      const server = pair[1];
+
+      // Accept the WebSocket
+      server.accept();
+
+      // Add to room
+      if (!rooms.has(roomId)) {
+        rooms.set(roomId, new Set());
+      }
+      rooms.get(roomId)!.add({ ws: server, client });
+
+      // Handle messages
+      server.addEventListener("message", (event) => {
+        const message = event.data;
+        const room = rooms.get(roomId);
+        if (!room) return;
+
+        for (const peer of room) {
+          if (peer.ws !== server && peer.ws.readyState === WebSocket.OPEN) {
+            try {
+              peer.ws.send(message);
+            } catch (e) {
+              // Ignore send errors
+            }
+          }
+        }
+      });
+
+      // Handle close
+      server.addEventListener("close", () => {
+        const room = rooms.get(roomId);
+        if (room) {
+          room.delete(peerMap.get(server));
+          peerMap.delete(server);
+          if (room.size === 0) {
+            rooms.delete(roomId);
+          }
+        }
+      });
+
+      // Track peer
+      peerMap.set(server, { ws: server, client });
+
+      return new Response(null, {
+        status: 101,
+        webSocket: client,
+      });
+    }
+
+    return new Response("Locanote Signaling Server", {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    });
   },
 };
 
-async function handleWebSocket(
-  request: Request,
-  env: Env,
-  path: string,
-): Promise<Response> {
-  // Validate origin
-  const origin = request.headers.get("Origin");
-  const allowedOrigins = env.ALLOWED_ORIGINS?.split(",") || ["*"];
-
-  if (
-    origin &&
-    !allowedOrigins.includes("*") &&
-    !allowedOrigins.includes(origin)
-  ) {
-    return new Response("Origin not allowed", { status: 403 });
-  }
-
-  // Create WebSocket pair
-  const { 0: client, 1: server } = new WebSocketPair();
-
-  // Handle messages
-  server.addEventListener("message", (event) => {
-    // Broadcast to other clients in the same room
-    const roomId = path.replace("/ws/", "");
-    broadcast(roomId, event.data, server);
-  });
-
-  server.addEventListener("close", () => {
-    // Clean up
-  });
-
-  server.accept();
-
-  return new Response(null, {
-    status: 101,
-    webSocket: client,
-  });
-}
-
-// Simple in-memory room storage
-const rooms = new Map<string, Set<WebSocket>>();
-
-function broadcast(roomId: string, data: any, sender: WebSocket) {
-  const room = rooms.get(roomId);
-  if (!room) return;
-
-  for (const client of room) {
-    if (client !== sender && client.readyState === WebSocket.OPEN) {
-      client.send(data);
-    }
-  }
-}
+// In-memory room storage
+const rooms = new Map<string, Set<{ ws: WebSocket; client: WebSocket }>>();
+const peerMap = new Map<WebSocket, { ws: WebSocket; client: WebSocket }>();

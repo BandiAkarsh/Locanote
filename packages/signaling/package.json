@@ -14,5 +14,8 @@
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
     "wrangler": "^4.61.1"
+  },
+  "dependencies": {
+    "ws": "^8.19.0"
   }
 }

@@ -60,35 +60,32 @@ async function registerUser(
   await page.goto(BASE_URL);
   await page.waitForLoadState("networkidle");
 
-  const createAccountBtn = page.locator('button:has-text("Create an account")');
-  await createAccountBtn.waitFor({ state: "visible", timeout: 15000 });
-  await createAccountBtn.click();
+  // Click "Create Account" tab
+  const createTab = page.locator('button.tab:has-text("Create Account")');
+  await createTab.waitFor({ state: "visible", timeout: 15000 });
+  await createTab.click();
 
-  const usernameInput = page.locator("#reg-username");
-  await usernameInput.waitFor({ state: "visible", timeout: 15000 });
+  // Fill username
+  const usernameInput = page.locator('input[id="username"]');
+  await usernameInput.waitFor({ state: "visible", timeout: 5000 });
   await usernameInput.fill(username);
 
-  // Select Password method
-  const passwordMethodBtn = page
-    .locator("button")
-    .filter({ hasText: "Password" })
-    .filter({ hasText: "Create a secure password" });
-  await passwordMethodBtn.click();
-
-  // Wait for password fields to be visible
-  const passwordInput = page.locator("#reg-password");
-  await passwordInput.waitFor({ state: "visible", timeout: 5000 });
+  // Fill password
+  const passwordInput = page.locator('input[id="password"]');
   await passwordInput.fill(password);
 
-  const confirmInput = page.locator("#reg-confirm");
+  // Fill confirm password
+  const confirmInput = page.locator('input[id="confirm-password"]');
   await confirmInput.fill(password);
 
-  const submitBtn = page
-    .locator("button")
-    .filter({ hasText: /^Create Account$/ });
+  // Submit form
+  const submitBtn = page.locator(
+    'button.submit-btn:has-text("Create Account")',
+  );
   await submitBtn.click();
 
-  await page.waitForURL("**/app**", { timeout: 20000 });
+  // Wait for redirect to dashboard
+  await page.waitForURL("**/app**", { timeout: 30000 });
   console.log(`[Test] Registration successful`);
 }
 
