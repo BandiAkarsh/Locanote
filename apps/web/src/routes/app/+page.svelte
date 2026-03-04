@@ -14,7 +14,7 @@ FEATURES:
 <script lang="ts">
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
-  import { auth } from "$stores";
+  import { auth, theme } from "$stores";
   import { Modal, NoteList } from "$components";
   import {
     createNewNote,
@@ -28,6 +28,7 @@ FEATURES:
   let searchQuery = $state("");
   let noteToDelete = $state<Note | null>(null);
   let isDeleteModalOpen = $state(false);
+  let sidebarOpen = $state(false); // Mobile sidebar toggle
 
   let filteredNotes = $derived(
     searchQuery
@@ -78,9 +79,65 @@ FEATURES:
   }
 </script>
 
-<div class="nm-dashboard">
+<div class="nm-dashboard" class:sidebar-open={sidebarOpen}>
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button
+      class="mobile-menu-btn"
+      onclick={() => (sidebarOpen = !sidebarOpen)}
+      aria-label="Toggle menu"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
+        {#if sidebarOpen}
+          <path d="M6 18L18 6M6 6l12 12" />
+        {:else}
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        {/if}
+      </svg>
+    </button>
+    <span class="mobile-brand">Locanote</span>
+    <button
+      class="mobile-theme-btn"
+      onclick={() => (theme.isDark ? theme.setLight() : theme.setDark())}
+    >
+      {#if theme.isDark}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+      {:else}
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+          />
+        </svg>
+      {/if}
+    </button>
+  </header>
+
+  <!-- Mobile Overlay -->
+  {#if sidebarOpen}
+    <div class="mobile-overlay" onclick={() => (sidebarOpen = false)}></div>
+  {/if}
+
   <!-- Sidebar -->
-  <aside class="nm-dashboard-sidebar">
+  <aside class="nm-dashboard-sidebar" class:mobile-open={sidebarOpen}>
     <!-- Brand Header -->
     <div class="sidebar-brand">
       <div class="brand-logo">
@@ -155,6 +212,58 @@ FEATURES:
 
     <!-- Footer -->
     <div class="sidebar-footer">
+      <!-- Theme Toggle -->
+      <button
+        class="nm-btn nm-btn-ghost nm-btn-sm"
+        onclick={() => (theme.isDark ? theme.setLight() : theme.setDark())}
+        title={theme.isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      >
+        {#if theme.isDark}
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        {:else}
+          <svg
+            class="w-4 h-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+            />
+          </svg>
+        {/if}
+      </button>
+
+      <button
+        class="nm-btn nm-btn-ghost nm-btn-sm"
+        onclick={() => goto("/app/settings")}
+        title="Settings"
+      >
+        <svg
+          class="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <path
+            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+          />
+          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+
       <div class="footer-stats">
         <span class="stats-count"
           >{notes.length} note{notes.length !== 1 ? "s" : ""}</span
@@ -427,19 +536,168 @@ FEATURES:
     height: 16px;
   }
 
-  /* Responsive */
-  @media (max-width: 768px) {
+  /* Mobile Header */
+  .mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: var(--nm-bg-secondary);
+    border-bottom: 1px solid var(--nm-border);
+    padding: 0 16px;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+  }
+
+  .mobile-menu-btn,
+  .mobile-theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: none;
+    background: transparent;
+    color: var(--nm-text-primary);
+    cursor: pointer;
+    border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-menu-btn:active,
+  .mobile-theme-btn:active {
+    background: var(--nm-bg-tertiary);
+  }
+
+  .mobile-menu-btn svg,
+  .mobile-theme-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mobile-brand {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--nm-text-primary);
+  }
+
+  .mobile-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+  }
+
+  /* Responsive - 2026 Modern Breakpoints */
+
+  /* Tablet (768px - 1023px) */
+  @media (max-width: 1023px) {
+    .mobile-header {
+      display: flex;
+    }
+
+    .mobile-overlay {
+      display: block;
+    }
+
+    .nm-dashboard {
+      padding-top: 56px;
+    }
+
     .nm-dashboard-sidebar {
       position: fixed;
       left: 0;
-      top: 0;
+      top: 56px;
+      bottom: 0;
+      width: 300px;
       z-index: 100;
       transform: translateX(-100%);
-      transition: transform var(--nm-duration-normal) var(--nm-easing-smooth);
+      transition: transform 0.3s ease;
+      background: var(--nm-bg-secondary);
+      border-right: 1px solid var(--nm-border);
     }
 
-    .nm-dashboard-sidebar.open {
+    .nm-dashboard-sidebar.mobile-open {
       transform: translateX(0);
+    }
+
+    .sidebar-brand {
+      padding-top: 16px;
+    }
+
+    .sidebar-actions {
+      padding: 12px 16px;
+    }
+
+    .sidebar-search {
+      padding: 0 16px 12px;
+    }
+
+    .sidebar-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sidebar-footer {
+      padding: 12px 16px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Adjust note list for touch - 48px minimum target */
+    :global(.note-item) {
+      padding: 14px 16px;
+      min-height: 56px;
+    }
+
+    /* Larger touch targets - 48px minimum per 2026 guidelines */
+    :global(.note-delete) {
+      width: 48px;
+      height: 48px;
+      min-width: 48px;
+      min-height: 48px;
+    }
+
+    :global(.note-delete svg) {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* Sidebar actions button - larger touch target */
+    :global(.nm-btn) {
+      min-height: 48px;
+      padding: 12px 20px;
+    }
+  }
+
+  /* Small Mobile (below 480px) */
+  @media (max-width: 480px) {
+    .nm-dashboard-sidebar {
+      width: 100%;
+      max-width: 100%;
+    }
+
+    .sidebar-brand .brand-name {
+      display: none;
+    }
+
+    /* Reduce padding for small screens */
+    .sidebar-actions,
+    .sidebar-search,
+    .sidebar-footer {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  /* Container query support for future component-level responsiveness */
+  @supports (container-type: inline-size) {
+    .nm-dashboard-sidebar {
+      container-type: inline-size;
     }
   }
 </style>

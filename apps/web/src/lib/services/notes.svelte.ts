@@ -188,10 +188,10 @@ export async function protectNote(
 
 /**
  * Allows a user to join a note shared via URL
+ * FIX: Fetch actual title from Yjs document instead of hardcoded "Shared Note"
  */
 export async function joinSharedNote(
   noteId: string,
-  title: string = "Shared Note",
 ): Promise<Note | undefined> {
   try {
     const session = auth.session;
@@ -200,13 +200,30 @@ export async function joinSharedNote(
     const existingNote = await getNoteById(noteId);
     if (existingNote) {
       if (existingNote.userId === session.userId) return existingNote;
+      // User is collaborator - return existing note with its actual title
+      return existingNote;
+    }
+
+    // Note doesn't exist yet - create it
+    // Try to get title from Yjs document if it exists (from other collaborator)
+    let noteTitle = "Shared Note";
+    try {
+      const docInfo = openDocument(noteId);
+      const yjsTitle = docInfo.title.toString();
+      if (yjsTitle && yjsTitle.trim() !== "") {
+        noteTitle = yjsTitle.trim();
+      }
+      docInfo.destroy();
+    } catch {
+      // Yjs document might not exist yet - use default title
+      console.log("[Notes] No existing Yjs document, using default title");
     }
 
     const now = Date.now();
     return await createNote({
       id: noteId,
       userId: session.userId,
-      title,
+      title: noteTitle,
       tags: [],
       createdAt: now,
       updatedAt: now,

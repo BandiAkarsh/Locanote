@@ -1,0 +1,73 @@
+# Security Policy for Locanote
+# This file provides security contact information for security researchers
+
+# Contact Information
+Contact: mailto:security@locanote.app
+
+# Expiration Date (ISO 8601 format)
+Expires: 2027-03-02T00:00:00.000Z
+
+# Preferred Languages
+Preferred-Languages: en
+
+# Canonical Location
+Canonical: https://locanote.pages.dev/.well-known/security.txt
+
+# Hiring
+Hiring: https://github.com/BandiAkarsh/locanote
+
+---
+
+# How to Report a Security Vulnerability
+
+Thank you for helping keep Locanote secure! We appreciate your efforts and responsible disclosure.
+
+## Reporting Process
+
+1. **Email us** at security@locanote.app with details about the vulnerability
+2. **Include**:
+   - Description of the vulnerability
+   - Steps to reproduce
+   - Potential impact
+   - Suggested fix (if any)
+
+3. **Allow us time** to investigate and fix before public disclosure
+   - We aim to respond within 48 hours
+   - We aim to fix critical issues within 7 days
+   - We aim to fix non-critical issues within 30 days
+
+4. **Responsible Disclosure**:
+   - Do not exploit the vulnerability beyond what is necessary for verification
+   - Do not access, modify, or delete data belonging to others
+   - Do not perform DoS attacks or social engineering
+
+## Scope
+
+This security.txt applies to:
+- https://locanote.pages.dev (main application)
+- WebRTC signaling server (if applicable)
+- Any associated Cloudflare Workers
+
+## Out of Scope
+
+The following are NOT considered vulnerabilities:
+- Missing HTTP security headers on static assets
+- SPF/DMARC/DKIM misconfigurations
+- Physical security attacks
+- Social engineering attacks
+
+## Safe Harbor
+
+We consider security research conducted in accordance with this policy to be:
+- Authorized under the Computer Fraud and Abuse Act
+- Exempt from DMCA Section 1201
+- Protected under our legal policy
+
+We will not take legal action against researchers who:
+- Follow this security policy
+- Make a good faith effort to avoid privacy violations
+- Report vulnerabilities promptly
+
+---
+
+Last Updated: 2026-03-02
