@@ -188,7 +188,7 @@ export async function protectNote(
 
 /**
  * Allows a user to join a note shared via URL
- * FIX: Fetch actual title from Yjs document instead of hardcoded "Shared Note"
+ * FIX: Fetch actual title from IndexedDB first, then sync via Yjs/WebRTC
  */
 export async function joinSharedNote(
   noteId: string,
@@ -197,6 +197,7 @@ export async function joinSharedNote(
     const session = auth.session;
     if (!session) return undefined;
 
+    // First check if note already exists in IndexedDB
     const existingNote = await getNoteById(noteId);
     if (existingNote) {
       if (existingNote.userId === session.userId) return existingNote;
@@ -204,19 +205,32 @@ export async function joinSharedNote(
       return existingNote;
     }
 
-    // Note doesn't exist yet - create it
-    // Try to get title from Yjs document if it exists (from other collaborator)
+    // Note doesn't exist in IndexedDB yet
+    // Try to get title from Yjs document if other collaborators are online
     let noteTitle = "Shared Note";
+
+    // Open the Yjs document and wait for it to sync from IndexedDB
     try {
       const docInfo = openDocument(noteId);
+
+      // Wait briefly for IndexedDB to load (if note was previously saved)
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const yjsTitle = docInfo.title.toString();
       if (yjsTitle && yjsTitle.trim() !== "") {
         noteTitle = yjsTitle.trim();
+      } else {
+        // Check meta for any stored title
+        const meta = docInfo.meta;
+        const metaTitle = meta.get("title");
+        if (metaTitle && typeof metaTitle === "string" && metaTitle.trim()) {
+          noteTitle = metaTitle.trim();
+        }
       }
-      docInfo.destroy();
-    } catch {
-      // Yjs document might not exist yet - use default title
-      console.log("[Notes] No existing Yjs document, using default title");
+
+      // Don't destroy - let the editor handle it
+    } catch (err) {
+      console.log("[Notes] Error getting title from Yjs:", err);
     }
 
     const now = Date.now();

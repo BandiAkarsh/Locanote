@@ -39,20 +39,39 @@ export type { WebrtcProvider };
 // ============================================================================
 // SIGNALING SERVER CONFIGURATION
 // ============================================================================
-// URL of my Cloudflare Worker signaling server
-// Set VITE_SIGNALING_URL environment variable for production
-// Falls back to localhost for development
+// Multiple signaling servers for redundancy
+// If one fails, y-webrtc will try others
 
-const SIGNALING_SERVER_URL = (() => {
-  // Check for production URL from environment
+const SIGNALING_SERVERS = [
+  // My Cloudflare Worker (primary)
+  "wss://locanote-signaling.akarshbandi82.workers.dev",
+  // Local development
+  "ws://127.0.0.1:8787",
+  // Public y-webrtc signaling servers (fallback)
+  "wss://signaling.yjs.dev",
+  "wss://y-webrtc-signaling-eu.herokuapp.com",
+  "wss://y-webrtc-signaling-us.herokuapp.com",
+];
+
+// Get appropriate signaling servers based on environment
+function getSignalingServers(): string[] {
+  // Check for custom URL from environment
   if (
     typeof import.meta !== "undefined" &&
     import.meta.env?.VITE_SIGNALING_URL
   ) {
-    return import.meta.env.VITE_SIGNALING_URL;
+    const customUrl = import.meta.env.VITE_SIGNALING_URL;
+    if (typeof window !== "undefined") {
+      const host = window.location.hostname;
+      // In development, use localhost
+      if (host === "localhost" || host === "127.0.0.1") {
+        return ["ws://127.0.0.1:8787", customUrl];
+      }
+    }
+    return [customUrl, ...SIGNALING_SERVERS];
   }
 
-  // In development/test, always try to use local signaling if available
+  // Development mode detection
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
     console.log(`[WebRTC] Detecting signaling server for host: ${host}`);
@@ -61,13 +80,13 @@ const SIGNALING_SERVER_URL = (() => {
       host === "127.0.0.1" ||
       host.includes("local")
     ) {
-      return "ws://127.0.0.1:8787";
+      return ["ws://127.0.0.1:8787", ...SIGNALING_SERVERS];
     }
   }
 
-  // Production signaling server
-  return "wss://locanote-signaling.akarshbandi82.workers.dev";
-})();
+  // Production: use my server first, then fallbacks
+  return SIGNALING_SERVERS;
+}
 
 // ============================================================================
 // CREATE WEBRTC PROVIDER
@@ -86,6 +105,10 @@ export function createWebRTCProvider(
 ): WebrtcProvider {
   console.log(`[DEBUG] createWebRTCProvider called for room: ${roomId}`);
 
+  // Get signaling servers
+  const signalingServers = getSignalingServers();
+  console.log(`[DEBUG] Using signaling servers:`, signalingServers);
+
   // --------------------------------------------------------------------
   // CREATE PROVIDER
   // --------------------------------------------------------------------
@@ -94,13 +117,6 @@ export function createWebRTCProvider(
   // FIX: Use noteId as room password so ALL users with same note can connect
   // The encryption key is separate and shared via URL hash for document content
 
-  // Build signaling URL
-  const signalingUrl = SIGNALING_SERVER_URL.includes("?")
-    ? `${SIGNALING_SERVER_URL}&room=${roomId}`
-    : `${SIGNALING_SERVER_URL}?room=${roomId}`;
-  console.log(`[DEBUG] Connecting to signaling server:`, signalingUrl);
-  console.log(`[DEBUG] Room password (noteId):`, roomId);
-
   const provider = new WebrtcProvider(
     roomId, // Room ID - peers in same room sync together
     ydoc, // Yjs document to synchronize
@@ -108,9 +124,8 @@ export function createWebRTCProvider(
       // ----------------------------------------------------------------
       // SIGNALING SERVERS
       // ----------------------------------------------------------------
-      // Array of signaling server URLs
-      // I use my Cloudflare Worker, appending the room ID for discovery
-      signaling: [signalingUrl],
+      // Array of signaling server URLs - y-webrtc tries them in order
+      signaling: signalingServers,
 
       // ----------------------------------------------------------------
       // ROOM PASSWORD
@@ -119,6 +134,10 @@ export function createWebRTCProvider(
       // This ensures User A and User B join the same WebRTC room
       // The E2E encryption key is shared separately via URL hash
       password: roomId,
+
+      // ----------------------------------------------------------------
+      // OPTIONS
+      // ----------------------------------------------------------------
     },
   );
 
@@ -164,8 +183,10 @@ export function createWebRTCProvider(
       console.log(
         `[WebRTC] 👥 Peers in room ${roomId}:`,
         event.webrtcPeers.length,
-        "peers:",
+        "WebRTC peers:",
         event.webrtcPeers,
+        "Broadcast peers:",
+        event.bcPeers,
       );
     },
   );
@@ -193,7 +214,6 @@ export function destroyWebRTCProvider(provider: WebrtcProvider): void {
 
   // Destroy the provider (removes event listeners, etc.)
   provider.destroy();
-
 }
 
 // ============================================================================
